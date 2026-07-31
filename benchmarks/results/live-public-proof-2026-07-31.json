@@ -1,0 +1,50 @@
+{
+  "canClaimAGI": false,
+  "candidateOnly": true,
+  "checks": {
+    "anonymousGatewayHttp": 401,
+    "authenticatedLoginPageHttp": 200,
+    "factoryRootLoginHttp": 400,
+    "judgeReadOnlyVerified": true,
+    "judgeUiLoginHttp": 200,
+    "loopbackOnlyBeforeRelay": true,
+    "serviceReadOnlyVerified": true
+  },
+  "datahub": {
+    "basePolicyActive": false,
+    "datasetCount": 4,
+    "proposalsEmitted": 38,
+    "resourceUrn": "urn:li:dataset:(urn:li:dataPlatform:ledgerlens,ledgerlens.failure_ledger.finding.ledger-validator-blind-spots-2026-07-26-14abd2f4bae4,PROD)",
+    "version": "v1.6.0"
+  },
+  "deploymentCommit": "6e1bc63fa3adae6ee13afbfa4c5c526d8977337f",
+  "externalValidation": false,
+  "gatewayCodeCommit": "ce999c8",
+  "limitations": [
+    "The public hostname was temporary and supervised, with no uptime guarantee.",
+    "This proves authenticated reachability and configured read-only access at the observation time, not production security.",
+    "The synthetic seed and live metadata do not prove incident causality, impact, recovery, or model uplift.",
+    "Slack, PagerDuty, and Jira were not executed live."
+  ],
+  "observedAtUtc": "2026-07-31T12:19:38.212333+00:00",
+  "paidResourceProvisioned": false,
+  "schemaVersion": "ledgerlens.live-public-proof.v1",
+  "sourceReceiptSha256": {
+    "bootstrap": "c7adf8d92e074c5b68fbcea6e7e783692880c312696908505bd3d3925064b4e2",
+    "lockDown": "a41dbefb9fbcba8485d3af949373ee048570ff755b0a6e2d1aa17609593ef50e",
+    "seed": "73c9525138511bd5206b6fa84f71522ef4d0077582a4eb89bc12c3ed63b47e82"
+  },
+  "status": "PASS",
+  "teardown": {
+    "completedAtUtc": "2026-07-31T12:22:33.052852+00:00",
+    "localAuthGatewayRemoved": true,
+    "publicTunnelStopped": true,
+    "publicUrlAfterStopHttp": 503,
+    "remoteStackStopped": true,
+    "remoteVolumesPreserved": true,
+    "sshRelayStopped": true,
+    "status": "complete"
+  },
+  "temporaryPublicHost": "bc4704e1a61fde.lhr.life",
+  "topology": "pro6000-cf loopback DataHub -> managed SSH relay -> local Caddy basic auth -> localhost.run TLS"
+}

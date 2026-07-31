@@ -65,6 +65,34 @@ origin:
 The disposable origin contained no repository or DataHub data. The URL was stopped immediately.
 The full DataHub stack was not launched during this audit, and no paid resource was created.
 
+### Completed supervised public proof
+
+On July 31, 2026, the full hardened stack was launched from merged commit `6e1bc63` on
+`pro6000-cf`. Cloudflare's account-less Quick Tunnel API was unavailable from both the workstation
+and the local Mac, so the supervised fallback used:
+
+```text
+pro6000-cf loopback DataHub
+  -> managed SSH local forward
+  -> loopback Caddy basic-auth gateway
+  -> localhost.run temporary TLS tunnel
+```
+
+The public checks returned:
+
+- HTTP 401 without gateway credentials;
+- HTTP 200 for the gateway-authenticated DataHub login page;
+- HTTP 200 for the read-only judge UI login;
+- HTTP 400 for the factory `datahub/datahub` credential;
+- verified Reader-only judge and service grants with the base all-users policy disabled.
+
+The tunnel, gateway, SSH relay, and remote stack were then stopped in that order. The former
+temporary URL returned HTTP 503 after teardown; DataHub volumes and private receipts were
+preserved. The secret-safe receipt is
+[`benchmarks/results/live-public-proof-2026-07-31.json`](../benchmarks/results/live-public-proof-2026-07-31.json).
+This was a supervised reachability proof, not a durable judge URL or production-security
+validation.
+
 ## Options evaluated
 
 ### 1. Existing physical workstation + Cloudflare Quick Tunnels — recommended
