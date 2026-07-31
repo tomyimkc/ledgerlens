@@ -84,20 +84,41 @@ done
 silent="$WORK/silent-proof.mp4"
 ffmpeg -hide_banner -loglevel error -y -f concat -safe 0 -i "$concat_file" -c copy "$silent"
 
-CAPTIONS_FILTER="$("$PYTHON_BIN" - "$CAPTIONS" <<'PY'
+if ffmpeg -hide_banner -filters 2>/dev/null | grep -qE '[[:space:]]subtitles[[:space:]]'; then
+  CAPTIONS_FILTER="$("$PYTHON_BIN" - "$CAPTIONS" <<'PY'
 import sys
 print(sys.argv[1].replace("\\", "\\\\").replace(":", "\\:").replace("'", "\\'"))
 PY
 )"
-ffmpeg -hide_banner -loglevel error -y \
-  -i "$silent" -i "$NARRATION" -i "$CAPTIONS" \
-  -filter_complex \
-  "[0:v]subtitles=filename='$CAPTIONS_FILTER':force_style='FontName=Arial,FontSize=24,Outline=2,Shadow=0,MarginV=42'[v]" \
-  -map "[v]" -map 1:a:0 -map 2:0 \
-  -c:v libx264 -preset medium -crf 18 -pix_fmt yuv420p \
-  -c:a aac -b:a 192k -c:s mov_text \
-  -metadata:s:s:0 language=eng -movflags +faststart \
-  "$FINAL"
+  ffmpeg -hide_banner -loglevel error -y \
+    -i "$silent" -i "$NARRATION" -i "$CAPTIONS" \
+    -filter_complex \
+    "[0:v]subtitles=filename='$CAPTIONS_FILTER':force_style='FontName=Arial,FontSize=24,Outline=2,Shadow=0,MarginV=42'[v]" \
+    -map "[v]" -map 1:a:0 -map 2:0 \
+    -c:v libx264 -preset medium -crf 18 -pix_fmt yuv420p \
+    -c:a aac -b:a 192k -c:s mov_text \
+    -metadata:s:s:0 language=eng -movflags +faststart \
+    "$FINAL"
+else
+  SILENT_DURATION="$(
+    ffprobe -v error -show_entries format=duration \
+      -of default=noprint_wrappers=1:nokey=1 "$silent"
+  )"
+  CAPTION_OVERLAY_DIR="$WORK/caption-overlay"
+  CAPTION_MANIFEST="$(
+    "$PYTHON_BIN" "$ROOT/scripts/video/render_caption_overlay.py" \
+      "$CAPTIONS" "$CAPTION_OVERLAY_DIR" --duration "$SILENT_DURATION"
+  )"
+  ffmpeg -hide_banner -loglevel error -y \
+    -i "$silent" -i "$NARRATION" -i "$CAPTIONS" \
+    -f concat -safe 0 -i "$CAPTION_MANIFEST" \
+    -filter_complex "[0:v][3:v]overlay=0:0:shortest=1[v]" \
+    -map "[v]" -map 1:a:0 -map 2:0 \
+    -c:v libx264 -preset medium -crf 18 -pix_fmt yuv420p \
+    -c:a aac -b:a 192k -c:s mov_text \
+    -metadata:s:s:0 language=eng -movflags +faststart \
+    "$FINAL"
+fi
 
 "$PYTHON_BIN" - "$ROOT" "$SEGMENTS_TSV" "$MANIFEST" <<'PY'
 from datetime import UTC, datetime

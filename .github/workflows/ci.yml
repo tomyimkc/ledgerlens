@@ -34,7 +34,7 @@ jobs:
           enable-cache: true
 
       - name: Install offline-test dependencies
-        run: uv sync --extra dev --extra web
+        run: uv sync --extra dev --extra web --extra video
 
       - name: Lint
         run: uv run ruff check src tests scripts
