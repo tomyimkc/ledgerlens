@@ -7,8 +7,8 @@ Incident Commander replay and DataHub OSS catalog. It is deliberately not descri
 production deployment.
 
 The deterministic Incident Commander replay is currently public at
-`https://tomyimkc-sophia-governance-gate.hf.space/`. The Docker-VM package described below is the
-optional path for a separate live DataHub OSS judge environment.
+`https://tomyimkc-ledgerlens-incident-commander.hf.space/`. The Docker-VM package described below
+is the optional path for a separate live DataHub OSS judge environment.
 
 ```yaml
 candidateOnly: true
