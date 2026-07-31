@@ -9,6 +9,7 @@ from pathlib import Path
 from types import ModuleType
 
 import pytest
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 RENDER_CONFIG = ROOT / "deploy/bin/render_config.py"
@@ -154,6 +155,47 @@ def test_static_users_keep_policy_enforcement_with_documented_existence_mode() -
     assert '"METADATA_SERVICE_AUTH_ENABLED": "true"' in render_config
     assert '"AUTH_POLICIES_ENABLED": "true"' in render_config
     assert '"REST_API_AUTHORIZATION": "true"' in render_config
+
+
+def test_hardened_compose_overrides_factory_root_credentials(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    module = _load_render_config()
+    datahub_home = tmp_path / "datahub-home"
+    monkeypatch.setenv("DATAHUB_HOME", str(datahub_home))
+    source = tmp_path / "source.yml"
+    destination = tmp_path / "hardened.yml"
+    source.write_text(
+        yaml.safe_dump(
+            {
+                "services": {
+                    "datahub-gms-quickstart": {"environment": {}},
+                    "frontend-quickstart": {"environment": {}, "volumes": []},
+                    "system-update-quickstart": {},
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    module.harden_datahub_compose(source, destination)
+
+    payload = yaml.safe_load(destination.read_text(encoding="utf-8"))
+    frontend = payload["services"]["frontend-quickstart"]
+    mounts = [
+        volume
+        for volume in frontend["volumes"]
+        if volume.get("target") == "/datahub-frontend/conf/user.props"
+    ]
+    assert mounts == [
+        {
+            "type": "bind",
+            "source": str(datahub_home.resolve() / ".datahub/plugins/frontend/auth/user.props"),
+            "target": "/datahub-frontend/conf/user.props",
+            "read_only": True,
+        }
+    ]
 
 
 def test_live_proof_seeds_parser_valid_public_fixture() -> None:

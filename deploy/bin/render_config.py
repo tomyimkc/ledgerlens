@@ -130,6 +130,20 @@ def harden_datahub_compose(source: Path, destination: Path) -> None:
     if not isinstance(frontend_environment, dict):
         raise SystemExit("DataHub frontend environment has an unexpected shape")
     frontend_environment["AUTH_JAAS_ENABLED"] = "true"
+    frontend_volumes = services["frontend-quickstart"].setdefault("volumes", [])
+    if not isinstance(frontend_volumes, list):
+        raise SystemExit("DataHub frontend volumes have an unexpected shape")
+    default_user_file = (
+        Path(required("DATAHUB_HOME")).resolve() / ".datahub/plugins/frontend/auth/user.props"
+    )
+    frontend_volumes.append(
+        {
+            "type": "bind",
+            "source": str(default_user_file),
+            "target": "/datahub-frontend/conf/user.props",
+            "read_only": True,
+        }
+    )
 
     destination.write_text(
         yaml.safe_dump(payload, sort_keys=False, width=120),
