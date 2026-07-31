@@ -143,7 +143,9 @@ def test_hosted_smoke_is_scheduled_and_credential_free() -> None:
     workflow = (ROOT / ".github/workflows/hosted-smoke.yml").read_text(encoding="utf-8")
     assert "schedule:" in workflow
     assert "workflow_dispatch:" in workflow
-    assert "check_hosted_incident_demo.py" in workflow
+    assert "actions/setup-python@v5" in workflow
+    assert 'python-version: "3.12"' in workflow
+    assert "python3 scripts/check_hosted_incident_demo.py" in workflow
     assert "upload-artifact@v4" in workflow
     assert "secrets." not in workflow
 

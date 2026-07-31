@@ -49,3 +49,19 @@ def test_receipt_check_fails_closed_on_claim_drift(tmp_path: Path) -> None:
         "receipt.json: canClaimAGI must be false",
         "receipt.json: externalValidation must be false when present",
     ]
+
+
+def test_receipt_check_rejects_empty_object(tmp_path: Path) -> None:
+    (tmp_path / "receipt.json").write_text("{}\n", encoding="utf-8")
+    errors: list[str] = []
+    check_receipt(
+        tmp_path,
+        "receipt.json",
+        {("status",): "PASS"},
+        errors,
+    )
+    assert errors == [
+        "receipt.json: status must be 'PASS', found None",
+        "receipt.json: candidateOnly must be true",
+        "receipt.json: canClaimAGI must be false",
+    ]

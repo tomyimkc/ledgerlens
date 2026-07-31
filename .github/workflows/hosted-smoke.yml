@@ -22,9 +22,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Set up supported Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Run credential-free hosted smoke
         run: |
-          python scripts/check_hosted_incident_demo.py \
+          python3 scripts/check_hosted_incident_demo.py \
             --output artifacts/hosted-smoke/receipt.json
 
       - name: Upload sanitized receipt

@@ -21,7 +21,7 @@ DEFERRED_BLOCKERS = (
 )
 
 
-def _load_json(path: Path, root: Path, errors: list[str]) -> Mapping[str, Any]:
+def _load_json(path: Path, root: Path, errors: list[str]) -> Mapping[str, Any] | None:
     label = path.relative_to(root)
     if not path.is_file():
         errors.append(f"missing required receipt: {label}")
@@ -55,7 +55,7 @@ def check_receipt(
     """Validate one immutable evidence receipt and its claim ceiling."""
 
     payload = _load_json(root / relative, root, errors)
-    if not payload:
+    if payload is None:
         return
     for key_path, expected in expectations.items():
         actual = _value_at(payload, key_path)
@@ -171,7 +171,13 @@ def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
     hosted_workflow = (root / ".github/workflows/hosted-smoke.yml").read_text(encoding="utf-8")
     _require_text(
         hosted_workflow,
-        ("schedule:", "workflow_dispatch:", "check_hosted_incident_demo.py"),
+        (
+            "schedule:",
+            "workflow_dispatch:",
+            "actions/setup-python@v5",
+            'python-version: "3.12"',
+            "python3 scripts/check_hosted_incident_demo.py",
+        ),
         label=".github/workflows/hosted-smoke.yml",
         errors=errors,
     )
