@@ -1,0 +1,16 @@
+.DS_Store
+.coverage
+.claude/
+.env
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+__pycache__/
+*.egg-info/
+*.py[cod]
+artifacts/
+coverage.xml
+htmlcov/
+triage-report.json
+triage-report.md

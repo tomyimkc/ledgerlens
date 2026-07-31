@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ledgerlens"
+version = "0.1.0"
+description = "DataHub agent for evidence-grounded failure-ledger triage."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = { text = "Apache-2.0" }
+authors = [{ name = "LedgerLens contributors" }]
+dependencies = [
+  "httpx>=0.28,<1",
+  "jinja2>=3.1,<4",
+  "pydantic>=2.11,<3",
+  "pydantic-settings>=2.10,<3",
+  "python-dotenv>=1.1,<2",
+  "rich>=14,<15",
+  "typer>=0.16,<1",
+]
+
+[project.optional-dependencies]
+datahub = [
+    "acryl-datahub>=1.6.0.15,<1.7",
+    "mcp-server-datahub==0.6.0",
+]
+web = ["fastapi>=0.116,<1", "uvicorn[standard]>=0.35,<1"]
+video = ["pillow>=11,<13"]
+dev = [
+  "mypy>=1.17,<2",
+  "pytest>=8.4,<9",
+  "pytest-cov>=6.2,<7",
+  "respx>=0.22,<1",
+  "ruff>=0.12,<1",
+]
+
+[project.scripts]
+ledgerlens = "ledgerlens.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ledgerlens"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+packages = ["ledgerlens"]

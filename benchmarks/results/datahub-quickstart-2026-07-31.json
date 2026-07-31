@@ -1,0 +1,29 @@
+{
+  "environment": {
+    "acrylDatahub": "1.6.0.16",
+    "datahubOss": "v1.6.0",
+    "machine": "arm64",
+    "platform": "macOS-27.0-arm64-arm-64bit"
+  },
+  "gitCommit": "eb0fefa083e141f1cc75d9bfef091822b8b35bd3",
+  "gitDirty": false,
+  "measuredAt": "2026-07-31T05:33:07.654711+00:00",
+  "result": {
+    "frontendUrl": "http://localhost:9002",
+    "gmsUrl": "http://localhost:8080",
+    "status": "PASS",
+    "warmRestartSeconds": 58.447
+  },
+  "schemaVersion": 1,
+  "scope": {
+    "canClaimAGI": false,
+    "candidateOnly": true,
+    "measurement": "local DataHub OSS warm restart and endpoint readiness",
+    "notProven": [
+      "production readiness",
+      "source-finding truth",
+      "independent validation"
+    ]
+  },
+  "startedAt": "2026-07-31T05:31:51.774988+00:00"
+}

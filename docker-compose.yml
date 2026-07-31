@@ -1,0 +1,42 @@
+services:
+  ledgerlens-demo:
+    build:
+      context: .
+    image: ledgerlens:local
+    command: ["demo", "--host", "0.0.0.0", "--port", "8000", "--no-open-browser"]
+    environment:
+      LEDGERLENS_LLM_ENABLED: "false"
+      LEDGERLENS_MUTATIONS_ENABLED: "false"
+    ports:
+      - "127.0.0.1:8000:8000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  ledgerlens-live:
+    profiles: ["live"]
+    build:
+      context: .
+    image: ledgerlens:local
+    command: ["serve", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      DATAHUB_GMS_URL: "${DATAHUB_GMS_URL:-http://host.docker.internal:8080}"
+      DATAHUB_FRONTEND_URL: "${DATAHUB_FRONTEND_URL:-http://host.docker.internal:9002}"
+      DATAHUB_MCP_URL: "${DATAHUB_MCP_URL:-}"
+      DATAHUB_MCP_COMMAND: "${DATAHUB_MCP_COMMAND:-mcp-server-datahub}"
+      DATAHUB_GMS_TOKEN: "${DATAHUB_GMS_TOKEN:-}"
+      LEDGERLENS_LLM_ENABLED: "${LEDGERLENS_LLM_ENABLED:-false}"
+      LEDGERLENS_LLM_BASE_URL: "https://api.020s.com/v1"
+      LEDGERLENS_LLM_MODEL: "${LEDGERLENS_LLM_MODEL:-gpt-5.6-sol}"
+      LEDGERLENS_MUTATIONS_ENABLED: "false"
+    ports:
+      - "127.0.0.1:8001:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true

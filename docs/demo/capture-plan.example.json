@@ -1,0 +1,118 @@
+{
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "shots": [
+    {
+      "id": "01-ledgerlens-boundary",
+      "url": "${LEDGERLENS_DEMO_URL}",
+      "actions": [
+        {
+          "type": "waitFor",
+          "selector": "[data-testid='ledgerlens-dashboard']"
+        },
+        {
+          "type": "screenshot",
+          "name": "01-ledgerlens-boundary.png"
+        }
+      ]
+    },
+    {
+      "id": "02-datahub-finding",
+      "url": "${DATAHUB_FRONTEND_URL}/login?redirect_uri=%2F",
+      "actions": [
+        {
+          "type": "waitFor",
+          "selector": "#username"
+        },
+        {
+          "type": "fill",
+          "selector": "#username",
+          "value": "${DATAHUB_DEMO_USERNAME}"
+        },
+        {
+          "type": "fill",
+          "selector": "#password",
+          "value": "${DATAHUB_DEMO_PASSWORD}"
+        },
+        {
+          "type": "click",
+          "selector": "button:has-text(\"Login\")"
+        },
+        {
+          "type": "wait",
+          "milliseconds": 1500
+        },
+        {
+          "type": "goto",
+          "url": "${DATAHUB_ENTITY_URL}",
+          "timeoutMilliseconds": 30000
+        },
+        {
+          "type": "wait",
+          "milliseconds": 2500
+        },
+        {
+          "type": "tryClick",
+          "selector": "[aria-label=\"Close\"]",
+          "timeoutMilliseconds": 3000
+        },
+        {
+          "type": "wait",
+          "milliseconds": 500
+        },
+        {
+          "type": "screenshot",
+          "name": "02-datahub-finding.png"
+        }
+      ]
+    },
+    {
+      "id": "03-remediation-query",
+      "url": "${LEDGERLENS_DEMO_URL}",
+      "actions": [
+        {
+          "type": "click",
+          "selector": "[data-testid='queue-link']"
+        },
+        {
+          "type": "waitFor",
+          "selector": "[data-testid='remediation-report']",
+          "timeoutMilliseconds": 30000
+        },
+        {
+          "type": "screenshot",
+          "name": "03-remediation-report.png"
+        }
+      ]
+    },
+    {
+      "id": "04-supersession-query",
+      "url": "${LEDGERLENS_DEMO_URL}",
+      "actions": [
+        {
+          "type": "click",
+          "selector": "[data-finding-id='strict-parser-fixture-suite-2026-07-31']"
+        },
+        {
+          "type": "waitFor",
+          "selector": "[data-testid='supersession-chain']",
+          "timeoutMilliseconds": 30000
+        },
+        {
+          "type": "scrollCenter",
+          "selector": "[data-testid='supersession-chain']"
+        },
+        {
+          "type": "wait",
+          "milliseconds": 500
+        },
+        {
+          "type": "screenshot",
+          "name": "04-supersession-chain.png"
+        }
+      ]
+    }
+  ]
+}

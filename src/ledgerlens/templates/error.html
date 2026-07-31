@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} · LedgerLens{% endblock %}
+
+{% block content %}
+  <section class="error-page">
+    <span class="error-code">{{ status_code }}</span>
+    <p class="eyebrow">CLEAR ERROR STATE</p>
+    <h1>{{ title }}</h1>
+    <p>{{ message }}</p>
+    <a class="button button-primary" href="{{ request.url_for('dashboard') }}">
+      Return to dashboard
+    </a>
+  </section>
+{% endblock %}

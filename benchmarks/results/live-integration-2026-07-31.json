@@ -1,0 +1,58 @@
+{
+  "deterministicGate": {
+    "dockerBuildAndLiveCompose": "PASS",
+    "mypyStrict": "PASS",
+    "publicPackage": "PASS",
+    "ruff": "PASS",
+    "ruffFormat": "PASS",
+    "secretScan": "PASS",
+    "testsPassed": 124,
+    "wheelAndSdist": "PASS"
+  },
+  "environment": {
+    "acrylDatahub": "1.6.0.16",
+    "datahubOss": "v1.6.0",
+    "machine": "arm64",
+    "mcpServerDatahub": "0.6.0",
+    "python": "3.12.13"
+  },
+  "gitCommit": "eb0fefa083e141f1cc75d9bfef091822b8b35bd3",
+  "gitDirty": false,
+  "liveDataHubGate": {
+    "actionableFindings": 3,
+    "auditMetadataRecovered": true,
+    "datasetsIngested": 4,
+    "durationSeconds": 24.612182,
+    "explicitSupersessionChainLength": 2,
+    "findingsParsed": 4,
+    "groundingConflicts": 0,
+    "metadataProposalsAccepted": 38,
+    "officialMcpToolsAvailable": 6,
+    "status": "PASS",
+    "supersessionEdges": 1,
+    "tagsCreated": 11
+  },
+  "measuredAt": "2026-07-31T05:34:01.609748+00:00",
+  "schemaVersion": 1,
+  "scope": {
+    "canClaimAGI": false,
+    "candidateOnly": true,
+    "externalValidation": false,
+    "notProven": [
+      "truth of source findings",
+      "independent validation",
+      "production-scale reliability",
+      "agent capability uplift",
+      "AGI"
+    ]
+  },
+  "videoGate": {
+    "requirements": [
+      "under 180 seconds",
+      "burned English captions",
+      "generated footage below 15 percent",
+      "real receipt and public-repository proof shots"
+    ],
+    "status": "PENDING_FINAL_PUBLIC_CUT"
+  }
+}

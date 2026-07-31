@@ -1,0 +1,61 @@
+{
+  "environment": {
+    "gmsUrl": "http://localhost:8080",
+    "machine": "arm64",
+    "mcpUrl": "http://127.0.0.1:8765/mcp",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "python": "3.12.13"
+  },
+  "gitCommit": "eb0fefa083e141f1cc75d9bfef091822b8b35bd3",
+  "gitDirty": false,
+  "measuredAt": "2026-07-31T05:29:03.392072+00:00",
+  "results": {
+    "gmsHealth": {
+      "maxMs": 5.329,
+      "meanMs": 1.337,
+      "minMs": 0.768,
+      "n": 10,
+      "p50Ms": 0.922,
+      "p95Ms": 5.329
+    },
+    "mcpListTools": {
+      "maxMs": 4.523,
+      "meanMs": 3.048,
+      "minMs": 2.7,
+      "n": 10,
+      "p50Ms": 2.815,
+      "p95Ms": 4.523,
+      "toolCount": 6,
+      "tools": [
+        "get_dataset_queries",
+        "get_entities",
+        "get_lineage",
+        "get_lineage_paths_between",
+        "list_schema_fields",
+        "search"
+      ]
+    },
+    "mcpSearch": {
+      "maxMs": 833.199,
+      "meanMs": 448.848,
+      "minMs": 388.745,
+      "n": 10,
+      "p50Ms": 406.381,
+      "p95Ms": 833.199,
+      "query": "ledgerlens.failure_ledger",
+      "responseType": "CallToolResult"
+    }
+  },
+  "schemaVersion": 1,
+  "scope": {
+    "canClaimAGI": false,
+    "candidateOnly": true,
+    "measurement": "live DataHub and MCP infrastructure latency",
+    "notProven": [
+      "scientific validity of ingested findings",
+      "independent validation",
+      "agent capability uplift",
+      "AGI"
+    ]
+  }
+}

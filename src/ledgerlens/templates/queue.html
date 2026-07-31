@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Remediation queue · LedgerLens{% endblock %}
+
+{% block content %}
+  <section class="page-heading queue-heading">
+    <a class="back-link" href="{{ request.url_for('dashboard') }}">← Dashboard</a>
+    <div class="heading-line">
+      <div>
+        <p class="eyebrow">AGENT-GENERATED ARTIFACT</p>
+        <h1>Remediation queue</h1>
+      </div>
+      <div class="download-actions">
+        <a class="button button-secondary" href="/reports/triage.md">Download Markdown</a>
+        <a class="button button-primary" href="/reports/triage.json">Download JSON</a>
+      </div>
+    </div>
+    <p class="page-lede">
+      Deterministically ranked by recorded priority and metadata gaps. Missing evidence
+      remains unverified; it is never silently promoted.
+    </p>
+  </section>
+
+  {% if error %}
+    <section class="alert alert-error" role="alert">
+      <div>
+        <strong>Queue unavailable</strong>
+        <p>{{ error }}</p>
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="queue-metrics">
+    <article>
+      <strong>{{ triage.summary.actionable or 0 }}</strong>
+      <span>actionable findings</span>
+    </article>
+    <article>
+      <strong>{{ triage.summary.missing_owner or 0 }}</strong>
+      <span>missing owners</span>
+    </article>
+    <article>
+      <strong>{{ triage.summary.missing_evidence or 0 }}</strong>
+      <span>missing evidence</span>
+    </article>
+    <article>
+      <strong>{{ triage.summary.unverified or 0 }}</strong>
+      <span>unverified</span>
+    </article>
+  </section>
+
+  <section class="panel full-queue" data-testid="remediation-report">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">PRIORITIZED OUTPUT</p>
+        <h2>What needs attention now</h2>
+      </div>
+      {% if triage.generated_at %}
+        <small>Generated {{ triage.generated_at }}</small>
+      {% endif %}
+    </div>
+
+    {% if triage.queue %}
+      <ol class="queue-table">
+        {% for item in triage.queue %}
+          <li>
+            <div class="queue-order">
+              <span>{{ item.rank }}</span>
+              <small>score {{ item.score }}</small>
+            </div>
+            <div class="queue-content">
+              <div class="queue-title-line">
+                <div>
+                  <span class="finding-priority priority-{{ item.priority }}">
+                    {{ item.priority }}
+                  </span>
+                  <h3>{{ item.title }}</h3>
+                </div>
+                <a href="{{ request.url_for('finding', finding_id=item.finding_id) }}">
+                  Inspect finding ↗
+                </a>
+              </div>
+              <p>{{ item.required_action }}</p>
+              <div class="queue-meta">
+                <span>
+                  <small>OWNER</small>
+                  {% if item.owner %}{{ item.owner.name }}{% else %}<b>Unassigned</b>{% endif %}
+                </span>
+                <span>
+                  <small>METADATA GAPS</small>
+                  {% if item.gaps %}{{ item.gaps | join(", ") }}{% else %}None recorded{% endif %}
+                </span>
+              </div>
+              <code class="urn-line">{{ item.datahub_urn }}</code>
+            </div>
+          </li>
+        {% endfor %}
+      </ol>
+    {% else %}
+      <div class="empty-state">
+        <span aria-hidden="true">✓</span>
+        <h3>No actionable findings available</h3>
+        <p>Connect an adapter or ingest records before generating the queue.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <p class="context-note page-note">{{ triage.note }}</p>
+{% endblock %}
