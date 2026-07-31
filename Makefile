@@ -27,7 +27,7 @@ setup: ## Install all developer, web, and DataHub extras with uv.
 
 sync-ci: ## Install only dependencies required by default offline-first CI.
 	uv python install $(PYTHON_VERSION)
-	uv sync --extra dev --extra web
+	uv sync --extra dev --extra web --extra video
 
 lint: ## Run Ruff over source, tests, and public automation.
 	uv run ruff check src tests scripts

@@ -117,6 +117,7 @@ def test_ci_is_offline_first_and_has_both_python_versions() -> None:
     assert "pytest" in workflow
     assert "uv build" in workflow
     assert "check_secrets.py" in workflow
+    assert "--extra video" in workflow
     assert "datahub-up" not in workflow
     assert "SOPHIA_020S_KEY" not in workflow
 
