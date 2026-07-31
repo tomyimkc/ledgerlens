@@ -147,10 +147,9 @@ def main() -> int:
     ):
         require(gate in workflow, f"CI gate missing: {gate}", errors)
     require("--extra datahub" in workflow, "CI DataHub dependency bootstrap missing", errors)
-    all_workflows = "\n".join(
-        path.read_text(encoding="utf-8")
-        for path in sorted((ROOT / ".github/workflows").glob("*.yml"))
-    )
+    workflow_root = ROOT / ".github/workflows"
+    workflow_paths = sorted([*workflow_root.glob("*.yml"), *workflow_root.glob("*.yaml")])
+    all_workflows = "\n".join(path.read_text(encoding="utf-8") for path in workflow_paths)
     for obsolete_action in (
         "actions/checkout@v4",
         "actions/setup-python@v5",
