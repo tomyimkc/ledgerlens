@@ -10,7 +10,11 @@
 - **Judge-access requirement:** free access through August 31, 2026
 - **Public demo URL:** `OWNER INPUT REQUIRED`
 - **Public video URL:** `OWNER INPUT REQUIRED`
-- **Final release/tag:** `OWNER INPUT REQUIRED`
+- **Final release/tag:** `v0.2.0`
+- **Merged commit:** `00063e40bfc785f13e6db938e0795928e4f843ba`
+- **Release URL:** `https://github.com/tomyimkc/ledgerlens/releases/tag/v0.2.0`
+- **Upstream issue:** `https://github.com/acryldata/mcp-server-datahub/issues/159`
+- **Upstream PR:** `https://github.com/acryldata/mcp-server-datahub/pull/160`
 
 ## One-line pitch
 
@@ -69,8 +73,16 @@ canClaimAGI: false
 - `benchmarks/incident_commander/github-live-action-receipt.json`
 - deterministic DataHub context ON/OFF receipt
 - public hosted demo health receipt
-- upstream MCP issue and PR
-- final Git commit and release
+- upstream MCP issue #159 and PR #160
+- merged commit `00063e4` and release `v0.2.0`
+
+## Current deployment blocker
+
+On July 31, 2026, Hugging Face rejected creation of a new Docker Space because the authenticated
+account had reached its limit of 20 Space creations in 24 hours. The API response said to retry in
+about 17 hours. No unrelated existing Space was overwritten. The repository's validated
+Docker-VM/Caddy workflow remains the public-hosting fallback and still requires owner-supplied VM,
+DNS, firewall, SSH, and protected GitHub Environment secrets.
 
 ## Under-three-minute video script (target 2:50)
 
@@ -123,8 +135,10 @@ End on the repository, Apache-2.0 badge, public demo URL, and exact claim bounda
 - [ ] Keep the hosted demo free and reachable through August 31, 2026.
 - [ ] Verify judge access in a clean/incognito browser.
 - [ ] Confirm video duration is below three minutes.
-- [ ] Publish final release/tag and commit SHA.
-- [ ] Open the upstream MCP issue and PR; link them only after they are public.
+- [x] Publish final release/tag and commit SHA.
+- [x] Open the upstream MCP issue and PR.
+- [ ] Obtain maintainer approval for the upstream fork CI workflow and review; no merge is claimed
+      while PR #160 remains open.
 - [ ] Confirm Slack, PagerDuty, and Jira are described as implemented adapters unless live receipts
       are obtained.
 - [ ] Run `make judge-check`.

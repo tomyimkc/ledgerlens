@@ -28,6 +28,9 @@ demo video under three minutes. LedgerLens's release plan keeps judge access fre
 
 - [Official competition](https://datahub.devpost.com/)
 - [Official rules and judging criteria](https://datahub.devpost.com/rules)
+- [v0.2.0 grand-prize release](https://github.com/tomyimkc/ledgerlens/releases/tag/v0.2.0)
+- [Upstream DataHub MCP issue #159](https://github.com/acryldata/mcp-server-datahub/issues/159)
+- [Upstream DataHub MCP PR #160](https://github.com/acryldata/mcp-server-datahub/pull/160)
 - [Judge-ready submission package](docs/DEVPOST_SUBMISSION.md)
 - [Architecture and trust boundaries](ARCHITECTURE.md)
 
@@ -189,11 +192,11 @@ docs/DEVPOST_SUBMISSION.md        judge-facing submission source
 
 ## Submission requirements and current gaps
 
-The repository is public and licensed under the [Apache License 2.0](LICENSE). Before final
-submission, the owner still must place the exact public project URL, public video URL, final commit,
-release tag, and judge-access instructions into
-[docs/DEVPOST_SUBMISSION.md](docs/DEVPOST_SUBMISSION.md), then verify all links in an incognito
-browser. The hosted environment must remain free to judges through August 31, 2026.
+The repository is public, licensed under the [Apache License 2.0](LICENSE), and released as
+[`v0.2.0`](https://github.com/tomyimkc/ledgerlens/releases/tag/v0.2.0) from merged commit
+`00063e4`. Before final submission, the owner still must publish the hosted demo and under-three-
+minute video URLs in [docs/DEVPOST_SUBMISSION.md](docs/DEVPOST_SUBMISSION.md), then verify judge
+access in an incognito browser. The hosted environment must remain free through August 31, 2026.
 
 Deployment instructions are maintained separately in
 [docs/HOSTED_DEMO.md](docs/HOSTED_DEMO.md); this packaging does not claim that deployment is live.
