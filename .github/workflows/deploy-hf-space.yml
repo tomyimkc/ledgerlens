@@ -1,0 +1,76 @@
+name: Deploy LedgerLens Hugging Face Space
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/deploy-hf-space.yml"
+      - "deploy/hf-space/**"
+      - "src/**"
+      - "pyproject.toml"
+      - "LICENSE"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ledgerlens-hf-space
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Publish Docker Space
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: hf-space
+    env:
+      HF_SPACE_REPO_ID: ${{ vars.HF_SPACE_REPO_ID }}
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+    steps:
+      - name: Check out merged source
+        uses: actions/checkout@v4
+
+      - name: Require configured deployment inputs
+        run: |
+          set -euo pipefail
+          test -n "$HF_SPACE_REPO_ID" || {
+            echo "hf-space variable HF_SPACE_REPO_ID is required." >&2
+            exit 2
+          }
+          test -n "$HF_TOKEN" || {
+            echo "hf-space secret HF_TOKEN is required." >&2
+            exit 2
+          }
+
+      - name: Install Hugging Face client
+        run: python -m pip install --disable-pip-version-check "huggingface_hub>=0.34,<1"
+
+      - name: Build secret-free Space payload
+        run: |
+          set -euo pipefail
+          destination="$RUNNER_TEMP/ledgerlens-space"
+          mkdir -p "$destination"
+          cp -R src "$destination/src"
+          cp pyproject.toml LICENSE "$destination/"
+          cp deploy/hf-space/README.md "$destination/README.md"
+          cp deploy/hf-space/Dockerfile "$destination/Dockerfile"
+          cp deploy/hf-space/app.py "$destination/app.py"
+          cp deploy/hf-space/.dockerignore "$destination/.dockerignore"
+          python scripts/check_secrets.py --root "$destination"
+
+      - name: Upload immutable source revision
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from huggingface_hub import HfApi
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "ledgerlens-space"
+          HfApi(token=os.environ["HF_TOKEN"]).upload_folder(
+              repo_id=os.environ["HF_SPACE_REPO_ID"],
+              repo_type="space",
+              folder_path=root,
+              commit_message=f"Deploy LedgerLens from GitHub {os.environ['GITHUB_SHA']}",
+          )
+          PY
