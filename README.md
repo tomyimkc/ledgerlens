@@ -194,9 +194,10 @@ docs/DEVPOST_SUBMISSION.md        judge-facing submission source
 
 The repository is public, licensed under the [Apache License 2.0](LICENSE), and released as
 [`v0.2.0`](https://github.com/tomyimkc/ledgerlens/releases/tag/v0.2.0) from merged commit
-`00063e4`. Before final submission, the owner still must publish the hosted demo and under-three-
-minute video URLs in [docs/DEVPOST_SUBMISSION.md](docs/DEVPOST_SUBMISSION.md), then verify judge
-access in an incognito browser. The hosted environment must remain free through August 31, 2026.
+`00063e4`. Before final submission, the owner still must publish the hosted demo and
+under-three-minute video URLs in [docs/DEVPOST_SUBMISSION.md](docs/DEVPOST_SUBMISSION.md), then
+verify judge access in an incognito browser. The hosted environment must remain free through
+August 31, 2026.
 
 Deployment instructions are maintained separately in
 [docs/HOSTED_DEMO.md](docs/HOSTED_DEMO.md); this packaging does not claim that deployment is live.
