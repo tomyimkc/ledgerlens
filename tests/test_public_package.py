@@ -26,10 +26,16 @@ REQUIRED_PUBLIC_PATHS = (
     ".dockerignore",
     "docker-compose.yml",
     ".github/workflows/ci.yml",
+    ".github/workflows/hosted-smoke.yml",
+    "scripts/check_hosted_incident_demo.py",
+    "scripts/check_non_video_readiness.py",
     "docs/DEVPOST_CHECKLIST.md",
+    "docs/DEVPOST_SUBMISSION.md",
     "docs/DEVPOST_WRITEUP.md",
     "docs/BENCHMARKS.md",
     "docs/DATAHUB_QUICKSTART.md",
+    "docs/EXTERNAL_EVALUATION.md",
+    "docs/LIVE_DATAHUB_PUBLIC.md",
     "docs/demo/DEMO_SCRIPT.md",
     "docs/demo/STORYBOARD.md",
     "docs/demo/RECORDING.md",
@@ -114,12 +120,32 @@ def test_ci_is_offline_first_and_has_both_python_versions() -> None:
     assert '"3.11"' in workflow
     assert '"3.12"' in workflow
     assert "ruff check" in workflow
+    assert "uv run mypy src/ledgerlens" in workflow
     assert "pytest" in workflow
     assert "uv build" in workflow
     assert "check_secrets.py" in workflow
     assert "--extra video" in workflow
+    assert "--extra datahub" in workflow
+    assert "check_non_video_readiness.py" in workflow
     assert "datahub-up" not in workflow
     assert "SOPHIA_020S_KEY" not in workflow
+
+
+def test_makefile_bootstraps_typecheck_and_demo_ui_contracts() -> None:
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    assert "uv sync --extra dev --extra web --extra video --extra datahub" in makefile
+    assert "check: lint format-check typecheck test build secret-scan public-check" in makefile
+    assert "--no-open-browser" not in makefile
+    assert "non-video-readiness:" in makefile
+
+
+def test_hosted_smoke_is_scheduled_and_credential_free() -> None:
+    workflow = (ROOT / ".github/workflows/hosted-smoke.yml").read_text(encoding="utf-8")
+    assert "schedule:" in workflow
+    assert "workflow_dispatch:" in workflow
+    assert "check_hosted_incident_demo.py" in workflow
+    assert "upload-artifact@v4" in workflow
+    assert "secrets." not in workflow
 
 
 def test_demo_script_is_under_three_minutes_and_requires_real_capture() -> None:

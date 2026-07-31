@@ -15,7 +15,8 @@ DATAHUB_DEMO_PASSWORD ?= datahub
 	check demo demo-ui benchmark benchmark-summary datahub-up datahub-down datahub-status \
 	live-smoke docker-build docker-demo video-tools capture-demo grok-assets render-video \
 	montage-demo verify-video clean-generated incident-demo incident-demo-headless \
-	incident-demo-manual incident-benchmark incident-catalog-bundle ai-rehearsal judge-check
+	incident-demo-manual incident-benchmark incident-catalog-bundle ai-rehearsal judge-check \
+	hosted-smoke non-video-readiness
 
 help: ## Show available targets.
 	@awk 'BEGIN {FS = ":.*## "; printf "LedgerLens targets:\\n\\n"} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-20s %s\\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -28,7 +29,7 @@ setup: ## Install all developer, web, and DataHub extras with uv.
 
 sync-ci: ## Install only dependencies required by default offline-first CI.
 	uv python install $(PYTHON_VERSION)
-	uv sync --extra dev --extra web --extra video
+	uv sync --extra dev --extra web --extra video --extra datahub
 
 lint: ## Run Ruff over source, tests, and public automation.
 	uv run ruff check src tests scripts
@@ -52,13 +53,13 @@ public-check: ## Validate public files, claims, fixtures, shell syntax, and resu
 	uv run python scripts/check_public_package.py
 	uv run pytest -q tests/test_public_package.py
 
-check: lint format-check test build secret-scan public-check ## Run the default contest-quality gate.
+check: lint format-check typecheck test build secret-scan public-check ## Run the default contest-quality gate.
 
 demo: ## Generate deterministic validation, ingestion, triage, and supersession artifacts.
 	uv run bash scripts/deterministic_demo.sh
 
 demo-ui: ## Serve the visibly labeled deterministic demo UI at localhost:8000.
-	uv run ledgerlens demo --host 127.0.0.1 --port 8000 --no-open-browser
+	uv run ledgerlens demo --host 127.0.0.1 --port 8000
 
 incident-demo: ## Launch the autonomous, visibly labeled Incident Commander fixture replay.
 	uv run bash scripts/demo_incident_commander.sh
@@ -80,7 +81,15 @@ incident-catalog-bundle: ## Build the 120-asset DataHub proposal bundle without 
 ai-rehearsal: ## Run the live 020s planner + verifier panel without external mutations.
 	uv run python scripts/run_incident_ai_rehearsal.py --force
 
-judge-check: lint format-check typecheck test secret-scan public-check incident-benchmark ## Run judge-facing quality and evidence gates.
+hosted-smoke: ## Verify the public fixture replay and write a sanitized receipt.
+	uv run python scripts/check_hosted_incident_demo.py \
+		--output artifacts/hosted-smoke/receipt.json
+
+non-video-readiness: ## Fail closed on missing non-video evidence, CI, or submission contracts.
+	uv run python scripts/check_non_video_readiness.py
+
+judge-check: lint format-check typecheck test secret-scan public-check incident-benchmark \
+	non-video-readiness ## Run judge-facing quality and evidence gates.
 
 benchmark: ## Record a deterministic fixture benchmark receipt.
 	uv run python scripts/run_benchmark.py \

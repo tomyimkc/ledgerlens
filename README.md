@@ -30,10 +30,12 @@ demo video under three minutes. LedgerLens's release plan keeps judge access fre
 - [Official rules and judging criteria](https://datahub.devpost.com/rules)
 - [Live Incident Commander](https://tomyimkc-ledgerlens-incident-commander.hf.space/)
 - [Hugging Face Space](https://huggingface.co/spaces/tomyimkc/ledgerlens-incident-commander)
-- [v0.2.0 grand-prize release](https://github.com/tomyimkc/ledgerlens/releases/tag/v0.2.0)
+- [v0.2.0 public baseline](https://github.com/tomyimkc/ledgerlens/releases/tag/v0.2.0)
 - [Upstream DataHub MCP issue #159](https://github.com/acryldata/mcp-server-datahub/issues/159)
 - [Upstream DataHub MCP PR #160](https://github.com/acryldata/mcp-server-datahub/pull/160)
 - [Judge-ready submission package](docs/DEVPOST_SUBMISSION.md)
+- [Supervised live DataHub public proof](docs/LIVE_DATAHUB_PUBLIC.md)
+- [Consent-safe external evaluation kit](docs/EXTERNAL_EVALUATION.md)
 - [Architecture and trust boundaries](ARCHITECTURE.md)
 
 > **Claim boundary:** the public one-command Incident Commander demo is a deterministic fixture
@@ -163,13 +165,23 @@ The paste-ready Devpost copy, URL fields, evidence checklist, and 2:50 demo scri
 
 | Surface | Safe statement | Not established |
 |---|---|---|
-| Incident Commander fixture | The replay UI exercises the complete visible state transition and labels every receipt as synthetic | Live provider execution or a live DataHub mutation |
+| Hosted Incident Commander fixture | The stable public Hugging Face replay exposes `/healthz`, runs the complete visible state transition, returns exactly four `fixture://` provider receipts, records fixture write-back, prepares next-agent memory, and reports deterministic authority with `ai_can_authorize: false` | Live provider execution or a live DataHub mutation from the hosted replay |
+| Temporary public DataHub reachability | A supervised authenticated proof exposed DataHub OSS v1.6.0 through a temporary TLS tunnel; unauthenticated access returned 401, judge login returned 200, Reader grants were verified without metadata-mutation authority, and teardown completed with the former URL returning 503 | A durable public DataHub judge URL, production security, or ongoing availability |
 | Provider action layer | All four adapters implement typed previews, authorization binding, idempotency, retries, and sanitized receipts; the published GitHub receipt records creation and immediate closure of rehearsal issue `#3` | Slack, PagerDuty, or Jira live execution; production permissions |
-| DataHub write-back layer | A published local DataHub OSS v1.6.0 receipt records 577 catalog proposals, an authorized `save_document` mutation, and fresh MCP retrieval of the resulting document | Hosted/public availability or incident recovery |
+| DataHub write-back layer | A published local DataHub OSS v1.6.0 receipt records an authorized `save_document` mutation and fresh official-MCP retrieval of the resulting document | Incident causality, user impact, recovery, or production readiness |
 | Verifier layer | A published live 020s rehearsal records one planner, two verifier variants, four bounded actions, quorum approval, and deterministic authorization with no external mutation | Provider-family independence, independent validation, or validated uplift |
 | Benchmarks | The synthetic DataHub-context ON/OFF ablation records owner accuracy, blast-radius recall, unsupported claims, unsafe actions, duplicate actions, and plan completeness | Production reliability, scientific validity, or general performance uplift |
+| External evaluation | The repository provides a consent-safe 7–10 minute scorecard and aggregation tool, and public recruitment is open | Any reviewer result, endorsement, external validation, or official judging score |
 
-Any public screenshot or video must keep the mode label and receipt scheme visible.
+Evidence details:
+
+- [`benchmarks/results/live-public-proof-2026-07-31.json`](benchmarks/results/live-public-proof-2026-07-31.json)
+- [`docs/LIVE_DATAHUB_PUBLIC.md`](docs/LIVE_DATAHUB_PUBLIC.md)
+- [`docs/EXTERNAL_EVALUATION.md`](docs/EXTERNAL_EVALUATION.md)
+
+The temporary DataHub public proof has been torn down. The Hugging Face fixture replay is the only
+stable public application URL. Any public screenshot or video must keep the mode label and receipt
+scheme visible.
 
 ## Local DataHub OSS smoke path
 
@@ -198,6 +210,8 @@ src/ledgerlens/mcp_mutations.py   controlled DataHub write-back
 fixtures/incident_commander/      synthetic public incident catalog
 benchmarks/incident_commander/    deterministic DataHub-context ablation
 scripts/demo_incident_commander.sh
+scripts/check_hosted_incident_demo.py
+scripts/check_non_video_readiness.py
 docs/DEVPOST_SUBMISSION.md        judge-facing submission source
 ```
 
@@ -205,13 +219,24 @@ docs/DEVPOST_SUBMISSION.md        judge-facing submission source
 
 The repository is public, licensed under the [Apache License 2.0](LICENSE), and released as
 [`v0.2.0`](https://github.com/tomyimkc/ledgerlens/releases/tag/v0.2.0) from merged commit
-`00063e4`. The hosted replay is deployed and publicly verified. Before final submission, the owner
-still must publish the under-three-minute video URL in
-[docs/DEVPOST_SUBMISSION.md](docs/DEVPOST_SUBMISSION.md). The Space must remain free and reachable
-through August 31, 2026.
+`00063e4`. The hosted replay is deployed, a supervised authenticated DataHub reachability proof
+has been completed and torn down, and the repository contains live GitHub, live DataHub
+write-back, AI-verification, benchmark, provenance, and external-evaluation evidence packages.
+
+The final `v0.2.1` tag is intentionally **pending the public video URL** and must not be described
+as published yet. Run the fail-closed non-video gate with:
+
+```bash
+make non-video-readiness
+```
+
+Before final submission, the owner must publish the under-three-minute video URL, cut `v0.2.1`
+from the final merged commit, review the Devpost account/team details, click final Submit, and save
+the submission receipt. The Space must remain free and reachable through August 31, 2026.
 
 Deployment instructions are maintained separately in
-[docs/HOSTED_DEMO.md](docs/HOSTED_DEMO.md); this packaging does not claim that deployment is live.
+[docs/HOSTED_DEMO.md](docs/HOSTED_DEMO.md). That document distinguishes the stable fixture replay
+from the completed temporary DataHub proof and does not claim a durable public DataHub deployment.
 
 ## Disclosure, security, and contribution
 
