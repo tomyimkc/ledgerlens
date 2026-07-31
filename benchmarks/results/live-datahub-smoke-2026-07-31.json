@@ -1,0 +1,57 @@
+{
+  "artifacts": [],
+  "benchmarkKind": "live-datahub-smoke",
+  "canClaimAGI": false,
+  "candidateOnly": true,
+  "capturedOutput": {
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdoutBytes": 139,
+    "stdoutSha256": "5dfeb29765399171acba2021920d62c174d62cfa0acc664461f2a3eb11a9b619"
+  },
+  "checks": [
+    {
+      "exitCode": 0,
+      "name": "commandExitZero",
+      "status": "PASS"
+    },
+    {
+      "name": "liveModeSelected",
+      "status": "PASS",
+      "value": true
+    }
+  ],
+  "command": [
+    "uv",
+    "run",
+    "bash",
+    "scripts/live_datahub_checks.sh"
+  ],
+  "durationSeconds": 24.612182,
+  "environment": {
+    "datahubCliVersion": "1.6.0.16",
+    "datahubOssVersion": "v1.6.0",
+    "frontendUrl": "http://localhost:9002",
+    "gmsUrl": "http://localhost:8080",
+    "machine": "arm64",
+    "mcpPackageVersion": "0.6.0",
+    "mcpTransport": "http",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "python": "3.12.13"
+  },
+  "externalValidation": false,
+  "finishedAtUtc": "2026-07-31T05:30:27.177254+00:00",
+  "gitCommit": "eb0fefa083e141f1cc75d9bfef091822b8b35bd3",
+  "gitDirty": false,
+  "limitations": [
+    "LedgerLens is a working prototype, not independent validation.",
+    "This receipt cannot establish AGI, validated uplift, or source-finding truth.",
+    "A smoke pass establishes compatibility with the recorded deployment only.",
+    "DataHub ingestion timestamps are not finding-validation timestamps."
+  ],
+  "liveDataHub": true,
+  "llmEnabled": false,
+  "schemaVersion": "1.0",
+  "startedAtUtc": "2026-07-31T05:30:02.564797+00:00",
+  "status": "PASS"
+}

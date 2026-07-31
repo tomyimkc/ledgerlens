@@ -179,13 +179,13 @@ These measurements establish prototype operation on the recorded local environme
 
 | Gate | Measured result |
 |---|---|
-| Deterministic suite | Passing on Python 3.11 and 3.12; exact count is recorded in the final receipt |
-| DataHub quickstart | OSS v1.6.0, ARM64-native, **43.559 s** warm restart |
-| Live ingestion | **4 datasets**, **39 proposals**, **12 tags**, **1 supersession edge** |
+| Deterministic suite | **124 passed**; Python 3.11/3.12 compatibility is enforced in CI |
+| DataHub quickstart | OSS v1.6.0, ARM64-native, **58.447 s** warm restart |
+| Live ingestion | **4 datasets**, **38 proposals**, **11 tags**, **1 supersession edge** |
 | Live agent | **3 actionable findings**, **0 grounding conflicts**, audit metadata recovered |
-| Official MCP | **6 read-only tools**; search p50 **391.503 ms** over 10 local trials |
-| 020s transport smoke | `gpt-5.6-sol`, exact bounded response, **34 tokens**, **2.716 s** |
-| Demo video | Under three minutes, 1920×1080 H.264, English narration and burned captions |
+| Official MCP | **6 read-only tools**; search p50 **406.381 ms** over 10 local trials |
+| 020s transport smoke | `gpt-5.6-sol`, exact bounded response, **34 tokens**, **5.560 s** |
+| Contest video gate | Final proof-complete cut pending; renderer enforces burned captions and generated footage below 15% |
 
 Receipts are under [`benchmarks/results/`](benchmarks/results/) and
 [`docs/results/`](docs/results/). They do not establish source-finding truth, independent

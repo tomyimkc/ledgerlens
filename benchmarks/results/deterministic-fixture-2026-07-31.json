@@ -1,0 +1,57 @@
+{
+  "artifacts": [],
+  "benchmarkKind": "deterministic-fixture",
+  "canClaimAGI": false,
+  "candidateOnly": true,
+  "capturedOutput": {
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdoutBytes": 843,
+    "stdoutSha256": "948f74c0a1ca679b455121f0b359d9f79fcd9f2d2569ab2d04fdeb6e7f4bba6b"
+  },
+  "checks": [
+    {
+      "exitCode": 0,
+      "name": "commandExitZero",
+      "status": "PASS"
+    },
+    {
+      "name": "liveModeSelected",
+      "status": "NOT_APPLICABLE",
+      "value": false
+    }
+  ],
+  "command": [
+    "uv",
+    "run",
+    "bash",
+    "scripts/deterministic_benchmark.sh"
+  ],
+  "durationSeconds": 1.172175,
+  "environment": {
+    "datahubCliVersion": null,
+    "datahubOssVersion": null,
+    "frontendUrl": null,
+    "gmsUrl": null,
+    "machine": "arm64",
+    "mcpPackageVersion": null,
+    "mcpTransport": null,
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "python": "3.12.13"
+  },
+  "externalValidation": false,
+  "finishedAtUtc": "2026-07-31T05:28:58.737690+00:00",
+  "gitCommit": "eb0fefa083e141f1cc75d9bfef091822b8b35bd3",
+  "gitDirty": false,
+  "limitations": [
+    "LedgerLens is a working prototype, not independent validation.",
+    "This receipt cannot establish AGI, validated uplift, or source-finding truth.",
+    "DataHub was not contacted.",
+    "Fixture checks do not establish live DataHub compatibility."
+  ],
+  "liveDataHub": false,
+  "llmEnabled": false,
+  "schemaVersion": "1.0",
+  "startedAtUtc": "2026-07-31T05:28:57.565371+00:00",
+  "status": "PASS"
+}

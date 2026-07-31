@@ -6,23 +6,25 @@
     "platform": "macOS-27.0-arm64-arm-64bit",
     "python": "3.12.13"
   },
-  "measuredAt": "2026-07-31T03:14:04.094903+00:00",
+  "gitCommit": "eb0fefa083e141f1cc75d9bfef091822b8b35bd3",
+  "gitDirty": false,
+  "measuredAt": "2026-07-31T05:29:03.392072+00:00",
   "results": {
     "gmsHealth": {
-      "maxMs": 5.936,
-      "meanMs": 1.757,
-      "minMs": 1.09,
+      "maxMs": 5.329,
+      "meanMs": 1.337,
+      "minMs": 0.768,
       "n": 10,
-      "p50Ms": 1.262,
-      "p95Ms": 5.936
+      "p50Ms": 0.922,
+      "p95Ms": 5.329
     },
     "mcpListTools": {
-      "maxMs": 4.72,
-      "meanMs": 3.222,
-      "minMs": 2.792,
+      "maxMs": 4.523,
+      "meanMs": 3.048,
+      "minMs": 2.7,
       "n": 10,
-      "p50Ms": 2.975,
-      "p95Ms": 4.72,
+      "p50Ms": 2.815,
+      "p95Ms": 4.523,
       "toolCount": 6,
       "tools": [
         "get_dataset_queries",
@@ -34,13 +36,13 @@
       ]
     },
     "mcpSearch": {
-      "maxMs": 425.065,
-      "meanMs": 394.983,
-      "minMs": 370.967,
+      "maxMs": 833.199,
+      "meanMs": 448.848,
+      "minMs": 388.745,
       "n": 10,
-      "p50Ms": 390.261,
-      "p95Ms": 425.065,
-      "query": "*",
+      "p50Ms": 406.381,
+      "p95Ms": 833.199,
+      "query": "ledgerlens.failure_ledger",
       "responseType": "CallToolResult"
     }
   },

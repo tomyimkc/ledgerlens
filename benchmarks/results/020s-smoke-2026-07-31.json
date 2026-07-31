@@ -1,0 +1,29 @@
+{
+  "gitCommit": "eb0fefa083e141f1cc75d9bfef091822b8b35bd3",
+  "gitDirty": false,
+  "measuredAt": "2026-07-31T05:29:03.991311+00:00",
+  "result": {
+    "exactMatch": true,
+    "expectedExactResponse": "LEDGERLENS_OK",
+    "httpStatus": 200,
+    "latencyMs": 5559.504,
+    "model": "gpt-5.6-sol",
+    "receivedExactResponse": "LEDGERLENS_OK",
+    "usage": {
+      "completion_tokens": 9,
+      "prompt_tokens": 25,
+      "total_tokens": 34
+    }
+  },
+  "schemaVersion": 1,
+  "scope": {
+    "canClaimAGI": false,
+    "candidateOnly": true,
+    "measurement": "020s API transport health only",
+    "notProven": [
+      "reasoning quality",
+      "capability uplift",
+      "independent validation"
+    ]
+  }
+}
