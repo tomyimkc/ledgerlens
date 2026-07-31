@@ -174,7 +174,7 @@ def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
         (
             "schedule:",
             "workflow_dispatch:",
-            "actions/setup-python@v5",
+            "actions/setup-python@v6",
             'python-version: "3.12"',
             "python3 scripts/check_hosted_incident_demo.py",
         ),

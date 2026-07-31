@@ -143,11 +143,23 @@ def test_hosted_smoke_is_scheduled_and_credential_free() -> None:
     workflow = (ROOT / ".github/workflows/hosted-smoke.yml").read_text(encoding="utf-8")
     assert "schedule:" in workflow
     assert "workflow_dispatch:" in workflow
-    assert "actions/setup-python@v5" in workflow
+    assert "actions/checkout@v6" in workflow
+    assert "actions/setup-python@v6" in workflow
     assert 'python-version: "3.12"' in workflow
     assert "python3 scripts/check_hosted_incident_demo.py" in workflow
-    assert "upload-artifact@v4" in workflow
+    assert "actions/upload-artifact@v7" in workflow
     assert "secrets." not in workflow
+
+
+def test_workflows_use_node24_action_majors() -> None:
+    workflows = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in sorted((ROOT / ".github/workflows").glob("*.yml"))
+    )
+    assert "actions/checkout@v4" not in workflows
+    assert "actions/setup-python@v5" not in workflows
+    assert "actions/upload-artifact@v4" not in workflows
+    assert workflows.count("actions/checkout@v6") >= 6
 
 
 def test_demo_script_is_under_three_minutes_and_requires_real_capture() -> None:
