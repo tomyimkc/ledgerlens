@@ -28,6 +28,8 @@ demo video under three minutes. LedgerLens's release plan keeps judge access fre
 
 - [Official competition](https://datahub.devpost.com/)
 - [Official rules and judging criteria](https://datahub.devpost.com/rules)
+- [Live Incident Commander](https://tomyimkc-sophia-governance-gate.hf.space/)
+- [Hugging Face Space](https://huggingface.co/spaces/tomyimkc/sophia-governance-gate)
 - [v0.2.0 grand-prize release](https://github.com/tomyimkc/ledgerlens/releases/tag/v0.2.0)
 - [Upstream DataHub MCP issue #159](https://github.com/acryldata/mcp-server-datahub/issues/159)
 - [Upstream DataHub MCP PR #160](https://github.com/acryldata/mcp-server-datahub/pull/160)
@@ -70,6 +72,15 @@ AI output is advisory. It cannot authorize itself, expand target allowlists, rel
 facts, or raise the claim ceiling.
 
 ## Run the judge demo
+
+The public deterministic replay is live at:
+
+```text
+https://tomyimkc-sophia-governance-gate.hf.space/
+```
+
+It redirects directly to the Incident Commander and requires no account, payment, API key, or
+provider credential.
 
 Prerequisites:
 
@@ -194,10 +205,10 @@ docs/DEVPOST_SUBMISSION.md        judge-facing submission source
 
 The repository is public, licensed under the [Apache License 2.0](LICENSE), and released as
 [`v0.2.0`](https://github.com/tomyimkc/ledgerlens/releases/tag/v0.2.0) from merged commit
-`00063e4`. Before final submission, the owner still must publish the hosted demo and
-under-three-minute video URLs in [docs/DEVPOST_SUBMISSION.md](docs/DEVPOST_SUBMISSION.md), then
-verify judge access in an incognito browser. The hosted environment must remain free through
-August 31, 2026.
+`00063e4`. The hosted replay is deployed and publicly verified. Before final submission, the owner
+still must publish the under-three-minute video URL in
+[docs/DEVPOST_SUBMISSION.md](docs/DEVPOST_SUBMISSION.md). The Space must remain free and reachable
+through August 31, 2026.
 
 Deployment instructions are maintained separately in
 [docs/HOSTED_DEMO.md](docs/HOSTED_DEMO.md); this packaging does not claim that deployment is live.

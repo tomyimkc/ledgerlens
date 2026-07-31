@@ -8,7 +8,8 @@
 - **License:** Apache-2.0
 - **Deadline:** August 10, 2026 at 5:00 PM EDT
 - **Judge-access requirement:** free access through August 31, 2026
-- **Public demo URL:** `OWNER INPUT REQUIRED`
+- **Public demo URL:** `https://tomyimkc-sophia-governance-gate.hf.space/`
+- **Space page:** `https://huggingface.co/spaces/tomyimkc/sophia-governance-gate`
 - **Public video URL:** `OWNER INPUT REQUIRED`
 - **Final release/tag:** `v0.2.0`
 - **Merged commit:** `00063e40bfc785f13e6db938e0795928e4f843ba`
@@ -76,13 +77,28 @@ canClaimAGI: false
 - upstream MCP issue #159 and PR #160
 - merged commit `00063e4` and release `v0.2.0`
 
-## Current deployment blocker
+## Public deployment status
 
-On July 31, 2026, Hugging Face rejected creation of a new Docker Space because the authenticated
-account had reached its limit of 20 Space creations in 24 hours. The API response said to retry in
-about 17 hours. No unrelated existing Space was overwritten. The repository's validated
-Docker-VM/Caddy workflow remains the public-hosting fallback and still requires owner-supplied VM,
-DNS, firewall, SSH, and protected GitHub Environment secrets.
+The existing public `tomyimkc/sophia-governance-gate` Space was repurposed with explicit owner
+authorization after its previous state was preserved on branch
+`backup/governance-gate-20260731` and in a local Git bundle. It now runs the LedgerLens Docker
+fixture replay on Hugging Face `cpu-basic`.
+
+Public verification on July 31, 2026 confirmed:
+
+- `/` redirects to `/incident`;
+- `/healthz` reports fixture mode, no external mutations, `candidateOnly: true`, and
+  `canClaimAGI: false`;
+- the Incident Commander page renders;
+- autonomous trigger execution produces four visibly synthetic `fixture://` receipts;
+- write-back reaches `recorded`;
+- next-agent memory reaches `ready`.
+
+The LedgerLens repository now has an `hf-space` GitHub Environment containing the write-only
+`HF_TOKEN` secret and `HF_SPACE_REPO_ID` variable. The deployment workflow is restricted to `main`
+and can also be dispatched manually.
+
+The Docker-VM/Caddy workflow remains available for a separate full DataHub OSS judge environment.
 
 ## Under-three-minute video script (target 2:50)
 
@@ -131,7 +147,8 @@ End on the repository, Apache-2.0 badge, public demo URL, and exact claim bounda
 
 ## Owner-only final checklist
 
-- [ ] Add public project and video URLs.
+- [ ] Add public video URL.
+- [x] Add and verify public project URL.
 - [ ] Keep the hosted demo free and reachable through August 31, 2026.
 - [ ] Verify judge access in a clean/incognito browser.
 - [ ] Confirm video duration is below three minutes.
