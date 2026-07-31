@@ -147,6 +147,20 @@ def main() -> int:
     ):
         require(gate in workflow, f"CI gate missing: {gate}", errors)
     require("--extra datahub" in workflow, "CI DataHub dependency bootstrap missing", errors)
+    all_workflows = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in sorted((ROOT / ".github/workflows").glob("*.yml"))
+    )
+    for obsolete_action in (
+        "actions/checkout@v4",
+        "actions/setup-python@v5",
+        "actions/upload-artifact@v4",
+    ):
+        require(
+            obsolete_action not in all_workflows,
+            f"workflow still uses Node 20 action major: {obsolete_action}",
+            errors,
+        )
 
     dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
     require("USER ledgerlens" in dockerfile, "Dockerfile must use non-root user", errors)
