@@ -136,8 +136,7 @@ export LEDGERLENS_LLM_ENABLED=false
 export LEDGERLENS_MUTATIONS_ENABLED=false
 exec uv run ledgerlens serve \
   --host 127.0.0.1 \
-  --port $(printf '%q' "$LEDGERLENS_PORT") \
-  --no-open-browser
+  --port $(printf '%q' "$LEDGERLENS_PORT")
 EOF
   chmod 700 "$APP_RUNNER"
   nohup "$APP_RUNNER" >"$APP_LOG_FILE" 2>&1 &
@@ -163,14 +162,15 @@ EOF
   mkdir -p "$STACK_STATE_DIR"
   chmod 700 "$STACK_STATE_DIR"
 
-  local started_datahub=0
-  local completed=0
+  started_datahub=0
+  completed=0
   cleanup_on_failure() {
     local exit_code=$?
     if ((completed == 0)); then
       stop_ledgerlens || true
       if ((started_datahub == 1)) && [[ -f "$DATAHUB_COMPOSE_FILE" ]]; then
         datahub_cli docker quickstart \
+          --version "$DATAHUB_VERSION" \
           --stop \
           --quickstart-compose-file "$DATAHUB_COMPOSE_FILE" || true
       fi
@@ -186,12 +186,14 @@ EOF
   bash "$ROOT/deploy/bin/prepare.sh"
 
   export DATAHUB_VERSION DATAHUB_MAPPED_GMS_PORT DATAHUB_MAPPED_FRONTEND_PORT
+  # Arm cleanup before quickstart because the CLI can fail after creating or
+  # starting only part of the compose stack.
+  started_datahub=1
   datahub_cli docker quickstart \
     --version "$DATAHUB_VERSION" \
     --quickstart-compose-file "$DATAHUB_COMPOSE_FILE" \
     --dump-logs-on-failure \
     --accept-version-default
-  started_datahub=1
 
   wait_for_url "$(local_gms_url)/config" 120 2
   wait_for_url "$(local_frontend_url)/login" 120 2
@@ -237,6 +239,7 @@ stop_command() {
   stop_ledgerlens || failed=1
   if [[ -f "$DATAHUB_COMPOSE_FILE" ]]; then
     datahub_cli docker quickstart \
+      --version "$DATAHUB_VERSION" \
       --stop \
       --quickstart-compose-file "$DATAHUB_COMPOSE_FILE" || failed=1
   fi

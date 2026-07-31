@@ -72,7 +72,11 @@ def render_users(datahub_home: Path) -> None:
         "".join(f"{username}:{password}\n" for username, password in users),
         encoding="utf-8",
     )
-    user_file.chmod(0o600)
+    # The official frontend container runs as uid/gid 100, while the bind-mounted
+    # file is created by the host operator (commonly uid/gid 1000). The enclosing
+    # deployment state tree is mode 0700, so make only this bind-mounted file
+    # world-readable for the non-root container instead of exposing the state tree.
+    user_file.chmod(0o644)
 
 
 def harden_datahub_compose(source: Path, destination: Path) -> None:
@@ -112,6 +116,11 @@ def harden_datahub_compose(source: Path, destination: Path) -> None:
     gms_environment.update(
         {
             "AUTH_POLICIES_ENABLED": "true",
+            # DataHub's documented static user.props mode requires either
+            # pre-provisioned actors or disabled existence enforcement. We
+            # still create the user aspects and verify Reader-only policy
+            # grants, while this setting lets the exact JAAS allowlist log in.
+            "METADATA_SERVICE_AUTH_ENFORCE_EXISTENCE_ENABLED": "false",
             "METADATA_SERVICE_AUTH_ENABLED": "true",
             "REST_API_AUTHORIZATION": "true",
         }

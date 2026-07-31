@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import time
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError
@@ -15,6 +16,7 @@ from urllib.request import Request, urlopen
 READER_ROLE = "urn:li:dataHubRole:Reader"
 BASE_POLICY_URN = "urn:li:dataHubPolicy:7"
 READ_PREFIXES = ("VIEW_", "GET_", "SEARCH_", "ES_EXPLAIN_")
+ALLOWED_READER_PLATFORM_PRIVILEGES = frozenset({"GENERATE_PERSONAL_ACCESS_TOKENS"})
 
 
 class DataHubAPI:
@@ -74,9 +76,27 @@ def enable_user(api: DataHubAPI, username: str) -> None:
             "/openapi/v3/entity/corpuser/"
             + quote(urn, safe="")
             + "/status?async=false&systemMetadata=false"
-            + "&createIfEntityNotExists=false&createIfNotExists=true"
+            + "&createIfEntityNotExists=false&createIfNotExists=false"
         ),
         {"value": {"removed": False}},
+    )
+    api.request(
+        "POST",
+        (
+            "/openapi/v3/entity/corpuser/"
+            + quote(urn, safe="")
+            + "/corpUserStatus?async=false&systemMetadata=false"
+            + "&createIfEntityNotExists=false&createIfNotExists=false"
+        ),
+        {
+            "value": {
+                "status": "ACTIVE",
+                "lastModified": {
+                    "time": int(time.time() * 1000),
+                    "actor": actor_urn("datahub"),
+                },
+            }
+        },
     )
 
 
@@ -183,16 +203,24 @@ def granted_privileges(api: DataHubAPI, username: str, resource_urn: str) -> dic
 
 def verify_reader(api: DataHubAPI, username: str, resource_urn: str) -> dict[str, Any]:
     privileges = granted_privileges(api, username, resource_urn)
-    if privileges["platform"]:
+    unsafe_platform = [
+        privilege
+        for privilege in privileges["platform"]
+        if not privilege.startswith(READ_PREFIXES)
+        and privilege not in ALLOWED_READER_PLATFORM_PRIVILEGES
+    ]
+    if unsafe_platform:
         raise SystemExit(
-            f"{username} unexpectedly has platform privileges: {privileges['platform']}"
+            f"{username} unexpectedly has unsafe platform privileges: {unsafe_platform}"
         )
-    unsafe = [
+    unsafe_metadata = [
         privilege for privilege in privileges["metadata"] if not privilege.startswith(READ_PREFIXES)
     ]
-    if unsafe:
-        raise SystemExit(f"{username} unexpectedly has write privileges: {unsafe}")
-    if "VIEW_ENTITY_PAGE" not in privileges["metadata"]:
+    if unsafe_metadata:
+        raise SystemExit(
+            f"{username} unexpectedly has metadata write privileges: {unsafe_metadata}"
+        )
+    if "VIEW_ENTITY_PAGE" not in privileges["platform"] + privileges["metadata"]:
         raise SystemExit(f"{username} is missing VIEW_ENTITY_PAGE")
     return {
         "actor": actor_urn(username),
@@ -208,6 +236,7 @@ def main() -> None:
     parser.add_argument("--gms-url", required=True)
     parser.add_argument("--admin-token-file", type=Path, required=True)
     parser.add_argument("--receipt", type=Path, required=True)
+    parser.add_argument("--resource-urn")
     args = parser.parse_args()
 
     token = args.admin_token_file.read_text(encoding="utf-8").strip()
@@ -226,7 +255,9 @@ def main() -> None:
         result["actors"] = [actor_urn(judge), actor_urn(service)]
         result["basePolicyTemporarilyActive"] = True
     else:
-        resource_urn = search_ledgerlens_urn(api)
+        resource_urn = args.resource_urn or search_ledgerlens_urn(api)
+        if not resource_urn.startswith("urn:li:dataset:"):
+            raise SystemExit("resource URN must identify a dataset")
         if args.phase == "lock-down":
             set_base_policy(api, active=False)
         result["resourceUrn"] = resource_urn

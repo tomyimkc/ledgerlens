@@ -212,10 +212,15 @@ The stack:
 2. downloads and SHA-256 verifies the pinned official DataHub compose;
 3. rewrites every published DataHub port to `127.0.0.1`;
 4. enables metadata authentication, policy enforcement, and REST authorization;
-5. rotates the root password and creates separate judge/service Reader users;
-6. seeds only the sanitized fixture;
-7. disables mutation/document/user tools for the LedgerLens web process;
-8. starts LedgerLens on `127.0.0.1:18000`.
+5. uses DataHub's documented static-credential mode with existence enforcement disabled, while
+   still creating the named actors and verifying Reader-only grants (read/search/view privileges
+   plus DataHub Reader's personal-token self-service, but no metadata mutation privilege);
+6. rotates the root password and creates separate judge/service Reader users;
+7. seeds only the parser-valid, synthetic `docs/fixtures/failure-ledger-demo.md` fixture and
+   verifies Reader grants against a dataset URN from the mutation receipt instead of racing the
+   search index;
+8. disables mutation/document/user tools for the LedgerLens web process;
+9. starts LedgerLens on `127.0.0.1:18000`.
 
 Before public exposure, independently confirm the host firewall does not expose 8080, 9002, or
 18000. The loopback compose binding is defense in depth, not a cloud/firewall audit.
