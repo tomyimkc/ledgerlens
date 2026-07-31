@@ -28,8 +28,8 @@ demo video under three minutes. LedgerLens's release plan keeps judge access fre
 
 - [Official competition](https://datahub.devpost.com/)
 - [Official rules and judging criteria](https://datahub.devpost.com/rules)
-- [Live Incident Commander](https://tomyimkc-sophia-governance-gate.hf.space/)
-- [Hugging Face Space](https://huggingface.co/spaces/tomyimkc/sophia-governance-gate)
+- [Live Incident Commander](https://tomyimkc-ledgerlens-incident-commander.hf.space/)
+- [Hugging Face Space](https://huggingface.co/spaces/tomyimkc/ledgerlens-incident-commander)
 - [v0.2.0 grand-prize release](https://github.com/tomyimkc/ledgerlens/releases/tag/v0.2.0)
 - [Upstream DataHub MCP issue #159](https://github.com/acryldata/mcp-server-datahub/issues/159)
 - [Upstream DataHub MCP PR #160](https://github.com/acryldata/mcp-server-datahub/pull/160)
@@ -76,7 +76,7 @@ facts, or raise the claim ceiling.
 The public deterministic replay is live at:
 
 ```text
-https://tomyimkc-sophia-governance-gate.hf.space/
+https://tomyimkc-ledgerlens-incident-commander.hf.space/
 ```
 
 It redirects directly to the Incident Commander and requires no account, payment, API key, or

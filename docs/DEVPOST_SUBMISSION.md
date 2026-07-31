@@ -8,8 +8,8 @@
 - **License:** Apache-2.0
 - **Deadline:** August 10, 2026 at 5:00 PM EDT
 - **Judge-access requirement:** free access through August 31, 2026
-- **Public demo URL:** `https://tomyimkc-sophia-governance-gate.hf.space/`
-- **Space page:** `https://huggingface.co/spaces/tomyimkc/sophia-governance-gate`
+- **Public demo URL:** `https://tomyimkc-ledgerlens-incident-commander.hf.space/`
+- **Space page:** `https://huggingface.co/spaces/tomyimkc/ledgerlens-incident-commander`
 - **Public video URL:** `OWNER INPUT REQUIRED`
 - **Final release/tag:** `v0.2.0`
 - **Merged commit:** `00063e40bfc785f13e6db938e0795928e4f843ba`
@@ -81,8 +81,9 @@ canClaimAGI: false
 
 The existing public `tomyimkc/sophia-governance-gate` Space was repurposed with explicit owner
 authorization after its previous state was preserved on branch
-`backup/governance-gate-20260731` and in a local Git bundle. It now runs the LedgerLens Docker
-fixture replay on Hugging Face `cpu-basic`.
+`backup/governance-gate-20260731` and in a local Git bundle. It was then renamed to
+`tomyimkc/ledgerlens-incident-commander` and now runs the LedgerLens Docker fixture replay on
+Hugging Face `cpu-basic`.
 
 Public verification on July 31, 2026 confirmed:
 
