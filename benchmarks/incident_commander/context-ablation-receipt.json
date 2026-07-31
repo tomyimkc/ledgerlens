@@ -142,16 +142,16 @@
     },
     "latencyMs": {
       "confidenceInterval95": {
-        "high": 0.03557834,
+        "high": 0.035387296,
         "level": 0.95,
-        "low": 0.033387122,
+        "low": 0.033525953,
         "method": "percentile-bootstrap",
         "samples": 2000,
         "seed": 11346546185446732120
       },
-      "contextOffMean": 0.0016735,
-      "contextOnMean": 0.03608675,
-      "differenceOnMinusOff": 0.03441325,
+      "contextOffMean": 0.001703083,
+      "contextOnMean": 0.036145792,
+      "differenceOnMinusOff": 0.034442708,
       "preferredDirection": "lower"
     },
     "ownerAccuracy": {
@@ -207,7 +207,7 @@
     "sha": null,
     "workflow": null
   },
-  "durationSeconds": 0.176065,
+  "durationSeconds": 0.17315,
   "environment": {
     "logicalCpuCount": 16,
     "machine": "arm64",
@@ -224,113 +224,13 @@
     "warmupIterationsPerScenarioMode": 1
   },
   "externalValidation": false,
-  "finishedAtUtc": "2026-07-31T08:31:57.250527+00:00",
+  "finishedAtUtc": "2026-07-31T08:45:16.757192+00:00",
   "git": {
     "branch": "feat/autonomous-incident-commander",
-    "commit": "a6e253c5923ba5f57f0e7bc79a25a275300f8294",
-    "dirty": true,
-    "dirtyPathCount": 99,
-    "dirtyPaths": [
-      "ARCHITECTURE.md",
-      "Dockerfile",
-      "Makefile",
-      "README.md",
-      "docker-compose.yml",
-      "pyproject.toml",
-      "src/ledgerlens/__init__.py",
-      "src/ledgerlens/cli.py",
-      "src/ledgerlens/config.py",
-      "src/ledgerlens/mcp_client.py",
-      "src/ledgerlens/templates/base.html",
-      "src/ledgerlens/web.py",
-      "tests/test_cli.py",
-      "tests/test_config.py",
-      "tests/test_web.py",
-      "uv.lock",
-      ".github/workflows/deploy-incident-demo.yml",
-      "benchmarks/incident_commander/README.md",
-      "benchmarks/incident_commander/__init__.py",
-      "benchmarks/incident_commander/ai-verification-receipt.json",
-      "benchmarks/incident_commander/benchmark.py",
-      "benchmarks/incident_commander/catalog.py",
-      "benchmarks/incident_commander/github-live-action-receipt.json",
-      "deploy/.env.example",
-      "deploy/.gitignore",
-      "deploy/Caddyfile.template",
-      "deploy/bin/arm-expiry.sh",
-      "deploy/bin/common.sh",
-      "deploy/bin/down.sh",
-      "deploy/bin/expiry-watchdog.sh",
-      "deploy/bin/healthcheck.sh",
-      "deploy/bin/preflight.sh",
-      "deploy/bin/prepare.sh",
-      "deploy/bin/provision.sh",
-      "deploy/bin/provision_datahub.py",
-      "deploy/bin/render_config.py",
-      "deploy/bin/reset-scenario.sh",
-      "deploy/bin/up.sh",
-      "deploy/bin/validate.sh",
-      "deploy/docker-compose.judge.yml",
-      "deploy/scenarios/baseline.md",
-      "deploy/scenarios/missing-metadata.md",
-      "deploy/scenarios/supersession.md",
-      "docs/DEVPOST_SUBMISSION.md",
-      "docs/GRAND_PRIZE_PLAN.md",
-      "docs/HOSTED_DEMO.md",
-      "docs/UPSTREAM_MCP_CONTRIBUTION.md",
-      "fixtures/incident_commander/README.md",
-      "fixtures/incident_commander/catalog.json",
-      "scripts/build_incident_catalog.py",
-      "scripts/demo_incident_commander.sh",
-      "scripts/ingest_incident_catalog.py",
-      "scripts/run_github_action_evidence.py",
-      "scripts/run_incident_ai_rehearsal.py",
-      "scripts/run_incident_commander_benchmark.py",
-      "src/ledgerlens/actions/__init__.py",
-      "src/ledgerlens/actions/auth.py",
-      "src/ledgerlens/actions/base.py",
-      "src/ledgerlens/actions/errors.py",
-      "src/ledgerlens/actions/fanout.py",
-      "src/ledgerlens/actions/github.py",
-      "src/ledgerlens/actions/idempotency.py",
-      "src/ledgerlens/actions/jira.py",
-      "src/ledgerlens/actions/models.py",
-      "src/ledgerlens/actions/pagerduty.py",
-      "src/ledgerlens/actions/slack.py",
-      "src/ledgerlens/actions/transport.py",
-      "src/ledgerlens/ai_roles.py",
-      "src/ledgerlens/catalog_runtime.py",
-      "src/ledgerlens/datahub_catalog.py",
-      "src/ledgerlens/datahub_context.py",
-      "src/ledgerlens/datahub_writeback.py",
-      "src/ledgerlens/incident_dashboard.py",
-      "src/ledgerlens/incident_integration.py",
-      "src/ledgerlens/incident_models.py",
-      "src/ledgerlens/mcp_mutations.py",
-      "src/ledgerlens/model_runtime.py",
-      "src/ledgerlens/orchestrator.py",
-      "src/ledgerlens/runtime_factory.py",
-      "src/ledgerlens/static/incident.css",
-      "src/ledgerlens/static/incident.js",
-      "src/ledgerlens/templates/incident_dashboard.html",
-      "src/ledgerlens/verification.py",
-      "tests/test_action_adapters.py",
-      "tests/test_ai_roles.py",
-      "tests/test_catalog_runtime.py",
-      "tests/test_datahub_catalog.py",
-      "tests/test_datahub_context.py",
-      "tests/test_datahub_writeback.py",
-      "tests/test_incident_benchmark.py",
-      "tests/test_incident_catalog.py",
-      "tests/test_incident_dashboard.py",
-      "tests/test_incident_integration.py",
-      "tests/test_incident_models.py",
-      "tests/test_mcp_mutations.py",
-      "tests/test_model_runtime.py",
-      "tests/test_orchestrator.py",
-      "tests/test_runtime_factory.py",
-      "tests/test_verification.py"
-    ]
+    "commit": "16db60c490cd2ed6fe18e541b3c7543f1f794b10",
+    "dirty": false,
+    "dirtyPathCount": 0,
+    "dirtyPaths": []
   },
   "limitations": [
     "The catalog, incidents, responders, and expected answers are synthetic.",
@@ -379,19 +279,19 @@
         },
         "latencyMs": {
           "confidenceInterval95": {
-            "high": 0.001722249,
+            "high": 0.001774373,
             "level": 0.95,
-            "low": 0.001631708,
+            "low": 0.001645707,
             "method": "percentile-bootstrap",
             "samples": 2000,
             "seed": 14577691765961104661
           },
-          "max": 0.011167,
-          "mean": 0.0016735,
+          "max": 0.00375,
+          "mean": 0.001703083,
           "measuredSamples": 168,
-          "min": 0.001333,
-          "p50": 0.001666,
-          "p95": 0.00225
+          "min": 0.001458,
+          "p50": 0.001708,
+          "p95": 0.002277
         },
         "ownerAccuracy": {
           "confidenceInterval95": {
@@ -466,19 +366,19 @@
         },
         "latencyMs": {
           "confidenceInterval95": {
-            "high": 0.037206841,
+            "high": 0.037144522,
             "level": 0.95,
-            "low": 0.035019,
+            "low": 0.035225324,
             "method": "percentile-bootstrap",
             "samples": 2000,
             "seed": 17353846994388612202
           },
-          "max": 0.060292,
-          "mean": 0.03608675,
+          "max": 0.061792,
+          "mean": 0.036145792,
           "measuredSamples": 168,
-          "min": 0.029834,
-          "p50": 0.036083,
-          "p95": 0.045018
+          "min": 0.030042,
+          "p50": 0.036291,
+          "p95": 0.04291
         },
         "ownerAccuracy": {
           "confidenceInterval95": {
@@ -525,21 +425,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.003083,
-            "meanMs": 0.002083,
-            "minMs": 0.0015,
-            "p50Ms": 0.001875,
-            "p95Ms": 0.002883,
+            "maxMs": 0.00375,
+            "meanMs": 0.00247,
+            "minMs": 0.001708,
+            "p50Ms": 0.002375,
+            "p95Ms": 0.003513,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.003083,
-            0.002333,
-            0.002417,
-            0.001875,
-            0.001875,
-            0.0015,
-            0.0015
+            0.00375,
+            0.002833,
+            0.002959,
+            0.002375,
+            0.001958,
+            0.001708,
+            0.001709
           ],
           "response": {
             "actions": [
@@ -669,21 +569,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.040958,
-            "meanMs": 0.033988,
-            "minMs": 0.029834,
-            "p50Ms": 0.032,
-            "p95Ms": 0.040296,
+            "maxMs": 0.041041,
+            "meanMs": 0.033928,
+            "minMs": 0.030042,
+            "p50Ms": 0.032958,
+            "p95Ms": 0.040179,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.03875,
-            0.040958,
-            0.036083,
-            0.032,
-            0.030416,
-            0.029875,
-            0.029834
+            0.041041,
+            0.038166,
+            0.033125,
+            0.032958,
+            0.031083,
+            0.030042,
+            0.031083
           ],
           "response": {
             "actions": [
@@ -878,21 +778,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.002209,
-            "meanMs": 0.001613,
-            "minMs": 0.001417,
-            "p50Ms": 0.0015,
-            "p95Ms": 0.002034,
+            "maxMs": 0.00225,
+            "meanMs": 0.001667,
+            "minMs": 0.001458,
+            "p50Ms": 0.001583,
+            "p95Ms": 0.002075,
             "samples": 7
           },
           "latencySamplesMs": [
             0.001625,
-            0.0015,
-            0.002209,
+            0.001583,
+            0.00225,
+            0.001667,
             0.001542,
-            0.0015,
-            0.001417,
-            0.0015
+            0.001542,
+            0.001458
           ],
           "response": {
             "actions": [
@@ -1022,21 +922,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.040083,
-            "meanMs": 0.036577,
-            "minMs": 0.034292,
-            "p50Ms": 0.035792,
-            "p95Ms": 0.03947,
+            "maxMs": 0.048542,
+            "meanMs": 0.039131,
+            "minMs": 0.03475,
+            "p50Ms": 0.038458,
+            "p95Ms": 0.045992,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.037166,
-            0.035792,
-            0.035667,
-            0.040083,
-            0.035,
-            0.034292,
-            0.038041
+            0.038458,
+            0.036458,
+            0.03625,
+            0.048542,
+            0.040042,
+            0.039417,
+            0.03475
           ],
           "response": {
             "actions": [
@@ -1263,21 +1163,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.00225,
-            "meanMs": 0.001738,
-            "minMs": 0.001542,
-            "p50Ms": 0.001583,
-            "p95Ms": 0.002163,
+            "maxMs": 0.002375,
+            "meanMs": 0.001791,
+            "minMs": 0.001583,
+            "p50Ms": 0.001708,
+            "p95Ms": 0.002212,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001959,
-            0.00175,
-            0.00225,
+            0.001833,
+            0.001833,
+            0.002375,
+            0.001708,
             0.001583,
-            0.001542,
-            0.001542,
-            0.001542
+            0.001625,
+            0.001583
           ],
           "response": {
             "actions": [
@@ -1416,21 +1316,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.03575,
-            "meanMs": 0.03303,
-            "minMs": 0.031459,
-            "p50Ms": 0.032458,
-            "p95Ms": 0.03565,
+            "maxMs": 0.032417,
+            "meanMs": 0.031803,
+            "minMs": 0.030875,
+            "p50Ms": 0.03225,
+            "p95Ms": 0.032392,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.032458,
-            0.032042,
-            0.035416,
-            0.0325,
-            0.031459,
-            0.031583,
-            0.03575
+            0.032417,
+            0.032333,
+            0.03225,
+            0.03225,
+            0.031291,
+            0.031208,
+            0.030875
           ],
           "response": {
             "actions": [
@@ -1631,21 +1531,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.001958,
-            "meanMs": 0.001613,
-            "minMs": 0.001417,
-            "p50Ms": 0.001583,
-            "p95Ms": 0.001933,
+            "maxMs": 0.002,
+            "meanMs": 0.001625,
+            "minMs": 0.0015,
+            "p50Ms": 0.001542,
+            "p95Ms": 0.001925,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001875,
-            0.001583,
-            0.001958,
-            0.001584,
-            0.001458,
-            0.001417,
-            0.001417
+            0.0015,
+            0.00175,
+            0.002,
+            0.001542,
+            0.001542,
+            0.001542,
+            0.0015
           ],
           "response": {
             "actions": [
@@ -1775,21 +1675,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.042125,
-            "meanMs": 0.035815,
-            "minMs": 0.031917,
-            "p50Ms": 0.032625,
-            "p95Ms": 0.041887,
+            "maxMs": 0.039458,
+            "meanMs": 0.035042,
+            "minMs": 0.031792,
+            "p50Ms": 0.033541,
+            "p95Ms": 0.03927,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.038292,
-            0.042125,
-            0.041333,
-            0.03225,
-            0.032166,
-            0.032625,
-            0.031917
+            0.03725,
+            0.038833,
+            0.039458,
+            0.033541,
+            0.032375,
+            0.032042,
+            0.031792
           ],
           "response": {
             "actions": [
@@ -1998,21 +1898,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.001959,
-            "meanMs": 0.001565,
-            "minMs": 0.001333,
-            "p50Ms": 0.001583,
-            "p95Ms": 0.001871,
+            "maxMs": 0.002208,
+            "meanMs": 0.001833,
+            "minMs": 0.001583,
+            "p50Ms": 0.001708,
+            "p95Ms": 0.00217,
             "samples": 7
           },
           "latencySamplesMs": [
+            0.002208,
+            0.002083,
+            0.002041,
+            0.001625,
+            0.001708,
             0.001583,
-            0.001666,
-            0.001959,
-            0.001583,
-            0.001416,
-            0.001417,
-            0.001333
+            0.001583
           ],
           "response": {
             "actions": [
@@ -2142,21 +2042,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.033709,
-            "meanMs": 0.03222,
-            "minMs": 0.030417,
-            "p50Ms": 0.033,
-            "p95Ms": 0.033571,
+            "maxMs": 0.042459,
+            "meanMs": 0.037464,
+            "minMs": 0.033583,
+            "p50Ms": 0.037625,
+            "p95Ms": 0.041559,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.030625,
-            0.031416,
-            0.03325,
-            0.030417,
-            0.033709,
-            0.033125,
-            0.033
+            0.037,
+            0.037625,
+            0.042459,
+            0.033583,
+            0.039458,
+            0.033708,
+            0.038417
           ],
           "response": {
             "actions": [
@@ -2351,20 +2251,20 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.009584,
-            "meanMs": 0.002821,
+            "maxMs": 0.002167,
+            "meanMs": 0.001684,
             "minMs": 0.0015,
             "p50Ms": 0.001625,
-            "p95Ms": 0.007359,
+            "p95Ms": 0.002029,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.009584,
+            0.001666,
             0.001625,
             0.002167,
+            0.001708,
             0.001625,
-            0.001666,
-            0.001583,
+            0.0015,
             0.0015
           ],
           "response": {
@@ -2504,21 +2404,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.048416,
-            "meanMs": 0.037905,
-            "minMs": 0.031042,
-            "p50Ms": 0.03525,
-            "p95Ms": 0.047154,
+            "maxMs": 0.042208,
+            "meanMs": 0.036036,
+            "minMs": 0.031459,
+            "p50Ms": 0.037459,
+            "p95Ms": 0.041396,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.033791,
-            0.040667,
-            0.048416,
-            0.044208,
-            0.03525,
-            0.031959,
-            0.031042
+            0.042208,
+            0.037459,
+            0.0395,
+            0.037959,
+            0.032083,
+            0.031583,
+            0.031459
           ],
           "response": {
             "actions": [
@@ -2727,21 +2627,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.002208,
-            "meanMs": 0.001786,
-            "minMs": 0.001625,
-            "p50Ms": 0.001708,
-            "p95Ms": 0.002095,
+            "maxMs": 0.002292,
+            "meanMs": 0.001887,
+            "minMs": 0.001709,
+            "p50Ms": 0.001833,
+            "p95Ms": 0.002167,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001708,
-            0.001708,
-            0.002208,
+            0.001791,
             0.001833,
-            0.00175,
-            0.001667,
-            0.001625
+            0.002292,
+            0.001833,
+            0.001875,
+            0.001875,
+            0.001709
           ],
           "response": {
             "actions": [
@@ -2880,21 +2780,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.047166,
-            "meanMs": 0.038452,
-            "minMs": 0.034666,
-            "p50Ms": 0.037041,
-            "p95Ms": 0.045566,
+            "maxMs": 0.041,
+            "meanMs": 0.03653,
+            "minMs": 0.035083,
+            "p50Ms": 0.035875,
+            "p95Ms": 0.039813,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.035458,
-            0.041833,
-            0.037041,
-            0.047166,
-            0.034792,
-            0.034666,
-            0.038208
+            0.035875,
+            0.035917,
+            0.041,
+            0.037042,
+            0.035416,
+            0.035083,
+            0.035375
           ],
           "response": {
             "actions": [
@@ -3123,21 +3023,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.001916,
-            "meanMs": 0.001619,
-            "minMs": 0.0015,
-            "p50Ms": 0.001542,
-            "p95Ms": 0.001841,
+            "maxMs": 0.002125,
+            "meanMs": 0.001672,
+            "minMs": 0.001541,
+            "p50Ms": 0.001583,
+            "p95Ms": 0.002,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001625,
-            0.0015,
-            0.001916,
-            0.001667,
-            0.001542,
+            0.001708,
             0.001541,
-            0.001541
+            0.002125,
+            0.001625,
+            0.001542,
+            0.001583,
+            0.001583
           ],
           "response": {
             "actions": [
@@ -3276,21 +3176,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.043959,
-            "meanMs": 0.036393,
-            "minMs": 0.032042,
-            "p50Ms": 0.036125,
-            "p95Ms": 0.042134,
+            "maxMs": 0.03725,
+            "meanMs": 0.03381,
+            "minMs": 0.032292,
+            "p50Ms": 0.033083,
+            "p95Ms": 0.036462,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.036125,
-            0.035833,
-            0.037875,
-            0.036708,
-            0.032209,
-            0.032042,
-            0.043959
+            0.034625,
+            0.032917,
+            0.034084,
+            0.03725,
+            0.032292,
+            0.033083,
+            0.032416
           ],
           "response": {
             "actions": [
@@ -3503,21 +3403,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.002166,
-            "meanMs": 0.001774,
-            "minMs": 0.001584,
+            "maxMs": 0.002125,
+            "meanMs": 0.00175,
+            "minMs": 0.001583,
             "p50Ms": 0.001708,
-            "p95Ms": 0.002129,
+            "p95Ms": 0.002025,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.002042,
             0.001708,
-            0.002166,
-            0.001709,
-            0.001584,
+            0.001791,
+            0.002125,
+            0.001708,
+            0.001708,
             0.001625,
-            0.001584
+            0.001583
           ],
           "response": {
             "actions": [
@@ -3647,21 +3547,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.036333,
-            "meanMs": 0.033369,
-            "minMs": 0.031333,
-            "p50Ms": 0.032958,
-            "p95Ms": 0.035758,
+            "maxMs": 0.037708,
+            "meanMs": 0.034226,
+            "minMs": 0.030584,
+            "p50Ms": 0.034125,
+            "p95Ms": 0.037358,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.034334,
-            0.034417,
-            0.031333,
-            0.031417,
-            0.032792,
-            0.032958,
-            0.036333
+            0.030584,
+            0.032209,
+            0.034667,
+            0.037708,
+            0.034125,
+            0.03375,
+            0.036542
           ],
           "response": {
             "actions": [
@@ -3856,21 +3756,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.002167,
-            "meanMs": 0.001714,
-            "minMs": 0.001583,
-            "p50Ms": 0.001625,
-            "p95Ms": 0.002054,
+            "maxMs": 0.001958,
+            "meanMs": 0.001595,
+            "minMs": 0.001459,
+            "p50Ms": 0.001541,
+            "p95Ms": 0.001858,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001583,
+            0.001541,
             0.001625,
-            0.002167,
-            0.001791,
-            0.001625,
-            0.001583,
-            0.001625
+            0.001958,
+            0.001584,
+            0.001459,
+            0.0015,
+            0.0015
           ],
           "response": {
             "actions": [
@@ -4000,21 +3900,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.054709,
-            "meanMs": 0.038679,
-            "minMs": 0.033917,
-            "p50Ms": 0.036667,
-            "p95Ms": 0.049784,
+            "maxMs": 0.061792,
+            "meanMs": 0.038399,
+            "minMs": 0.033,
+            "p50Ms": 0.033875,
+            "p95Ms": 0.054854,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.038292,
-            0.034541,
-            0.033917,
-            0.054709,
-            0.036834,
-            0.036667,
-            0.035792
+            0.034792,
+            0.033875,
+            0.038666,
+            0.061792,
+            0.033417,
+            0.03325,
+            0.033
           ],
           "response": {
             "actions": [
@@ -4231,21 +4131,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.00225,
-            "meanMs": 0.001798,
-            "minMs": 0.001625,
-            "p50Ms": 0.001708,
-            "p95Ms": 0.002113,
+            "maxMs": 0.002291,
+            "meanMs": 0.001934,
+            "minMs": 0.001708,
+            "p50Ms": 0.001792,
+            "p95Ms": 0.002254,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001708,
+            0.002084,
+            0.002291,
+            0.002166,
+            0.001791,
             0.001792,
-            0.00225,
-            0.001792,
             0.001708,
-            0.001708,
-            0.001625
+            0.001708
           ],
           "response": {
             "actions": [
@@ -4384,21 +4284,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.0415,
-            "meanMs": 0.037786,
-            "minMs": 0.033667,
-            "p50Ms": 0.038084,
-            "p95Ms": 0.041075,
+            "maxMs": 0.043666,
+            "meanMs": 0.038911,
+            "minMs": 0.035208,
+            "p50Ms": 0.038708,
+            "p95Ms": 0.042641,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.033667,
-            0.034625,
-            0.039375,
-            0.0415,
-            0.040083,
-            0.037167,
-            0.038084
+            0.037291,
+            0.038708,
+            0.043666,
+            0.04025,
+            0.037959,
+            0.039292,
+            0.035208
           ],
           "response": {
             "actions": [
@@ -4617,21 +4517,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.011167,
-            "meanMs": 0.003131,
+            "maxMs": 0.002875,
+            "meanMs": 0.00194,
             "minMs": 0.001542,
-            "p50Ms": 0.001666,
-            "p95Ms": 0.008504,
+            "p50Ms": 0.00175,
+            "p95Ms": 0.002712,
             "samples": 7
           },
           "latencySamplesMs": [
             0.001542,
-            0.002292,
-            0.011167,
-            0.002084,
             0.001625,
-            0.001542,
-            0.001666
+            0.002875,
+            0.002333,
+            0.00175,
+            0.00175,
+            0.001708
           ],
           "response": {
             "actions": [
@@ -4770,21 +4670,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.043958,
-            "meanMs": 0.04006,
+            "maxMs": 0.043041,
+            "meanMs": 0.038357,
             "minMs": 0.034666,
-            "p50Ms": 0.041084,
-            "p95Ms": 0.043858,
+            "p50Ms": 0.037791,
+            "p95Ms": 0.042904,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.04175,
-            0.043625,
-            0.041084,
-            0.043958,
-            0.038834,
-            0.0365,
-            0.034666
+            0.042583,
+            0.038167,
+            0.037375,
+            0.043041,
+            0.037791,
+            0.034666,
+            0.034875
           ],
           "response": {
             "actions": [
@@ -5007,20 +4907,20 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.002041,
-            "meanMs": 0.001661,
-            "minMs": 0.001542,
-            "p50Ms": 0.001583,
-            "p95Ms": 0.001954,
+            "maxMs": 0.002167,
+            "meanMs": 0.001798,
+            "minMs": 0.001667,
+            "p50Ms": 0.00175,
+            "p95Ms": 0.002054,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001583,
-            0.001542,
-            0.002041,
-            0.001583,
-            0.001584,
-            0.001542,
+            0.001708,
+            0.00175,
+            0.002167,
+            0.00175,
+            0.001791,
+            0.001667,
             0.00175
           ],
           "response": {
@@ -5160,21 +5060,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.047917,
-            "meanMs": 0.040804,
-            "minMs": 0.034084,
-            "p50Ms": 0.041916,
-            "p95Ms": 0.046842,
+            "maxMs": 0.039125,
+            "meanMs": 0.037048,
+            "minMs": 0.033875,
+            "p50Ms": 0.03675,
+            "p95Ms": 0.039112,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.043584,
-            0.047917,
-            0.041916,
-            0.038,
-            0.044333,
-            0.035792,
-            0.034084
+            0.038542,
+            0.039083,
+            0.039125,
+            0.035292,
+            0.03675,
+            0.033875,
+            0.036667
           ],
           "response": {
             "actions": [
@@ -5400,20 +5300,20 @@
         "datahubContextOff": {
           "latency": {
             "maxMs": 0.002084,
-            "meanMs": 0.001708,
-            "minMs": 0.001542,
+            "meanMs": 0.001762,
+            "minMs": 0.001666,
             "p50Ms": 0.001708,
-            "p95Ms": 0.001971,
+            "p95Ms": 0.001984,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001708,
+            0.00175,
             0.001708,
             0.002084,
             0.001708,
-            0.001625,
-            0.001542,
-            0.001583
+            0.00175,
+            0.001667,
+            0.001666
           ],
           "response": {
             "actions": [
@@ -5543,21 +5443,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.049791,
-            "meanMs": 0.041881,
-            "minMs": 0.03525,
-            "p50Ms": 0.041291,
-            "p95Ms": 0.048591,
+            "maxMs": 0.045875,
+            "meanMs": 0.040947,
+            "minMs": 0.036875,
+            "p50Ms": 0.041292,
+            "p95Ms": 0.04555,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.043416,
-            0.041291,
-            0.045791,
-            0.049791,
-            0.038875,
-            0.03525,
-            0.03875
+            0.041375,
+            0.037667,
+            0.044792,
+            0.03875,
+            0.045875,
+            0.041292,
+            0.036875
           ],
           "response": {
             "actions": [
@@ -5791,20 +5691,20 @@
         "datahubContextOff": {
           "latency": {
             "maxMs": 0.00225,
-            "meanMs": 0.001816,
-            "minMs": 0.001667,
-            "p50Ms": 0.001708,
+            "meanMs": 0.001798,
+            "minMs": 0.001583,
+            "p50Ms": 0.00175,
             "p95Ms": 0.002162,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001667,
+            0.001792,
             0.001958,
             0.00225,
-            0.001792,
-            0.001667,
-            0.001667,
-            0.001708
+            0.001625,
+            0.001583,
+            0.001625,
+            0.00175
           ],
           "response": {
             "actions": [
@@ -5943,21 +5843,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.042875,
-            "meanMs": 0.036577,
-            "minMs": 0.033833,
-            "p50Ms": 0.036125,
-            "p95Ms": 0.041013,
+            "maxMs": 0.038125,
+            "meanMs": 0.036762,
+            "minMs": 0.034208,
+            "p50Ms": 0.037,
+            "p95Ms": 0.038012,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.036667,
-            0.033833,
-            0.034042,
-            0.042875,
-            0.036125,
-            0.036083,
-            0.036416
+            0.034208,
+            0.036333,
+            0.038125,
+            0.03775,
+            0.036792,
+            0.037,
+            0.037125
           ],
           "response": {
             "actions": [
@@ -6174,21 +6074,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.001958,
-            "meanMs": 0.001661,
-            "minMs": 0.001459,
-            "p50Ms": 0.001584,
-            "p95Ms": 0.001946,
+            "maxMs": 0.001792,
+            "meanMs": 0.001553,
+            "minMs": 0.001458,
+            "p50Ms": 0.0015,
+            "p95Ms": 0.001729,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001917,
-            0.001542,
-            0.001958,
-            0.001584,
+            0.001458,
+            0.001458,
+            0.001792,
             0.001583,
-            0.001584,
-            0.001459
+            0.001583,
+            0.0015,
+            0.0015
           ],
           "response": {
             "actions": [
@@ -6318,21 +6218,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.043041,
-            "meanMs": 0.03853,
-            "minMs": 0.034542,
-            "p50Ms": 0.03775,
-            "p95Ms": 0.042379,
+            "maxMs": 0.039333,
+            "meanMs": 0.037494,
+            "minMs": 0.034875,
+            "p50Ms": 0.038083,
+            "p95Ms": 0.039046,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.034542,
-            0.036625,
-            0.039416,
-            0.0375,
-            0.03775,
-            0.043041,
-            0.040833
+            0.034875,
+            0.038125,
+            0.039333,
+            0.038375,
+            0.038083,
+            0.037666,
+            0.036
           ],
           "response": {
             "actions": [
@@ -6557,21 +6457,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.002208,
-            "meanMs": 0.001899,
+            "maxMs": 0.002,
+            "meanMs": 0.001726,
             "minMs": 0.001541,
-            "p50Ms": 0.002042,
-            "p95Ms": 0.002183,
+            "p50Ms": 0.001709,
+            "p95Ms": 0.001975,
             "samples": 7
           },
           "latencySamplesMs": [
             0.001541,
             0.001625,
-            0.002042,
-            0.002208,
-            0.002125,
-            0.002125,
-            0.001625
+            0.002,
+            0.001541,
+            0.00175,
+            0.001917,
+            0.001709
           ],
           "response": {
             "actions": [
@@ -6710,21 +6610,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.036458,
-            "meanMs": 0.033054,
-            "minMs": 0.030375,
-            "p50Ms": 0.033458,
-            "p95Ms": 0.035621,
+            "maxMs": 0.034375,
+            "meanMs": 0.033476,
+            "minMs": 0.0305,
+            "p50Ms": 0.033916,
+            "p95Ms": 0.034313,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.030375,
-            0.031,
-            0.036458,
-            0.0335,
+            0.033917,
+            0.034167,
+            0.034375,
+            0.033916,
             0.033667,
-            0.033458,
-            0.032917
+            0.033792,
+            0.0305
           ],
           "response": {
             "actions": [
@@ -6923,21 +6823,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.002,
-            "meanMs": 0.00169,
-            "minMs": 0.001542,
-            "p50Ms": 0.001666,
-            "p95Ms": 0.001912,
+            "maxMs": 0.002084,
+            "meanMs": 0.001732,
+            "minMs": 0.001583,
+            "p50Ms": 0.001708,
+            "p95Ms": 0.001984,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001542,
-            0.001666,
-            0.002,
+            0.001708,
+            0.001667,
+            0.002084,
+            0.00175,
             0.001708,
             0.001625,
-            0.001583,
-            0.001708
+            0.001583
           ],
           "response": {
             "actions": [
@@ -7067,21 +6967,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.060292,
-            "meanMs": 0.039435,
-            "minMs": 0.0325,
-            "p50Ms": 0.036584,
-            "p95Ms": 0.053967,
+            "maxMs": 0.061625,
+            "meanMs": 0.040929,
+            "minMs": 0.033083,
+            "p50Ms": 0.036792,
+            "p95Ms": 0.058325,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.038208,
-            0.036584,
-            0.039209,
-            0.060292,
-            0.036417,
-            0.032834,
-            0.0325
+            0.036792,
+            0.037375,
+            0.050625,
+            0.061625,
+            0.033417,
+            0.033583,
+            0.033083
           ],
           "response": {
             "actions": [
@@ -7296,21 +7196,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.002,
-            "meanMs": 0.001661,
-            "minMs": 0.001542,
+            "maxMs": 0.002042,
+            "meanMs": 0.001708,
+            "minMs": 0.001583,
             "p50Ms": 0.001625,
-            "p95Ms": 0.001888,
+            "p95Ms": 0.001979,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001542,
+            0.001584,
+            0.001667,
+            0.002042,
+            0.001833,
             0.001625,
-            0.002,
             0.001625,
-            0.001625,
-            0.001583,
-            0.001625
+            0.001583
           ],
           "response": {
             "actions": [
@@ -7440,21 +7340,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.040458,
-            "meanMs": 0.03719,
-            "minMs": 0.033708,
-            "p50Ms": 0.037916,
-            "p95Ms": 0.040008,
+            "maxMs": 0.042667,
+            "meanMs": 0.038417,
+            "minMs": 0.034417,
+            "p50Ms": 0.038667,
+            "p95Ms": 0.042117,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.038209,
-            0.040458,
-            0.038958,
-            0.037916,
-            0.033917,
-            0.033708,
-            0.037166
+            0.038667,
+            0.042667,
+            0.04,
+            0.034542,
+            0.034417,
+            0.037792,
+            0.040833
           ],
           "response": {
             "actions": [
@@ -7677,21 +7577,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.002209,
-            "meanMs": 0.00178,
-            "minMs": 0.001666,
-            "p50Ms": 0.001709,
-            "p95Ms": 0.002071,
+            "maxMs": 0.002167,
+            "meanMs": 0.001828,
+            "minMs": 0.001667,
+            "p50Ms": 0.001792,
+            "p95Ms": 0.002079,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001708,
-            0.001709,
-            0.002209,
-            0.001708,
             0.00175,
-            0.001666,
-            0.001709
+            0.001792,
+            0.002167,
+            0.001875,
+            0.001833,
+            0.001709,
+            0.001667
           ],
           "response": {
             "actions": [
@@ -7830,21 +7730,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.038125,
-            "meanMs": 0.034596,
-            "minMs": 0.031542,
-            "p50Ms": 0.035209,
-            "p95Ms": 0.03745,
+            "maxMs": 0.038083,
+            "meanMs": 0.035679,
+            "minMs": 0.032917,
+            "p50Ms": 0.035792,
+            "p95Ms": 0.037708,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.035209,
-            0.035209,
-            0.035875,
-            0.032875,
-            0.031542,
-            0.033334,
-            0.038125
+            0.038083,
+            0.036,
+            0.036833,
+            0.035,
+            0.032917,
+            0.035125,
+            0.035792
           ],
           "response": {
             "actions": [
@@ -8051,21 +7951,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.001958,
-            "meanMs": 0.001679,
-            "minMs": 0.001584,
-            "p50Ms": 0.001625,
-            "p95Ms": 0.001871,
+            "maxMs": 0.002,
+            "meanMs": 0.001738,
+            "minMs": 0.001625,
+            "p50Ms": 0.001667,
+            "p95Ms": 0.001975,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001584,
             0.001625,
-            0.001958,
             0.001667,
-            0.001667,
+            0.002,
+            0.001916,
             0.001625,
-            0.001625
+            0.001667,
+            0.001667
           ],
           "response": {
             "actions": [
@@ -8195,21 +8095,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.038459,
-            "meanMs": 0.036845,
-            "minMs": 0.034667,
-            "p50Ms": 0.037166,
-            "p95Ms": 0.038184,
+            "maxMs": 0.041541,
+            "meanMs": 0.037732,
+            "minMs": 0.034875,
+            "p50Ms": 0.03725,
+            "p95Ms": 0.040779,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.037542,
-            0.038459,
-            0.034667,
-            0.036083,
-            0.037166,
-            0.037292,
-            0.036708
+            0.037209,
+            0.035708,
+            0.034875,
+            0.039,
+            0.041541,
+            0.038542,
+            0.03725
           ],
           "response": {
             "actions": [
@@ -8426,21 +8326,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.002042,
-            "meanMs": 0.001684,
-            "minMs": 0.001541,
-            "p50Ms": 0.001666,
-            "p95Ms": 0.001929,
+            "maxMs": 0.002167,
+            "meanMs": 0.001714,
+            "minMs": 0.0015,
+            "p50Ms": 0.001667,
+            "p95Ms": 0.002042,
             "samples": 7
           },
           "latencySamplesMs": [
+            0.0015,
             0.001583,
-            0.001625,
-            0.002042,
+            0.002167,
+            0.001708,
+            0.00175,
             0.001667,
-            0.001666,
-            0.001667,
-            0.001541
+            0.001625
           ],
           "response": {
             "actions": [
@@ -8570,21 +8470,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.038083,
-            "meanMs": 0.032958,
-            "minMs": 0.030042,
-            "p50Ms": 0.032708,
-            "p95Ms": 0.036733,
+            "maxMs": 0.035208,
+            "meanMs": 0.032369,
+            "minMs": 0.03025,
+            "p50Ms": 0.033,
+            "p95Ms": 0.034671,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.033208,
-            0.031375,
-            0.030042,
-            0.031708,
-            0.032708,
-            0.038083,
-            0.033584
+            0.03025,
+            0.030666,
+            0.030667,
+            0.035208,
+            0.033417,
+            0.033,
+            0.033375
           ],
           "response": {
             "actions": [
@@ -8779,21 +8679,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.002125,
-            "meanMs": 0.001774,
-            "minMs": 0.001542,
-            "p50Ms": 0.001625,
-            "p95Ms": 0.002125,
+            "maxMs": 0.002,
+            "meanMs": 0.001667,
+            "minMs": 0.0015,
+            "p50Ms": 0.001666,
+            "p95Ms": 0.001925,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001542,
-            0.001625,
-            0.002125,
-            0.002125,
+            0.001666,
+            0.001709,
+            0.002,
             0.00175,
-            0.001625,
-            0.001625
+            0.0015,
+            0.001541,
+            0.0015
           ],
           "response": {
             "actions": [
@@ -8923,21 +8823,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.047542,
-            "meanMs": 0.038155,
-            "minMs": 0.031042,
-            "p50Ms": 0.034708,
-            "p95Ms": 0.046679,
+            "maxMs": 0.0365,
+            "meanMs": 0.033917,
+            "minMs": 0.031,
+            "p50Ms": 0.034125,
+            "p95Ms": 0.036025,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.044666,
-            0.031042,
-            0.047542,
-            0.034375,
-            0.034208,
-            0.040541,
-            0.034708
+            0.031,
+            0.032708,
+            0.034917,
+            0.0365,
+            0.034125,
+            0.0335,
+            0.034666
           ],
           "response": {
             "actions": [
@@ -9136,21 +9036,21 @@
       "modes": {
         "datahubContextOff": {
           "latency": {
-            "maxMs": 0.003,
-            "meanMs": 0.001947,
-            "minMs": 0.0015,
-            "p50Ms": 0.001917,
-            "p95Ms": 0.002738,
+            "maxMs": 0.001959,
+            "meanMs": 0.001643,
+            "minMs": 0.001541,
+            "p50Ms": 0.001584,
+            "p95Ms": 0.001859,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.001958,
-            0.002125,
-            0.003,
             0.001584,
-            0.001542,
-            0.0015,
-            0.001917
+            0.001625,
+            0.001959,
+            0.001625,
+            0.001541,
+            0.001584,
+            0.001583
           ],
           "response": {
             "actions": [
@@ -9289,21 +9189,21 @@
         },
         "datahubContextOn": {
           "latency": {
-            "maxMs": 0.045208,
-            "meanMs": 0.03903,
-            "minMs": 0.034667,
-            "p50Ms": 0.038167,
-            "p95Ms": 0.043796,
+            "maxMs": 0.046625,
+            "meanMs": 0.039602,
+            "minMs": 0.036459,
+            "p50Ms": 0.039084,
+            "p95Ms": 0.044675,
             "samples": 7
           },
           "latencySamplesMs": [
-            0.034667,
-            0.0395,
-            0.045208,
-            0.0405,
-            0.038167,
-            0.037625,
-            0.037541
+            0.036459,
+            0.040125,
+            0.039084,
+            0.046625,
+            0.039417,
+            0.037917,
+            0.037584
           ],
           "response": {
             "actions": [
@@ -9524,6 +9424,6 @@
   ],
   "schemaVersion": "1.0",
   "seed": 20260731,
-  "startedAtUtc": "2026-07-31T08:31:57.074324+00:00",
+  "startedAtUtc": "2026-07-31T08:45:16.583893+00:00",
   "status": "PASS"
 }
