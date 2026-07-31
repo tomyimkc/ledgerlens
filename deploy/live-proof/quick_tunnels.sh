@@ -11,6 +11,7 @@ DATAHUB_GATEWAY_PORT="${LIVE_PROOF_DATAHUB_GATEWAY_PORT:-19002}"
 SKIP_LEDGERLENS="${LIVE_PROOF_SKIP_LEDGERLENS:-0}"
 CADDYFILE="$TUNNEL_STATE_DIR/Caddyfile"
 DOCKER_HOST_ALIAS="${LIVE_PROOF_DOCKER_HOST_ALIAS:-}"
+CLOUDFLARED_PROTOCOL="${LIVE_PROOF_CLOUDFLARED_PROTOCOL:-http2}"
 
 usage() {
   cat <<'EOF'
@@ -27,6 +28,7 @@ Required for start:
 Optional:
   LIVE_PROOF_SKIP_LEDGERLENS=1       expose only DataHub
   LIVE_PROOF_ALLOW_IMAGE_PULL=1      allow the pinned Caddy image pull if absent
+  LIVE_PROOF_CLOUDFLARED_PROTOCOL=   http2 (default), quic, or auto
 EOF
 }
 
@@ -76,6 +78,10 @@ validate_inputs() {
   fi
   if [[ -n "$DOCKER_HOST_ALIAS" && ! "$DOCKER_HOST_ALIAS" =~ ^[A-Za-z0-9.-]+$ ]]; then
     echo "LIVE_PROOF_DOCKER_HOST_ALIAS is not a valid hostname." >&2
+    return 2
+  fi
+  if [[ ! "$CLOUDFLARED_PROTOCOL" =~ ^(auto|http2|quic)$ ]]; then
+    echo "LIVE_PROOF_CLOUDFLARED_PROTOCOL must be auto, http2, or quic." >&2
     return 2
   fi
 }
@@ -191,7 +197,10 @@ EOF
 }
 EOF
   } >"$CADDYFILE"
-  chmod 600 "$CADDYFILE"
+  # The pinned Caddy image runs as a non-root uid. The enclosing tunnel state
+  # directory remains mode 0700, while this read-only bind-mounted file must be
+  # readable by the container process.
+  chmod 644 "$CADDYFILE"
 }
 
 gateway_http_code() {
@@ -215,14 +224,19 @@ wait_for_gateway() {
 wait_for_tunnel_url() {
   local log_file="$1"
   local url_file="$2"
+  local pid="$3"
   for _ in {1..45}; do
     local url
     url="$(grep -Eo 'https://[-a-z0-9]+\.trycloudflare\.com' "$log_file" \
-      2>/dev/null | head -1 || true)"
+      2>/dev/null | grep -v '^https://api\.trycloudflare\.com$' | head -1 || true)"
     if [[ -n "$url" ]]; then
       printf '%s\n' "$url" >"$url_file"
       chmod 600 "$url_file"
       return 0
+    fi
+    if ! kill -0 "$pid" 2>/dev/null; then
+      echo "cloudflared exited before issuing a Quick Tunnel URL." >&2
+      return 1
     fi
     sleep 1
   done
@@ -232,12 +246,17 @@ wait_for_tunnel_url() {
 
 wait_for_public_auth() {
   local url="$1"
+  local pid="$2"
   local code=""
   for _ in {1..60}; do
     code="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
       --max-time 10 "$url" 2>/dev/null || true)"
     if [[ "$code" == "401" ]]; then
       return 0
+    fi
+    if ! kill -0 "$pid" 2>/dev/null; then
+      echo "cloudflared exited before the public URL enforced HTTP 401." >&2
+      return 1
     fi
     sleep 2
   done
@@ -255,12 +274,13 @@ start_tunnel() {
 
   : >"$log_file"
   chmod 600 "$log_file"
-  nohup cloudflared --no-autoupdate tunnel \
+  rm -f "$url_file"
+  nohup cloudflared --no-autoupdate tunnel --protocol "$CLOUDFLARED_PROTOCOL" \
     --url "http://127.0.0.1:${gateway_port}" >"$log_file" 2>&1 &
   printf '%s\n' "$!" >"$pid_file"
   chmod 600 "$pid_file"
-  wait_for_tunnel_url "$log_file" "$url_file"
-  wait_for_public_auth "$(<"$url_file")"
+  wait_for_tunnel_url "$log_file" "$url_file" "$(<"$pid_file")"
+  wait_for_public_auth "$(<"$url_file")" "$(<"$pid_file")"
 }
 
 process_matches_tunnel() {
@@ -360,7 +380,7 @@ EOF
     "$CADDY_IMAGE" \
     caddy validate --config /etc/caddy/Caddyfile
 
-  local completed=0
+  completed=0
   cleanup_on_failure() {
     local exit_code=$?
     if ((completed == 0)); then

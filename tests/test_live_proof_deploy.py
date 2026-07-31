@@ -80,6 +80,19 @@ def test_live_proof_cleanup_is_armed_before_quickstart() -> None:
     assert "--no-open-browser" not in script
 
 
+def test_quick_tunnel_gateway_is_container_readable_and_cleanup_survives_exit() -> None:
+    script = (ROOT / "deploy/live-proof/quick_tunnels.sh").read_text(encoding="utf-8")
+
+    assert 'chmod 644 "$CADDYFILE"' in script
+    assert "local completed=0" not in script
+    assert "completed=0" in script
+    assert 'CLOUDFLARED_PROTOCOL="${LIVE_PROOF_CLOUDFLARED_PROTOCOL:-http2}"' in script
+    assert 'tunnel --protocol "$CLOUDFLARED_PROTOCOL"' in script
+    assert "grep -v '^https://api\\.trycloudflare\\.com$'" in script
+    assert "cloudflared exited before issuing a Quick Tunnel URL." in script
+    assert 'rm -f "$url_file"' in script
+
+
 def test_user_enablement_is_idempotent_and_auth_convergence_is_retried() -> None:
     provision_api = (ROOT / "deploy/bin/provision_datahub.py").read_text(encoding="utf-8")
     provision_shell = (ROOT / "deploy/bin/provision.sh").read_text(encoding="utf-8")

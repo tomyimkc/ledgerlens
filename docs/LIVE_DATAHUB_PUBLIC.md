@@ -253,6 +253,13 @@ host alias:
 export LIVE_PROOF_DOCKER_HOST_ALIAS=host.example.internal
 ```
 
+The tunnel defaults to Cloudflare HTTP/2 because some supervised hosts block outbound QUIC or port
+7844. Override only after verifying the host network:
+
+```bash
+export LIVE_PROOF_CLOUDFLARED_PROTOCOL=quic  # or auto
+```
+
 To expose only DataHub while using the stable Hugging Face replay:
 
 ```bash
