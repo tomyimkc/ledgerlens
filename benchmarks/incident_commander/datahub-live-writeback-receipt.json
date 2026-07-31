@@ -1,0 +1,102 @@
+{
+  "after": {
+    "available": true,
+    "capturedAt": "2026-07-31T08:40:54.183159+00:00",
+    "digest": "b546ea9aee27e77cbfdbdfec6033c1d5832cb0c0fb3e7111653385affcd7bd53",
+    "limitation": null,
+    "phase": "after",
+    "source": "MCPStateSnapshotReader",
+    "state": {
+      "entities": [
+        {
+          "raw": {
+            "urn": "urn:li:document:shared-901b860f-66ff-496e-a700-c2fc5e535496"
+          },
+          "urn": "urn:li:document:shared-901b860f-66ff-496e-a700-c2fc5e535496"
+        }
+      ]
+    },
+    "urns": [
+      "urn:li:document:shared-901b860f-66ff-496e-a700-c2fc5e535496"
+    ]
+  },
+  "authorization": {
+    "actor": "ledgerlens-autonomous-incident-commander",
+    "authorizationId": "[REDACTED]",
+    "callDigest": "1aeda6706143d74c722d15fe68f88727fe067546c9656cb75089aea0cff556fa",
+    "idempotencyKey": "ledgerlens-live-writeback-2026-07-31",
+    "incidentContext": {
+      "incidentId": "inc-analytics-downstream_availability-01",
+      "previousStatus": null,
+      "source": "ledgerlens-live-rehearsal",
+      "status": "investigating",
+      "summary": "Bounded collaboration plan verified; recovery remains unverified."
+    },
+    "policyVersion": "ledgerlens-datahub-writeback/v1",
+    "previewOnly": false,
+    "reason": "Record the bounded incident context and explicit limitations after autonomous verification.",
+    "tool": "save_document"
+  },
+  "before": {
+    "available": false,
+    "capturedAt": "2026-07-31T08:40:51.867350+00:00",
+    "digest": null,
+    "limitation": "no target URN was available for this phase",
+    "phase": "before",
+    "source": "none",
+    "state": null,
+    "urns": []
+  },
+  "canClaimAGI": false,
+  "candidateOnly": true,
+  "completedAt": "2026-07-31T08:40:54.578590+00:00",
+  "error": null,
+  "externalMutation": true,
+  "idempotencyKey": "ledgerlens-live-writeback-2026-07-31",
+  "limitations": [
+    "This receipt proves a DataHub document write, not incident causality or recovery.",
+    "Slack, PagerDuty, and Jira were not executed live."
+  ],
+  "nextAgentRetrieval": {
+    "claimBoundary": "Retrieval proves catalog persistence, not incident recovery.",
+    "entityType": null,
+    "name": null,
+    "retrieved": true,
+    "urn": "urn:li:document:shared-901b860f-66ff-496e-a700-c2fc5e535496",
+    "via": "official-datahub-mcp:get_entities"
+  },
+  "preview": false,
+  "receiptId": "ac5d54fe050c514c7327abd39cdca9e4ff4ccb2a81ce686371d34de9f71f52f2",
+  "replayed": false,
+  "requestArguments": {
+    "content": "## Bounded incident command receipt\n\nDataHub context grounded the recorded owner and one downstream entity. A live 020s planner and two verifier variants approved four reversible collaboration actions. Only the separately receipted GitHub rehearsal action was executed. Slack, PagerDuty, Jira, root cause, user impact, and recovery remain unverified.\n\n`candidateOnly: true`  \n`canClaimAGI: false`",
+    "document_type": "Context",
+    "related_assets": [
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)"
+    ],
+    "title": "LedgerLens incident command receipt: inc-analytics-downstream_availability-01",
+    "topics": [
+      "incident-response",
+      "ledgerlens",
+      "candidate-only"
+    ]
+  },
+  "requestDigest": "1aeda6706143d74c722d15fe68f88727fe067546c9656cb75089aea0cff556fa",
+  "result": {
+    "author": "__datahub_system",
+    "message": "Successfully created document: LedgerLens incident command receipt: inc-analytics-downstream_availability-01",
+    "success": true,
+    "urn": "urn:li:document:shared-901b860f-66ff-496e-a700-c2fc5e535496"
+  },
+  "rollback": {
+    "actions": [],
+    "available": false,
+    "exact": false,
+    "limitations": [
+      "the official allowlisted MCP surface has no document deletion tool for compensating a new save_document call"
+    ]
+  },
+  "startedAt": "2026-07-31T08:40:51.867200+00:00",
+  "status": "applied",
+  "tool": "save_document"
+}

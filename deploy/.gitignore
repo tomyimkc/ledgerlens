@@ -1,0 +1,6 @@
+state/
+judge.env
+*.local.env
+*.token
+*.sql
+*.log

@@ -29,8 +29,42 @@ def test_dashboard_visibly_labels_fixture_and_shows_required_context() -> None:
     assert "findings indexed" in response.text
     assert "Findings at a glance" in response.text
     assert "Next actions" in response.text
+    assert 'href="http://testserver/incident"' in response.text
     assert "candidateOnly: true" in response.text
     assert "canClaimAGI: false" in response.text
+
+
+def test_demo_app_mounts_autonomous_incident_commander_by_default() -> None:
+    client = TestClient(create_app(demo_mode=True))
+
+    page = client.get("/incident")
+    triggered = client.post("/incident/api/trigger", json={"replay": True})
+
+    assert page.status_code == 200
+    assert "Incident Commander" in page.text
+    state = triggered.json()["state"]
+    assert state["automation"]["enabled"] is True
+    assert state["authorization"]["decision"] == "authorized"
+    assert all(action["status"] == "succeeded" for action in state["actions"])
+    assert state["writeback"]["status"] == "recorded"
+
+
+def test_incident_commander_defaults_can_be_overridden_for_manual_fixture() -> None:
+    client = TestClient(
+        create_app(
+            demo_mode=True,
+            incident_fixture_mode=True,
+            incident_autonomous_execution=False,
+        )
+    )
+
+    triggered = client.post("/incident/api/trigger", json={"replay": True})
+
+    assert triggered.status_code == 200
+    state = triggered.json()["state"]
+    assert state["automation"]["enabled"] is False
+    assert state["authorization"]["decision"] == "pending"
+    assert all(action["status"] == "held" for action in state["actions"])
 
 
 def test_finding_page_shows_ownership_evidence_audit_and_supersession() -> None:

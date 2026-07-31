@@ -25,6 +25,7 @@ _PACKAGE_ROOT = Path(__file__).resolve().parent
 _TEMPLATE_ROOT = _PACKAGE_ROOT / "templates"
 _STATIC_ROOT = _PACKAGE_ROOT / "static"
 _FACTORY_ENV = "LEDGERLENS_ADAPTER_FACTORY"
+_INCIDENT_FACTORY_ENV = "LEDGERLENS_INCIDENT_BACKEND_FACTORY"
 _FACTORY_CANDIDATES = (
     "ledgerlens.runtime:create_adapter",
     "ledgerlens.services:create_adapter",
@@ -951,6 +952,18 @@ def resolve_adapter(
     return CoreDataAdapter()
 
 
+def resolve_incident_backend(*, factory: AdapterFactory | None = None) -> Any | None:
+    """Resolve an optional live Incident Commander backend factory lazily."""
+
+    selected = factory
+    if selected is None:
+        configured = os.getenv(_INCIDENT_FACTORY_ENV)
+        if not configured:
+            return None
+        selected = _load_factory(configured)
+    return _call_factory(selected, False)
+
+
 async def _adapter_call(adapter: Any, method: str, *args: Any) -> Any:
     function = getattr(adapter, method, None)
     if not callable(function):
@@ -1059,6 +1072,9 @@ def create_app(
     *,
     adapter: Any | None = None,
     demo_mode: bool | None = None,
+    incident_backend: Any | None = None,
+    incident_fixture_mode: bool | None = None,
+    incident_autonomous_execution: bool | None = None,
 ) -> Any:
     """Create the optional FastAPI application."""
 
@@ -1076,11 +1092,27 @@ def create_app(
         if demo_mode is not None
         else os.getenv("LEDGERLENS_DEMO_MODE", "").lower() in {"1", "true", "yes"}
     )
+    resolved_incident_fixture = (
+        incident_fixture_mode if incident_fixture_mode is not None else resolved_demo
+    )
+    resolved_incident_autonomous = (
+        incident_autonomous_execution
+        if incident_autonomous_execution is not None
+        else resolved_demo
+    )
     if adapter is None:
         try:
             adapter = resolve_adapter(demo=resolved_demo)
         except AdapterUnavailableError as exc:
             adapter = UnavailableDataAdapter(str(exc))
+
+    if incident_backend is None and not resolved_incident_fixture:
+        try:
+            incident_backend = resolve_incident_backend()
+        except AdapterUnavailableError as exc:
+            from ledgerlens.incident_dashboard import UnavailableIncidentBackend
+
+            incident_backend = UnavailableIncidentBackend(str(exc))
 
     environment = Environment(
         loader=FileSystemLoader(str(_TEMPLATE_ROOT)),
@@ -1092,11 +1124,22 @@ def create_app(
     application = FastAPI(
         title="LedgerLens",
         description="Evidence-grounded failure-ledger triage through DataHub.",
-        version="0.1.0",
+        version="0.2.0",
     )
     application.state.adapter = adapter
     application.state.demo_mode = getattr(adapter, "mode", "") == "demo"
     application.mount("/static", StaticFiles(directory=str(_STATIC_ROOT)), name="static")
+
+    from ledgerlens.incident_dashboard import create_incident_router
+
+    application.include_router(
+        create_incident_router(
+            backend=incident_backend,
+            fixture_mode=resolved_incident_fixture,
+            prefix="/incident",
+            autonomous_execution=resolved_incident_autonomous,
+        )
+    )
 
     def template_context(request: Request, **values: Any) -> dict[str, Any]:
         return {

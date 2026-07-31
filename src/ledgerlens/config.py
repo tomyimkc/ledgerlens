@@ -79,6 +79,45 @@ class Settings(BaseSettings):
         default=False,
         validation_alias="LEDGERLENS_MUTATIONS_ENABLED",
     )
+    incident_commander_enabled: bool = Field(
+        default=False,
+        validation_alias="LEDGERLENS_INCIDENT_COMMANDER_ENABLED",
+    )
+    autonomous_execution_enabled: bool = Field(
+        default=False,
+        validation_alias="LEDGERLENS_AUTONOMOUS_EXECUTION_ENABLED",
+    )
+    ai_verification_enabled: bool = Field(
+        default=False,
+        validation_alias="LEDGERLENS_AI_VERIFICATION_ENABLED",
+    )
+    planner_model: str = Field(
+        default="gpt-5.6-sol",
+        min_length=1,
+        validation_alias="LEDGERLENS_PLANNER_MODEL",
+    )
+    verifier_models: str = Field(
+        default="gpt-5.6-terra,gpt-5.5",
+        min_length=1,
+        validation_alias="LEDGERLENS_VERIFIER_MODELS",
+    )
+    verifier_quorum: int = Field(
+        default=2,
+        ge=1,
+        le=5,
+        validation_alias="LEDGERLENS_VERIFIER_QUORUM",
+    )
+    verifier_min_confidence: float = Field(
+        default=0.85,
+        ge=0,
+        le=1,
+        validation_alias="LEDGERLENS_VERIFIER_MIN_CONFIDENCE",
+    )
+    action_authorization_secret: SecretStr | None = Field(
+        default=None,
+        validation_alias="LEDGERLENS_ACTION_AUTHORIZATION_SECRET",
+        repr=False,
+    )
 
     @field_validator("datahub_gms_url", "llm_base_url")
     @classmethod
@@ -107,8 +146,16 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def enforce_safe_defaults(self) -> Settings:
-        if self.mutations_enabled:
+        if self.mutations_enabled and not self.incident_commander_enabled:
             raise ValueError("LedgerLens is read-only; mutations cannot be enabled")
+        if self.autonomous_execution_enabled and not self.mutations_enabled:
+            raise ValueError("autonomous execution requires controlled mutations")
+        if self.autonomous_execution_enabled and not self.ai_verification_enabled:
+            raise ValueError("autonomous execution requires AI verification")
+        if self.autonomous_execution_enabled and self.action_authorization_secret is None:
+            raise ValueError("autonomous execution requires an action authorization secret")
+        if self.ai_verification_enabled and self.verifier_quorum > len(self.verifier_model_ids):
+            raise ValueError("verifier quorum exceeds configured verifier models")
         if self.llm_enabled and self.sophia_020s_key is None:
             raise ValueError("LEDGERLENS_LLM_ENABLED requires SOPHIA_020S_KEY")
         if self.llm_base_url != "https://api.020s.com/v1":
@@ -133,6 +180,18 @@ class Settings(BaseSettings):
         if self.sophia_020s_key is None:
             raise ValueError("SOPHIA_020S_KEY is required for 020s mode")
         return self.sophia_020s_key.get_secret_value()
+
+    @property
+    def verifier_model_ids(self) -> tuple[str, ...]:
+        """Return unique configured verifier IDs without implying family independence."""
+
+        models = tuple(item.strip() for item in self.verifier_models.split(",") if item.strip())
+        return tuple(dict.fromkeys(models))
+
+    def require_action_authorization_secret(self) -> str:
+        if self.action_authorization_secret is None:
+            raise ValueError("LEDGERLENS_ACTION_AUTHORIZATION_SECRET is required")
+        return self.action_authorization_secret.get_secret_value()
 
 
 @lru_cache(maxsize=1)

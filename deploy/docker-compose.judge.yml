@@ -1,0 +1,105 @@
+name: ledgerlens-judge
+
+services:
+  ledgerlens:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: ledgerlens:judge
+    command:
+      [
+        "incident-commander",
+        "--autonomous",
+        "--fixture",
+        "--no-open-browser",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+      ]
+    env_file:
+      - "${LEDGERLENS_RUNTIME_ENV:?set LEDGERLENS_RUNTIME_ENV}"
+    environment:
+      DATAHUB_GMS_URL: "http://datahub-gms-quickstart:8080"
+      DATAHUB_FRONTEND_URL: "https://${DATAHUB_FQDN:?set DATAHUB_FQDN}"
+      DATAHUB_MCP_COMMAND: "mcp-server-datahub"
+      DATAHUB_MCP_URL: ""
+      DATAHUB_TELEMETRY_ENABLED: "false"
+      DATAHUB_MCP_DOCUMENT_TOOLS_DISABLED: "true"
+      SAVE_DOCUMENT_TOOL_ENABLED: "false"
+      TOOLS_IS_MUTATION_ENABLED: "false"
+      TOOLS_IS_USER_ENABLED: "false"
+      LEDGERLENS_LLM_ENABLED: "false"
+      LEDGERLENS_MUTATIONS_ENABLED: "false"
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: 1.0
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3)",
+        ]
+      interval: 20s
+      timeout: 5s
+      start_period: 30s
+      retries: 6
+    networks:
+      - judge
+      - datahub
+
+  caddy:
+    image: "${CADDY_IMAGE:-caddy:2.10.2-alpine}"
+    depends_on:
+      ledgerlens:
+        condition: service_healthy
+    ports:
+      - "${PUBLIC_HTTP_PORT:-80}:80"
+      - "${PUBLIC_HTTPS_PORT:-443}:443"
+      - "${PUBLIC_HTTPS_PORT:-443}:443/udp"
+    volumes:
+      - "${CADDYFILE_PATH:?set CADDYFILE_PATH}:/etc/caddy/Caddyfile:ro"
+      - caddy_data:/data
+      - caddy_config:/config
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    pids_limit: 128
+    mem_limit: 256m
+    cpus: 0.5
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "caddy", "validate", "--config", "/etc/caddy/Caddyfile"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - judge
+      - datahub
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  judge:
+    internal: true
+  datahub:
+    external: true
+    name: "${DATAHUB_NETWORK_NAME:-ledgerlens-datahub_default}"

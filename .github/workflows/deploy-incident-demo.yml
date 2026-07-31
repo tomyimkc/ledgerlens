@@ -1,0 +1,256 @@
+name: Deploy LedgerLens judge demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Manual operation to perform"
+        required: true
+        type: choice
+        default: validate
+        options:
+          - validate
+          - deploy
+          - health
+          - reset
+          - stop
+      scenario:
+        description: "Scenario selected by reset"
+        required: true
+        type: choice
+        default: baseline
+        options:
+          - baseline
+          - missing-metadata
+          - supersession
+      ttl_hours:
+        description: "Automatic stop TTL for deploy (1-168 hours)"
+        required: true
+        default: "24"
+        type: string
+      remote_root:
+        description: "Pre-created, deploy-user-owned directory on the VM"
+        required: true
+        default: "/opt/ledgerlens-judge"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ledgerlens-judge-deploy
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate deployment package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes shellcheck
+
+      - name: Validate deployment assets
+        run: bash deploy/bin/validate.sh
+
+  remote:
+    name: "${{ inputs.action }} judge environment"
+    if: ${{ inputs.action != 'validate' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: judge-demo
+    env:
+      ACTION: ${{ inputs.action }}
+      SCENARIO: ${{ inputs.scenario }}
+      TTL_HOURS: ${{ inputs.ttl_hours }}
+      REMOTE_ROOT: ${{ inputs.remote_root }}
+      VM_HOST: ${{ secrets.JUDGE_VM_HOST }}
+      VM_PORT: ${{ secrets.JUDGE_VM_PORT }}
+      VM_USER: ${{ secrets.JUDGE_VM_USER }}
+      VM_SSH_KEY: ${{ secrets.JUDGE_VM_SSH_KEY }}
+      VM_KNOWN_HOSTS: ${{ secrets.JUDGE_VM_KNOWN_HOSTS }}
+      LEDGERLENS_FQDN: ${{ secrets.LEDGERLENS_FQDN }}
+      DATAHUB_FQDN: ${{ secrets.DATAHUB_FQDN }}
+      CADDY_ACME_EMAIL: ${{ secrets.CADDY_ACME_EMAIL }}
+      JUDGE_GATEWAY_USERNAME: ${{ secrets.JUDGE_GATEWAY_USERNAME }}
+      JUDGE_GATEWAY_PASSWORD: ${{ secrets.JUDGE_GATEWAY_PASSWORD }}
+      JUDGE_GATEWAY_PASSWORD_HASH: ${{ secrets.JUDGE_GATEWAY_PASSWORD_HASH }}
+      DATAHUB_ADMIN_PASSWORD: ${{ secrets.DATAHUB_ADMIN_PASSWORD }}
+      DATAHUB_JUDGE_USERNAME: ${{ secrets.DATAHUB_JUDGE_USERNAME }}
+      DATAHUB_JUDGE_PASSWORD: ${{ secrets.DATAHUB_JUDGE_PASSWORD }}
+      DATAHUB_SERVICE_USERNAME: ${{ secrets.DATAHUB_SERVICE_USERNAME }}
+      DATAHUB_SERVICE_PASSWORD: ${{ secrets.DATAHUB_SERVICE_PASSWORD }}
+    steps:
+      - name: Require main for remote changes
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "Remote judge operations are restricted to workflow_dispatch from main." >&2
+            exit 1
+          fi
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate inputs and SSH authentication
+        run: |
+          set -euo pipefail
+          for name in VM_HOST VM_USER VM_SSH_KEY VM_KNOWN_HOSTS; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing required GitHub Environment secret: $name" >&2
+              exit 2
+            fi
+          done
+          if [[ ! "$REMOTE_ROOT" =~ ^/[A-Za-z0-9._/-]+$ ]]; then
+            echo "remote_root must be an absolute path using only safe path characters." >&2
+            exit 2
+          fi
+          if [[ ! "$TTL_HOURS" =~ ^[0-9]+$ ]] || ((TTL_HOURS < 1 || TTL_HOURS > 168)); then
+            echo "ttl_hours must be an integer between 1 and 168." >&2
+            exit 2
+          fi
+          if [[ "$ACTION" == "deploy" ]]; then
+            for name in \
+              LEDGERLENS_FQDN DATAHUB_FQDN \
+              JUDGE_GATEWAY_USERNAME JUDGE_GATEWAY_PASSWORD JUDGE_GATEWAY_PASSWORD_HASH \
+              DATAHUB_ADMIN_PASSWORD DATAHUB_JUDGE_PASSWORD DATAHUB_SERVICE_PASSWORD; do
+              if [[ -z "${!name:-}" ]]; then
+                echo "Missing deploy secret: $name" >&2
+                exit 2
+              fi
+            done
+          fi
+
+      - name: Configure verified SSH host key
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VM_SSH_KEY" >"$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$VM_KNOWN_HOSTS" >"$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Prepare SSH command
+        run: |
+          port="${VM_PORT:-22}"
+          printf 'Host judge-vm\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile %s/.ssh/id_ed25519\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n' \
+            "$VM_HOST" "$VM_USER" "$port" "$HOME" >"$HOME/.ssh/config"
+          chmod 600 "$HOME/.ssh/config"
+          ssh judge-vm 'printf "SSH authentication and host-key verification passed.\n"'
+
+      - name: Package release
+        if: ${{ inputs.action == 'deploy' }}
+        run: |
+          set -euo pipefail
+          tar \
+            --exclude='.git' \
+            --exclude='.venv' \
+            --exclude='artifacts' \
+            --exclude='deploy/state' \
+            --exclude='deploy/judge.env' \
+            -czf "$RUNNER_TEMP/ledgerlens-${GITHUB_SHA}.tgz" .
+
+      - name: Render secret environment file
+        if: ${{ inputs.action == 'deploy' }}
+        run: |
+          python3 - "$RUNNER_TEMP/judge.env" <<'PY'
+          import os
+          import shlex
+          import sys
+          from pathlib import Path
+
+          names = [
+              "LEDGERLENS_FQDN",
+              "DATAHUB_FQDN",
+              "CADDY_ACME_EMAIL",
+              "JUDGE_GATEWAY_USERNAME",
+              "JUDGE_GATEWAY_PASSWORD",
+              "JUDGE_GATEWAY_PASSWORD_HASH",
+              "DATAHUB_ADMIN_PASSWORD",
+              "DATAHUB_JUDGE_USERNAME",
+              "DATAHUB_JUDGE_PASSWORD",
+              "DATAHUB_SERVICE_USERNAME",
+              "DATAHUB_SERVICE_PASSWORD",
+          ]
+          defaults = {
+              "DATAHUB_JUDGE_USERNAME": "ledgerlens-judge",
+              "DATAHUB_SERVICE_USERNAME": "ledgerlens-service",
+          }
+          lines = [
+              "DATAHUB_ADMIN_USERNAME=datahub",
+              "DATAHUB_VERSION=v1.6.0",
+              "DATAHUB_CLI_VERSION=1.6.0.16",
+              "DATAHUB_QUICKSTART_COMPOSE_SHA256=ba39d779cd0e066553b5f4673384ece3d6a872e2245983525fc71e2ece1b5077",
+              "CADDY_IMAGE=caddy:2.10.2-alpine",
+              f"JUDGE_TTL_HOURS={shlex.quote(os.environ['TTL_HOURS'])}",
+              "LEDGERLENS_LLM_ENABLED=false",
+              "LEDGERLENS_MUTATIONS_ENABLED=false",
+          ]
+          for name in names:
+              value = os.environ.get(name) or defaults.get(name, "")
+              lines.append(f"{name}={shlex.quote(value)}")
+          destination = Path(sys.argv[1])
+          destination.write_text("\n".join(lines) + "\n", encoding="utf-8")
+          destination.chmod(0o600)
+          PY
+
+      - name: Upload and deploy immutable release
+        if: ${{ inputs.action == 'deploy' }}
+        run: |
+          set -euo pipefail
+          release="$REMOTE_ROOT/releases/$GITHUB_SHA"
+          # shellcheck disable=SC2029
+          ssh judge-vm "mkdir -p '$release' '$REMOTE_ROOT/shared/state'"
+          scp "$RUNNER_TEMP/ledgerlens-${GITHUB_SHA}.tgz" judge-vm:"$release/source.tgz"
+          scp "$RUNNER_TEMP/judge.env" judge-vm:"$REMOTE_ROOT/shared/judge.env"
+          # shellcheck disable=SC2029
+          ssh judge-vm "
+            set -euo pipefail
+            chmod 600 '$REMOTE_ROOT/shared/judge.env'
+            tar -xzf '$release/source.tgz' -C '$release'
+            cd '$release'
+            JUDGE_ENV_FILE='$REMOTE_ROOT/shared/judge.env' \
+              DEPLOY_STATE_DIR='$REMOTE_ROOT/shared/state' \
+              bash deploy/bin/up.sh
+            ln -sfn '$release' '$REMOTE_ROOT/current'
+          "
+
+      - name: Run remote operation
+        if: ${{ inputs.action != 'deploy' }}
+        run: |
+          set -euo pipefail
+          case "$ACTION" in
+            health)
+              remote_command="bash deploy/bin/healthcheck.sh"
+              ;;
+            reset)
+              remote_command="bash deploy/bin/reset-scenario.sh '$SCENARIO'"
+              ;;
+            stop)
+              remote_command="bash deploy/bin/down.sh"
+              ;;
+            *)
+              echo "Unsupported remote action: $ACTION" >&2
+              exit 2
+              ;;
+          esac
+          # shellcheck disable=SC2029
+          ssh judge-vm "
+            set -euo pipefail
+            test -d '$REMOTE_ROOT/current'
+            cd '$REMOTE_ROOT/current'
+            JUDGE_ENV_FILE='$REMOTE_ROOT/shared/judge.env' \
+              DEPLOY_STATE_DIR='$REMOTE_ROOT/shared/state' \
+              $remote_command
+          "

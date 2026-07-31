@@ -1,0 +1,29 @@
+{
+	{{ACME_EMAIL}}
+	admin off
+}
+
+(judge_security) {
+	basic_auth {
+		{{GATEWAY_USERNAME}} {{GATEWAY_PASSWORD_HASH}}
+	}
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+}
+
+{{LEDGERLENS_FQDN}} {
+	import judge_security
+	reverse_proxy ledgerlens:8000
+}
+
+{{DATAHUB_FQDN}} {
+	import judge_security
+	reverse_proxy frontend-quickstart:9002
+}
