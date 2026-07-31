@@ -12,6 +12,7 @@ import asyncio
 import json
 import platform
 import statistics
+import subprocess
 import time
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
@@ -20,6 +21,20 @@ from typing import Any
 
 import httpx
 from fastmcp import Client
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def git_value(*args: str) -> str | None:
+    result = subprocess.run(
+        ["git", *args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    value = result.stdout.strip()
+    return value if result.returncode == 0 and value else None
 
 
 def _summary(samples: list[float]) -> dict[str, float | int]:
@@ -70,6 +85,8 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
     return {
         "schemaVersion": 1,
         "measuredAt": datetime.now(UTC).isoformat(),
+        "gitCommit": git_value("rev-parse", "HEAD"),
+        "gitDirty": bool(git_value("status", "--porcelain")),
         "environment": {
             "python": platform.python_version(),
             "platform": platform.platform(),

@@ -10,12 +10,27 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 import time
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import httpx
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def git_value(*args: str) -> str | None:
+    result = subprocess.run(
+        ["git", *args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    value = result.stdout.strip()
+    return value if result.returncode == 0 and value else None
 
 
 def main() -> None:
@@ -57,6 +72,8 @@ def main() -> None:
     result = {
         "schemaVersion": 1,
         "measuredAt": datetime.now(UTC).isoformat(),
+        "gitCommit": git_value("rev-parse", "HEAD"),
+        "gitDirty": bool(git_value("status", "--porcelain")),
         "scope": {
             "measurement": "020s API transport health only",
             "candidateOnly": True,
