@@ -155,6 +155,8 @@ def main() -> int:
         "actions/checkout@v4",
         "actions/setup-python@v5",
         "actions/upload-artifact@v4",
+        "astral-sh/setup-uv@v6",
+        "astral-sh/setup-uv@v8",
     ):
         require(
             obsolete_action not in all_workflows,

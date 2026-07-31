@@ -159,7 +159,10 @@ def test_workflows_use_node24_action_majors() -> None:
     assert "actions/checkout@v4" not in workflows
     assert "actions/setup-python@v5" not in workflows
     assert "actions/upload-artifact@v4" not in workflows
+    assert "astral-sh/setup-uv@v6" not in workflows
+    assert "astral-sh/setup-uv@v8" not in workflows
     assert workflows.count("actions/checkout@v6") >= 6
+    assert workflows.count("astral-sh/setup-uv@v9.0.0") == 2
 
 
 def test_demo_script_is_under_three_minutes_and_requires_real_capture() -> None:
