@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 from types import ModuleType
@@ -52,6 +53,7 @@ on two lines.
         width=640,
         height=360,
         font_size=24,
+        bottom_margin=72,
     )
     manifest_text = manifest.read_text(encoding="utf-8")
     assert "duration 1.500000" in manifest_text
@@ -62,6 +64,8 @@ on two lines.
     caption = Image.open(tmp_path / "overlay/caption-001.png").convert("RGBA")
     assert blank.getbbox() is None
     assert caption.getbbox() is not None
+    metadata = json.loads((tmp_path / "overlay/caption-overlay.json").read_text(encoding="utf-8"))
+    assert metadata["bottomMargin"] == 72
 
 
 def test_srt_overlap_fails_closed(tmp_path: Path) -> None:
@@ -99,4 +103,25 @@ Too long.
             captions,
             tmp_path / "overlay",
             duration_seconds=2.0,
+        )
+
+
+def test_overlay_rejects_out_of_frame_bottom_margin(tmp_path: Path) -> None:
+    module = _load_module()
+    captions = tmp_path / "captions.srt"
+    captions.write_text(
+        """1
+00:00:00,000 --> 00:00:01,000
+Caption.
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="bottom margin must be between"):
+        module.build_overlay_assets(
+            captions,
+            tmp_path / "overlay",
+            duration_seconds=2.0,
+            height=360,
+            bottom_margin=360,
         )
