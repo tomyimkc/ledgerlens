@@ -1,0 +1,37 @@
+name: Hosted Incident Commander smoke
+
+on:
+  schedule:
+    - cron: "17 14 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ledgerlens-hosted-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Verify public fixture replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run credential-free hosted smoke
+        run: |
+          python scripts/check_hosted_incident_demo.py \
+            --output artifacts/hosted-smoke/receipt.json
+
+      - name: Upload sanitized receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ledgerlens-hosted-smoke-${{ github.run_id }}
+          path: artifacts/hosted-smoke/receipt.json
+          if-no-files-found: error
+          retention-days: 30

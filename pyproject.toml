@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "ledgerlens"
 version = "0.2.0"
-description = "DataHub agent for evidence-grounded failure-ledger triage."
+description = "Autonomous Data Incident Commander with deterministic authorization and receipts."
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 license = { text = "Apache-2.0" }

@@ -46,11 +46,13 @@ The deployment uses:
 | SSH | Operator only | SSH key + pinned host key | Host administration |
 
 The generated DataHub compose enables metadata-service authentication, policy enforcement, and
-REST API authorization. It rotates the immutable `datahub` root password through a private
-`user.props`, creates separate judge/service users, assigns both the built-in Reader role, and
-deactivates the editable all-users platform policy after the service PAT is issued. The health
-gate asks DataHub for the effective privileges of both identities and rejects any non-read
-metadata privilege or any platform privilege.
+REST API authorization. It overrides the factory `datahub/datahub` credential at DataHub
+frontend's documented `user.props` mount, rotates the root password, creates separate
+judge/service users, assigns both the built-in Reader role, and deactivates the editable all-users
+platform policy after the service PAT is issued. The health gate asks DataHub for the effective
+privileges of both identities and rejects metadata-mutation privileges or platform privileges
+outside the bounded Reader allowlist. The verified Reader role retains expected read/search/view
+and personal-token self-service privileges; it is not a zero-platform-privilege identity.
 
 ## Cloud assumptions
 
@@ -172,7 +174,8 @@ bash deploy/bin/up.sh
 5. validates Compose and Caddy configuration;
 6. starts the DataHub quickstart and waits for GMS/frontend health;
 7. creates judge and service users and assigns the Reader role;
-8. ingests only `fixtures/sophia_failure_ledger_sanitized.md` with the private root token;
+8. ingests only the parser-valid synthetic fixture
+   `docs/fixtures/failure-ledger-demo.md` with the private root token;
 9. issues the service PAT, disables the all-users platform policy, and verifies effective
    privileges;
 10. starts LedgerLens and Caddy;
@@ -195,13 +198,13 @@ GitHub Environment settings.
 
 Suggested first pass:
 
-1. Open LedgerLens and confirm the live status says DataHub and MCP are connected.
-2. Open the remediation queue.
-3. inspect a missing-owner/evidence case;
-4. trace the parser finding's supersession chain;
-5. download the JSON report;
-6. open DataHub with the Reader credential and inspect the same dataset, ownership, tags, custom
-   properties, and lineage.
+1. Open LedgerLens and confirm the visible `FIXTURE / REPLAY` mode and claim boundary.
+2. Replay the trigger and inspect DataHub-grounded ownership, evidence, lineage-derived blast
+   radius, explicit unknowns, and the bounded plan.
+3. Confirm AI verifier output is advisory and deterministic policy is the authorization authority.
+4. Inspect the four `fixture://` action receipts, fixture write-back, and next-agent handoff.
+5. Open DataHub with the Reader credential and inspect the synthetic seeded datasets, ownership,
+   tags, custom properties, and lineage without attempting mutation.
 
 ## Resettable scenarios
 
@@ -238,8 +241,8 @@ Health passes only when:
 
 - GMS and the DataHub login page are reachable on loopback;
 - the LedgerLens container reports Docker health `healthy`;
-- the judge and service identities have no platform privileges;
-- every effective metadata privilege is read-only;
+- the judge and service identities have only the expected bounded Reader platform privileges;
+- every effective metadata privilege is read-only and no metadata-mutation privilege is present;
 - the LedgerLens public `/healthz` endpoint succeeds through Caddy auth/TLS;
 - the DataHub login page succeeds through Caddy auth/TLS.
 

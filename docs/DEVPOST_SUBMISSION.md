@@ -3,25 +3,28 @@
 ## Submission identity
 
 - **Project:** LedgerLens — Autonomous Data Incident Commander
+- **Tagline:** Turn DataHub context into authorized incident work—with receipts.
 - **Category:** Agents That Do Real Work
 - **Repository:** `https://github.com/tomyimkc/ledgerlens`
 - **License:** Apache-2.0
 - **Deadline:** August 10, 2026 at 5:00 PM EDT
 - **Judge-access requirement:** free access through August 31, 2026
-- **Public demo URL:** `https://tomyimkc-ledgerlens-incident-commander.hf.space/`
+- **Public project URL:** `https://tomyimkc-ledgerlens-incident-commander.hf.space/`
 - **Space page:** `https://huggingface.co/spaces/tomyimkc/ledgerlens-incident-commander`
 - **Public video URL:** `OWNER INPUT REQUIRED`
-- **Final release/tag:** `v0.2.0`
-- **Merged commit:** `00063e40bfc785f13e6db938e0795928e4f843ba`
-- **Release URL:** `https://github.com/tomyimkc/ledgerlens/releases/tag/v0.2.0`
+- **Current public baseline:** `v0.2.0` at merged commit
+  `00063e40bfc785f13e6db938e0795928e4f843ba`
+- **Final release target:** `v0.2.1` — **pending public video URL; not yet published**
+- **Final release commit:** not assigned; do not invent a SHA before the final tag is cut
 - **Upstream issue:** `https://github.com/acryldata/mcp-server-datahub/issues/159`
-- **Upstream PR:** `https://github.com/acryldata/mcp-server-datahub/pull/160`
+- **Upstream PR:** `https://github.com/acryldata/mcp-server-datahub/pull/160` —
+  **PR #160 remains open, not merged**
 
 ## One-line pitch
 
-LedgerLens turns a DataHub-observed incident into an evidence-grounded plan, independent
-model-variant verification, deterministic authorization, receipted operational actions, DataHub
-write-back, and a provenance-preserving handoff to the next recovery agent.
+LedgerLens turns a DataHub-observed incident into a bounded response plan, AI advisory
+verification, deterministic authorization, receipted operational actions, DataHub write-back, and
+a provenance-preserving handoff to the next recovery agent.
 
 ## Submission description
 
@@ -29,134 +32,151 @@ Data incidents rarely fail because teams lack another chatbot. They fail because
 reconstruct ownership, lineage, runbooks, criticality, evidence, and previous actions across
 separate systems while an alert clock is running.
 
-LedgerLens is an **Autonomous Data Incident Commander** built around DataHub. It starts from a
-DataHub assertion or incident signal, retrieves the root asset and bounded downstream lineage,
-preserves explicit unknowns, and asks a planner for a reversible response plan. Two distinct
-configured verifier variants review the exact plan. A deterministic policy gate—not model prose—
-checks quorum, confidence, evidence fact IDs, action types, targets, parameters, risk, and the plan
-fingerprint.
+LedgerLens is an **Autonomous Data Incident Commander** built around DataHub. It runs one visible
+workflow:
 
-Only then can LedgerLens fan out typed, HMAC-authorized actions to GitHub, Slack, PagerDuty, and
-Jira. Each adapter uses preview/execute separation, idempotency, bounded retries, conservative
-ambiguous-timeout handling, and secret-safe receipts. A separate disabled-by-default mutation path
-records the bounded incident snapshot and receipts back into DataHub, where the next recovery
-verifier can inherit known facts, unknowns, completed work, provenance, and required next checks.
+```text
+trigger
+  -> DataHub context
+  -> bounded plan
+  -> AI advisory verification
+  -> deterministic authorization
+  -> receipted actions
+  -> DataHub write-back
+  -> next-agent handoff
+```
 
-The public replay is deterministic and credential-free. It labels every synthetic receipt
-`fixture://` and does not claim live provider execution. Separate receipts record the live 020s
-planner-plus-two-verifier rehearsal, the real GitHub issue creation/closure evidence, 577 accepted
-DataHub catalog proposals, a controlled `save_document` write-back, and fresh MCP retrieval of the
-created document.
+The trigger identifies a DataHub asset. LedgerLens retrieves the recorded owner, tier, schema,
+documentation, quality signal, and bounded downstream lineage while preserving explicit unknowns.
+A planner proposes only allowlisted, reversible collaboration work. Two configured verifier
+variants inspect the exact plan, evidence fact IDs, action scope, and claim boundaries.
 
-LedgerLens does **not** claim provider-family independence, incident causality, user impact,
-recovery, validated uplift, production readiness, or AGI.
+The model outputs are advisory. A deterministic policy—not model prose—checks quorum,
+confidence, action type, target, parameters, risk, evidence references, and plan fingerprint. AI
+cannot authorize itself or expand an allowlist.
+
+After authorization, typed adapters can create a GitHub issue, send a Slack message, create or
+annotate a PagerDuty incident, and create a Jira task. Every adapter uses preview/execute
+separation, authorization binding, idempotency, bounded retries, conservative timeout handling,
+and sanitized receipts. A separate disabled-by-default DataHub mutation path records the bounded
+incident command receipt. The next-agent handoff preserves known facts, unknowns, completed work,
+receipt references, and required recovery checks.
+
+The stable public project URL is a deterministic, credential-free fixture replay. It labels every
+simulated receipt `fixture://`, reports `externalMutations: false`, and never presents fixture work
+as live provider execution.
+
+Separate evidence receipts establish narrower live facts:
+
+- a live 020s planner plus two verifier variants produced a quorum-approved plan that was
+  authorized by deterministic policy without external mutation;
+- the signed GitHub adapter created and immediately closed rehearsal issue `#3`;
+- DataHub OSS v1.6.0 accepted an authorized `save_document` write-back and the official MCP
+  `get_entities` path retrieved the resulting document;
+- a supervised authenticated public DataHub reachability proof returned 401 without gateway
+  credentials, 200 for judge access, verified Reader-only grants without metadata-mutation
+  authority, and completed teardown;
+- a deterministic DataHub-context ON/OFF benchmark measures owner accuracy, blast-radius recall,
+  unsupported claims, unsafe actions, duplicate actions, and plan completeness;
+- a consent-safe external evaluation kit is available, but no reviewer score or endorsement is
+  claimed.
+
+LedgerLens is a working prototype. It does **not** claim provider-family independence, live Slack,
+PagerDuty, or Jira execution, incident causality, user impact, recovery, production readiness,
+independent validation, validated uplift, or AGI.
 
 ```yaml
 candidateOnly: true
 canClaimAGI: false
+externalValidation: false
 ```
 
 ## Six equally weighted judging criteria
 
-| Criterion | Judge evidence |
+| Official criterion | LedgerLens judge evidence |
 |---|---|
-| Meaningful DataHub use and write-back | Root entity, ownership, schema-shaped properties, runbook, SLO, quality checks, downstream lineage, controlled MCP write-back, and next-agent retrieval contract |
-| Technical execution and end-to-end functionality | Typed state machine, real planner/verifier JSON contracts, deterministic gate, action adapters, receipts, idempotency, dashboard, tests, and deployment package |
-| Originality beyond built-ins | Evidence-bound authorization and operational fanout rather than catalog Q&A alone |
-| Real-world usefulness | Coordinates accountable response work while preserving unknown cause, impact, and recovery |
-| Submission quality and reproducibility | Apache-2.0 repo, one-command replay, 120-asset fixture, 24 scenarios, DataHub-context ablation, exact scripts, and claim boundaries |
-| Open-source contribution bonus | Upstream MCP `get_entities` aspect audit-context patch and tests are prepared; no merge is claimed until the public PR is accepted |
+| Meaningful Use of DataHub Tools and Write-Back | DataHub-grounded incident context, ownership, schema, documentation, quality signal, lineage-based blast radius, official MCP reads, controlled `save_document` write-back, and next-agent retrieval |
+| Technical Execution and End-to-End Functionality | Typed state machine, planner/verifier contracts, fail-closed policy, signed provider authorization, idempotency, replay UI, strict mypy, deterministic tests, secret scan, hosted smoke, and readiness gates |
+| Originality and Extension Beyond Built-ins | Evidence-bound authorization and receipted operational fanout rather than catalog Q&A or unrestricted model tool use |
+| Real-World Usefulness | Coordinates accountable response work and durable handoff while refusing to invent cause, impact, recovery, or resolution |
+| Submission Quality and Reproducibility | Public Apache-2.0 repository, one-command replay, public Space, exact receipts, context ablation, architecture/security docs, and fail-closed automation |
+| Open-Source Contribution Bonus | Upstream DataHub MCP provenance/audit-context issue #159 and PR #160 with focused tests; the PR remains open and no upstream merge is claimed |
 
-## Evidence links to include
+## Evidence links
 
-- Incident Commander screenshot/video
-- `benchmarks/incident_commander/ai-verification-receipt.json`
-- `benchmarks/incident_commander/github-live-action-receipt.json`
-- deterministic DataHub context ON/OFF receipt
-- public hosted demo health receipt
-- upstream MCP issue #159 and PR #160
-- merged commit `00063e4` and release `v0.2.0`
+- Public Incident Commander:
+  `https://tomyimkc-ledgerlens-incident-commander.hf.space/`
+- Hosted replay source: `deploy/hf-space/`
+- Hosted smoke checker: `scripts/check_hosted_incident_demo.py`
+- AI verification:
+  `benchmarks/incident_commander/ai-verification-receipt.json`
+- Live GitHub action:
+  `benchmarks/incident_commander/github-live-action-receipt.json`
+- Live DataHub write-back:
+  `benchmarks/incident_commander/datahub-live-writeback-receipt.json`
+- DataHub context ON/OFF:
+  `benchmarks/incident_commander/context-ablation-receipt.json`
+- Local live DataHub smoke:
+  `benchmarks/results/live-datahub-smoke-2026-07-31.json`
+- Supervised public DataHub proof:
+  `benchmarks/results/live-public-proof-2026-07-31.json`
+- Public-proof design and teardown:
+  `docs/LIVE_DATAHUB_PUBLIC.md`
+- Consent-safe external evaluation:
+  `docs/EXTERNAL_EVALUATION.md`
+- Architecture and security: `ARCHITECTURE.md`, `SECURITY.md`
+- Pre-existing-work disclosure: `DISCLOSURE.md`
 
-## Public deployment status
+## Public deployment and live-proof status
 
-The existing public `tomyimkc/sophia-governance-gate` Space was repurposed with explicit owner
-authorization after its previous state was preserved on branch
-`backup/governance-gate-20260731` and in a local Git bundle. It was then renamed to
-`tomyimkc/ledgerlens-incident-commander` and now runs the LedgerLens Docker fixture replay on
-Hugging Face `cpu-basic`.
+The owner's existing `tomyimkc/sophia-governance-gate` Space was preserved, repurposed with
+explicit authorization, renamed to `tomyimkc/ledgerlens-incident-commander`, and deployed as the
+LedgerLens Docker fixture replay on Hugging Face `cpu-basic`.
 
-Public verification on July 31, 2026 confirmed:
+The public replay currently exposes a secret-free contract:
 
 - `/` redirects to `/incident`;
 - `/healthz` reports fixture mode, no external mutations, `candidateOnly: true`, and
   `canClaimAGI: false`;
-- the Incident Commander page renders;
-- autonomous trigger execution produces four visibly synthetic `fixture://` receipts;
+- replay produces exactly four `fixture://` provider receipts;
 - write-back reaches `recorded`;
-- next-agent memory reaches `ready`.
+- next-agent memory reaches `ready`;
+- authorization reports `authority: deterministic-policy` and `ai_can_authorize: false`.
 
-The LedgerLens repository now has an `hf-space` GitHub Environment containing the write-only
-`HF_TOKEN` secret and `HF_SPACE_REPO_ID` variable. The deployment workflow is restricted to `main`
-and can also be dispatched manually.
+The repository includes a daily and manually dispatchable hosted smoke workflow. It requires no
+repository secret and uploads only a sanitized JSON receipt.
 
-The Docker-VM/Caddy workflow remains available for a separate full DataHub OSS judge environment.
+The supervised public DataHub proof was temporary by design. The tunnel, gateway, relay, and
+remote stack were stopped; volumes and private receipts were preserved. There is no durable public
+DataHub judge URL, and the temporary proof must not be described as a production deployment.
 
-## Under-three-minute video script (target 2:50)
+## Non-video readiness status
 
-### 0:00–0:18 — Problem
+The non-video release guard is:
 
-> A critical data alert gives responders a symptom, not the owner, blast radius, safe action scope,
-> or a durable handoff. LedgerLens turns DataHub context into bounded incident work.
+```bash
+make non-video-readiness
+```
 
-Show the Incident Commander hero, visible `FIXTURE / REPLAY` banner, and `candidateOnly` boundary.
+It fails closed when required receipts or claim flags drift, CI loses strict mypy or DataHub
+dependencies, the hosted smoke contract disappears, the old failure-ledger product copy returns,
+or documentation falsely claims that `v0.2.1` is already published.
 
-### 0:18–0:48 — DataHub context
+The July 31, 2026 non-video judge gate passed **252 deterministic tests**, strict mypy over 36
+source files, Ruff lint/format checks, the secret scan, public-package checks, the DataHub-context
+benchmark, and this readiness guard. The hosted public smoke also passed against the live fixture
+URL. Re-run the gates after any final release-only edit rather than copying an older count.
 
-Click **Replay trigger**. Show root entity, owner, tier, runbook/evidence pointers, downstream
-assets, and the statement that lineage is metadata-derived and not causal proof.
+## Final owner/video boundary
 
-### 0:48–1:15 — Plan
-
-Show the plan fingerprint and four provider actions plus DataHub write-back. Emphasize that no
-production rollback or incident resolution is proposed.
-
-### 1:15–1:43 — Verify and authorize
-
-Show the verifier panel and deterministic gate. Say:
-
-> Model variants are advisory. They cannot expand allowlists or authorize themselves. The exact
-> plan, targets, parameters, risk, evidence IDs, quorum, and confidence must pass deterministic
-> policy.
-
-### 1:43–2:12 — Do work and preserve receipts
-
-Show GitHub, Slack, PagerDuty, and Jira receipt cards, followed by DataHub write-back. Keep
-`fixture://` visible in the replay. Cut briefly to the separately published closed GitHub issue
-receipt and the live AI-verification receipt; do not imply the other providers were live.
-
-### 2:12–2:34 — Next-agent memory
-
-Show known facts, unknowns, completed actions, provenance, and next recovery checks.
-
-### 2:34–2:50 — Why it wins
-
-> DataHub is the incident operating context and the durable memory layer. LedgerLens adds
-> verifier-gated, policy-bound action fanout with receipts—real work without turning model
-> confidence into arbitrary authority.
-
-End on the repository, Apache-2.0 badge, public demo URL, and exact claim boundary.
-
-## Owner-only final checklist
-
-- [ ] Add public video URL.
-- [x] Add and verify public project URL.
-- [ ] Keep the hosted demo free and reachable through August 31, 2026.
-- [ ] Verify judge access in a clean/incognito browser.
-- [ ] Confirm video duration is below three minutes.
-- [x] Publish final release/tag and commit SHA.
-- [x] Open the upstream MCP issue and PR.
-- [ ] Obtain maintainer approval for the upstream fork CI workflow and review; no merge is claimed
-      while PR #160 remains open.
-- [ ] Confirm Slack, PagerDuty, and Jira are described as implemented adapters unless live receipts
-      are obtained.
-- [ ] Run `make judge-check`.
+- [ ] Add the public under-three-minute video URL.
+- [x] Add and verify the public project URL.
+- [x] Keep the hosted replay explicitly labeled fixture/replay.
+- [x] Publish the supervised live-public DataHub proof and teardown receipt.
+- [x] Publish the external evaluation kit without inventing results.
+- [x] Describe Slack, PagerDuty, and Jira as implemented but not executed live.
+- [x] Open upstream issue #159 and PR #160; state that PR #160 remains open, not merged.
+- [ ] Publish final `v0.2.1` only after the public video URL is recorded.
+- [ ] Record the real final release SHA after the tag is cut.
+- [ ] Complete owner account/team/eligibility review.
+- [ ] Click final Submit and save the submission receipt.

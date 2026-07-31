@@ -21,10 +21,16 @@ REQUIRED_FILES = (
     ".dockerignore",
     "docker-compose.yml",
     ".github/workflows/ci.yml",
+    ".github/workflows/hosted-smoke.yml",
+    "scripts/check_hosted_incident_demo.py",
+    "scripts/check_non_video_readiness.py",
     "docs/BENCHMARKS.md",
     "docs/DATAHUB_QUICKSTART.md",
     "docs/DEVPOST_CHECKLIST.md",
+    "docs/DEVPOST_SUBMISSION.md",
     "docs/DEVPOST_WRITEUP.md",
+    "docs/EXTERNAL_EVALUATION.md",
+    "docs/LIVE_DATAHUB_PUBLIC.md",
     "docs/demo/DEMO_SCRIPT.md",
     "docs/demo/STORYBOARD.md",
     "docs/demo/RECORDING.md",
@@ -130,8 +136,17 @@ def main() -> int:
 
     workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
     require('"3.11"' in workflow and '"3.12"' in workflow, "CI Python matrix incomplete", errors)
-    for gate in ("ruff check", "pytest", "uv build", "check_secrets", "check_public_package"):
+    for gate in (
+        "ruff check",
+        "mypy",
+        "pytest",
+        "uv build",
+        "check_secrets",
+        "check_public_package",
+        "check_non_video_readiness",
+    ):
         require(gate in workflow, f"CI gate missing: {gate}", errors)
+    require("--extra datahub" in workflow, "CI DataHub dependency bootstrap missing", errors)
 
     dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
     require("USER ledgerlens" in dockerfile, "Dockerfile must use non-root user", errors)
