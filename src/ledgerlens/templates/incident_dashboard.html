@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="LedgerLens Incident Commander coordinates evidence-bounded response work."
+    >
+    <title>Incident Commander · LedgerLens</title>
+    <link rel="stylesheet" href="{{ base_path }}/assets/incident.css">
+    <script defer src="{{ base_path }}/assets/incident.js"></script>
+  </head>
+  <body
+    data-api-base="{{ base_path }}/api"
+    data-mode="{{ state.mode }}"
+    data-availability="{{ state.availability }}"
+    data-autonomous-execution="{{ 'true' if state.automation.enabled else 'false' }}"
+  >
+    <a class="skip-link" href="#command-center">Skip to command center</a>
+
+    <header class="command-header">
+      <div class="brand-lockup">
+        <span class="brand-sigil" aria-hidden="true">
+          <i></i><i></i><i></i>
+        </span>
+        <div>
+          <strong>LedgerLens</strong>
+          <span>Incident Commander</span>
+        </div>
+      </div>
+
+      <div class="header-context">
+        {% if state.incident %}
+          <span class="severity-badge">{{ state.incident.severity }}</span>
+          <div>
+            <small>ACTIVE COMMAND</small>
+            <strong>{{ state.incident.id }}</strong>
+          </div>
+          <div>
+            <small>ELAPSED{% if state.mode == "fixture" %} · REPLAY{% endif %}</small>
+            <strong class="mono">{{ state.incident.elapsed or "unknown" }}</strong>
+          </div>
+        {% else %}
+          <span class="severity-badge neutral">NO LIVE INCIDENT</span>
+        {% endif %}
+      </div>
+
+      <div class="mode-lockup mode-{{ state.mode }}">
+        <span class="pulse-dot" aria-hidden="true"></span>
+        <div>
+          <small>RUNTIME MODE</small>
+          <strong>
+            {% if state.mode == "fixture" %}FIXTURE / REPLAY{% else %}LIVE{% endif %}
+          </strong>
+        </div>
+      </div>
+    </header>
+
+    {% if state.fixture %}
+      <aside class="fixture-banner" role="status" data-testid="fixture-label">
+        <strong>{{ state.fixture.label }}</strong>
+        <span>{{ state.fixture.note }}</span>
+        <code>{{ state.fixture.replay_id }}</code>
+      </aside>
+    {% elif state.availability != "ready" %}
+      <aside class="live-warning" role="alert" data-testid="live-unconfigured">
+        <strong>LIVE BACKEND UNCONFIGURED</strong>
+        <span>
+          {{ state.diagnostic or "Mount a live incident backend to report real product state." }}
+          No fixture state has been substituted.
+        </span>
+      </aside>
+    {% endif %}
+
+    <main id="command-center">
+      {% if state.incident %}
+        <section class="incident-hero">
+          <div class="incident-identity">
+            <div class="signal-label">
+              <span class="live-pulse" aria-hidden="true"></span>
+              INCIDENT TRIGGER · {{ state.incident.trigger.classification | upper }}
+            </div>
+            <h1>{{ state.incident.title }}</h1>
+            <p>
+              {{ state.incident.trigger.summary }}
+              <strong>{{ state.incident.trigger.observed }}</strong> observed against
+              <strong>{{ state.incident.trigger.threshold }}</strong>.
+            </p>
+            <div class="identity-meta">
+              <span><small>SERVICE</small>{{ state.incident.service }}</span>
+              <span><small>OWNER</small>{{ state.incident.commander }}</span>
+              <span><small>DETECTED</small>{{ state.incident.detected_at }}</span>
+              <span><small>STATUS</small>{{ state.incident.status | replace("_", " ") }}</span>
+            </div>
+          </div>
+
+          <aside class="trigger-console">
+            <div>
+              <span class="console-kicker">INCIDENT INTAKE</span>
+              <strong>{{ state.incident.trigger.source }}</strong>
+              <p>
+                Triggering refreshes context and invalidates any earlier authorization.
+              </p>
+            </div>
+            <button
+              class="button button-signal"
+              type="button"
+              data-trigger-incident
+              {% if not state.capabilities.trigger %}disabled{% endif %}
+            >
+              <span aria-hidden="true">↻</span>
+              {% if state.mode == "fixture" %}Replay trigger{% else %}Trigger intake{% endif %}
+            </button>
+          </aside>
+        </section>
+
+        <nav class="response-rail" aria-label="Incident response progress">
+          {% set auth_done = state.authorization.decision == "authorized" %}
+          {% set action_done = state.actions and state.actions | selectattr("status", "equalto", "succeeded") | list | length == state.actions | length %}
+          <div class="rail-step complete"><span>01</span><strong>Trigger</strong><small>observed</small></div>
+          <div class="rail-line active"></div>
+          <div class="rail-step complete"><span>02</span><strong>Context</strong><small>grounded</small></div>
+          <div class="rail-line active"></div>
+          <div class="rail-step complete"><span>03</span><strong>Plan</strong><small>fingerprinted</small></div>
+          <div class="rail-line active"></div>
+          <div class="rail-step complete"><span>04</span><strong>Verify</strong><small>advisory</small></div>
+          <div class="rail-line {% if auth_done %}active{% endif %}"></div>
+          <div class="rail-step {% if auth_done %}complete{% else %}current{% endif %}">
+            <span>05</span><strong>Authorize</strong><small>{{ state.authorization.decision }}</small>
+          </div>
+          <div class="rail-line {% if action_done %}active{% endif %}"></div>
+          <div class="rail-step {% if action_done %}complete{% endif %}">
+            <span>06</span><strong>Act</strong><small>{% if action_done %}receipted{% else %}held{% endif %}</small>
+          </div>
+        </nav>
+
+        <section class="command-grid">
+          <div class="command-main">
+            <article class="command-panel context-panel" data-testid="datahub-context">
+              <header class="panel-heading">
+                <div>
+                  <p class="eyebrow">01 · DATAHUB CONTEXT</p>
+                  <h2>Grounded entity & blast radius</h2>
+                </div>
+                <span class="state-chip state-{{ state.context.status }}">
+                  <i aria-hidden="true"></i>{{ state.context.status }}
+                </span>
+              </header>
+
+              <div class="entity-card">
+                <span class="entity-icon" aria-hidden="true">DH</span>
+                <div class="entity-primary">
+                  <small>PRIMARY ENTITY</small>
+                  <strong>{{ state.context.entity.name }}</strong>
+                  <code>{{ state.context.entity.urn }}</code>
+                </div>
+                <dl>
+                  <div><dt>Owner</dt><dd>{{ state.context.entity.owner }}</dd></div>
+                  <div><dt>Domain</dt><dd>{{ state.context.entity.domain }}</dd></div>
+                  <div><dt>Tier</dt><dd>{{ state.context.entity.tier }}</dd></div>
+                  <div><dt>Platform</dt><dd>{{ state.context.entity.platform }}</dd></div>
+                </dl>
+              </div>
+
+              <div class="blast-summary">
+                <div class="blast-number">
+                  <strong>{{ state.context.blast_radius.asset_count }}</strong>
+                  <span>recorded downstream assets</span>
+                </div>
+                <div class="blast-number critical">
+                  <strong>{{ state.context.blast_radius.critical_count }}</strong>
+                  <span>Tier 1 dependencies</span>
+                </div>
+                <div class="blast-boundary">
+                  <small>AUTHORIZATION BOUNDARY</small>
+                  <strong>{{ state.context.blast_radius.authorization_boundary }}</strong>
+                  <span>{{ state.context.blast_radius.confidence }}</span>
+                </div>
+              </div>
+
+              <div class="asset-table" role="table" aria-label="Recorded downstream assets">
+                <div class="asset-row asset-header" role="row">
+                  <span role="columnheader">Asset</span>
+                  <span role="columnheader">Type</span>
+                  <span role="columnheader">Criticality</span>
+                  <span role="columnheader">Relationship</span>
+                </div>
+                {% for asset in state.context.blast_radius.assets %}
+                  <div class="asset-row" role="row">
+                    <strong role="cell">{{ asset.name }}</strong>
+                    <span role="cell">{{ asset.type }}</span>
+                    <span role="cell" class="tier">{{ asset.criticality }}</span>
+                    <span role="cell">{{ asset.relationship }}</span>
+                  </div>
+                {% endfor %}
+              </div>
+
+              <div class="context-footer">
+                <div>
+                  <small>RECORDED EVIDENCE</small>
+                  <strong>{{ state.context.evidence | length }} provenance pointers</strong>
+                </div>
+                <div class="unknown-callout">
+                  <span aria-hidden="true">?</span>
+                  <p>
+                    <strong>Unknowns stay unknown.</strong>
+                    {{ state.context.blast_radius.unknowns | join(" ") }}
+                  </p>
+                </div>
+              </div>
+            </article>
+
+            <article class="command-panel planner-panel" data-testid="planner-output">
+              <header class="panel-heading">
+                <div>
+                  <p class="eyebrow">02 · PLANNER OUTPUT</p>
+                  <h2>Bounded response plan</h2>
+                </div>
+                <div class="plan-fingerprint">
+                  <small>PLAN FINGERPRINT</small>
+                  <code data-copy-value="{{ state.planner.computed_plan_hash }}">
+                    {{ state.planner.computed_plan_hash }}
+                  </code>
+                  <button
+                    type="button"
+                    class="copy-button"
+                    data-copy="{{ state.planner.computed_plan_hash }}"
+                  >Copy</button>
+                </div>
+              </header>
+
+              <div class="plan-objective">
+                <div>
+                  <small>OBJECTIVE</small>
+                  <strong>{{ state.planner.objective }}</strong>
+                </div>
+                <span>{{ state.planner.scope }}</span>
+              </div>
+
+              <ol class="plan-list">
+                {% for step in state.planner.steps %}
+                  <li>
+                    <span class="plan-order">{{ "%02d" | format(step.order) }}</span>
+                    <div>
+                      <div class="plan-title">
+                        <strong>{{ step.title }}</strong>
+                        <span class="reversible">reversible</span>
+                      </div>
+                      <p>{{ step.reason }}</p>
+                      <div class="plan-meta">
+                        <code>{{ step.action }}</code>
+                        <span>→ {{ step.target }}</span>
+                      </div>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ol>
+
+              <div class="risk-boundary">
+                <span class="risk-icon" aria-hidden="true">!</span>
+                <div>
+                  <small>EXECUTION BOUNDARY</small>
+                  <strong>{{ state.planner.risk }}</strong>
+                </div>
+              </div>
+            </article>
+
+            <article class="command-panel fanout-panel" data-testid="action-fanout">
+              <header class="panel-heading">
+                <div>
+                  <p class="eyebrow">05 · ACTION FANOUT</p>
+                  <h2>Provider execution receipts</h2>
+                </div>
+                <span class="fanout-count">
+                  {{ state.actions | selectattr("status", "equalto", "succeeded") | list | length }}
+                  / {{ state.actions | length }} receipted
+                </span>
+              </header>
+
+              <div class="provider-grid">
+                {% for action in state.actions %}
+                  <article class="provider-card provider-{{ action.status }}">
+                    <div class="provider-top">
+                      <span class="provider-logo">{{ action.short }}</span>
+                      <span class="provider-status">
+                        <i aria-hidden="true"></i>{{ action.status }}
+                      </span>
+                    </div>
+                    <h3>{{ action.provider }}</h3>
+                    <strong>{{ action.operation }}</strong>
+                    <span class="provider-target">{{ action.target }}</span>
+                    <p>{{ action.detail }}</p>
+                    {% if action.receipt %}
+                      <code>{{ action.receipt }}</code>
+                    {% else %}
+                      <span class="receipt-placeholder">Receipt pending authorization</span>
+                    {% endif %}
+                  </article>
+                {% endfor %}
+              </div>
+            </article>
+
+            <article class="command-panel writeback-panel" data-testid="datahub-writeback">
+              <header class="panel-heading">
+                <div>
+                  <p class="eyebrow">06 · DATAHUB WRITE-BACK</p>
+                  <h2>Incident coordination receipt</h2>
+                </div>
+                <span class="state-chip state-{{ state.writeback.status }}">
+                  <i aria-hidden="true"></i>{{ state.writeback.status }}
+                </span>
+              </header>
+              <div class="writeback-body">
+                <div class="writeback-mark" aria-hidden="true">DH</div>
+                <div class="writeback-copy">
+                  <small>ENTITY</small>
+                  <strong>{{ state.writeback.entity }}</strong>
+                  <p>{{ state.writeback.detail }}</p>
+                  {% if state.writeback.receipt %}
+                    <code>{{ state.writeback.receipt }}</code>
+                  {% else %}
+                    <span class="receipt-placeholder">No write-back receipt recorded</span>
+                  {% endif %}
+                </div>
+                <dl>
+                  <div><dt>Operation</dt><dd>{{ state.writeback.operation }}</dd></div>
+                  <div>
+                    <dt>Aspect</dt>
+                    <dd>{{ state.writeback.aspect or "not reported" }}</dd>
+                  </div>
+                  <div>
+                    <dt>Recorded</dt>
+                    <dd>{{ state.writeback.recorded_at or "not recorded" }}</dd>
+                  </div>
+                </dl>
+              </div>
+            </article>
+
+            <article class="command-panel memory-panel" data-testid="agent-memory">
+              <header class="panel-heading">
+                <div>
+                  <p class="eyebrow">07 · INHERITED MEMORY</p>
+                  <h2>What the next agent receives</h2>
+                </div>
+                <span class="state-chip state-{{ state.memory.status }}">
+                  <i aria-hidden="true"></i>{{ state.memory.status }}
+                </span>
+              </header>
+              <div class="memory-intro">
+                <div>
+                  <small>NEXT AGENT</small>
+                  <strong>{{ state.memory.next_agent }}</strong>
+                </div>
+                <p>{{ state.memory.summary }}</p>
+              </div>
+              <div class="memory-columns">
+                <section>
+                  <h3><span class="fact-dot"></span>Known facts</h3>
+                  <ul>
+                    {% for item in state.memory.known_facts %}<li>{{ item }}</li>{% endfor %}
+                  </ul>
+                </section>
+                <section>
+                  <h3><span class="unknown-dot"></span>Still unknown</h3>
+                  <ul>
+                    {% for item in state.memory.unknowns %}<li>{{ item }}</li>{% endfor %}
+                  </ul>
+                </section>
+                <section>
+                  <h3><span class="next-dot"></span>Next safe actions</h3>
+                  <ol>
+                    {% for item in state.memory.next_actions %}<li>{{ item }}</li>{% endfor %}
+                  </ol>
+                </section>
+              </div>
+              {% if state.memory.memory_id %}
+                <div class="memory-receipt">
+                  <small>MEMORY RECEIPT</small>
+                  <code>{{ state.memory.memory_id }}</code>
+                </div>
+              {% endif %}
+            </article>
+          </div>
+
+          <aside class="command-side">
+            <article class="command-panel verifier-panel" data-testid="ai-verifier">
+              <header class="panel-heading">
+                <div>
+                  <p class="eyebrow">03 · AI VERIFIER</p>
+                  <h2>Advisory review</h2>
+                </div>
+                <span class="verdict">{{ state.verifier.verdict }}</span>
+              </header>
+              <div class="advisory-banner">
+                <span aria-hidden="true">AI</span>
+                <p>
+                  <strong>{{ state.verifier.label }}</strong>
+                  {{ state.verifier.authority_note }}
+                </p>
+              </div>
+              <p class="verifier-summary">{{ state.verifier.summary }}</p>
+              <ul class="check-list">
+                {% for check in state.verifier.policy_checks %}
+                  <li class="check-{{ check.status }}">
+                    <span aria-hidden="true">✓</span>
+                    <div>
+                      <strong>{{ check.name }}</strong>
+                      <p>{{ check.detail }}</p>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+              <div class="model-label">
+                <small>OUTPUT ORIGIN</small>
+                <code>{{ state.verifier.model }}</code>
+              </div>
+            </article>
+
+            <article
+              class="command-panel authorization-panel auth-{{ state.authorization.decision }}"
+              data-testid="authorization-gate"
+            >
+              <header class="panel-heading">
+                <div>
+                  <p class="eyebrow">04 · DETERMINISTIC GATE</p>
+                  <h2>Authorization</h2>
+                </div>
+                <span class="authorization-decision">{{ state.authorization.decision }}</span>
+              </header>
+
+              <p class="gate-explainer">
+                AI cannot open this gate. Every structured policy check and the exact
+                plan-bound confirmation must pass.
+              </p>
+
+              <ul class="gate-list">
+                {% for condition in state.authorization.conditions %}
+                  <li class="gate-{{ condition.status }}">
+                    <span aria-hidden="true">
+                      {% if condition.status == "pass" %}✓{% elif condition.status == "fail" %}×{% else %}·{% endif %}
+                    </span>
+                    <div>
+                      <strong>{{ condition.name }}</strong>
+                      <small>{{ condition.detail }}</small>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+
+              {% if state.authorization.decision == "authorized" %}
+                <div class="grant-receipt">
+                  <small>AUTHORIZATION RECEIPT</small>
+                  <strong>{{ state.authorization.grant_id }}</strong>
+                  <span>{{ state.authorization.actor }} · {{ state.authorization.authorized_at }}</span>
+                  <code>{{ state.authorization.plan_hash }}</code>
+                </div>
+                {% if action_done %}
+                  <button type="button" class="button button-execute" disabled>
+                    Autonomous fanout complete <span aria-hidden="true">✓</span>
+                  </button>
+                {% else %}
+                  <button
+                    type="button"
+                    class="button button-execute"
+                    data-execute-fanout
+                    {% if not state.capabilities.execute %}disabled{% endif %}
+                  >
+                    Execute bounded fanout <span aria-hidden="true">→</span>
+                  </button>
+                {% endif %}
+              {% else %}
+                <form class="authorization-form" data-authorization-form>
+                  <label>
+                    Operator identity
+                    <input
+                      name="actor"
+                      type="text"
+                      autocomplete="name"
+                      maxlength="120"
+                      placeholder="e.g. incident-commander@example.com"
+                      required
+                    >
+                  </label>
+                  <label>
+                    Type the exact confirmation phrase
+                    <code>{{ state.authorization.expected_confirmation }}</code>
+                    <input
+                      name="confirmation"
+                      type="text"
+                      autocomplete="off"
+                      spellcheck="false"
+                      data-expected-confirmation="{{ state.authorization.expected_confirmation }}"
+                      placeholder="AUTHORIZE …"
+                      required
+                    >
+                  </label>
+                  <label class="acknowledgement">
+                    <input name="acknowledge_claim_boundary" type="checkbox" required>
+                    <span>
+                      I understand this authorizes only the listed fanout and metadata write-back.
+                      It does not validate cause, impact, recovery, or AGI.
+                    </span>
+                  </label>
+                  <input
+                    name="plan_hash"
+                    type="hidden"
+                    value="{{ state.authorization.plan_hash }}"
+                  >
+                  <button
+                    class="button button-authorize"
+                    type="submit"
+                    {% if not state.capabilities.authorize %}disabled{% endif %}
+                  >
+                    Authorize exact plan
+                  </button>
+                </form>
+              {% endif %}
+
+              <div class="gate-feedback" data-gate-feedback aria-live="polite"></div>
+            </article>
+
+            <article class="command-panel event-panel">
+              <header class="panel-heading">
+                <div>
+                  <p class="eyebrow">AUDIT TIMELINE</p>
+                  <h2>Decision trace</h2>
+                </div>
+              </header>
+              <ol class="event-list">
+                {% for event in state.events | reverse %}
+                  <li>
+                    <time>{{ event.time }}</time>
+                    <div>
+                      <strong>{{ event.label }}</strong>
+                      <p>{{ event.detail }}</p>
+                      <span>{{ event.source }}</span>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ol>
+            </article>
+          </aside>
+        </section>
+      {% else %}
+        <section class="unconfigured-state">
+          <div class="unconfigured-visual" aria-hidden="true">
+            <span>LL</span>
+            <i></i><i></i><i></i>
+          </div>
+          <p class="eyebrow">MOUNTABLE INCIDENT MODULE</p>
+          <h1>No live incident state reported.</h1>
+          <p>
+            This surface will not invent an incident, blast radius, planner output,
+            provider status, or DataHub receipt. Inject a live backend into
+            <code>create_incident_router(backend=...)</code>, or select the explicitly
+            labeled deterministic replay for an offline demonstration.
+          </p>
+          <div class="integration-contract">
+            <div><span>01</span><strong>snapshot()</strong><small>real incident and context</small></div>
+            <div><span>02</span><strong>trigger(payload)</strong><small>real intake path</small></div>
+            <div><span>03</span><strong>execute(grant)</strong><small>real provider receipts</small></div>
+          </div>
+        </section>
+      {% endif %}
+
+      <section class="claim-boundary" data-testid="claim-boundary">
+        <div class="boundary-mark" aria-hidden="true">CB</div>
+        <div>
+          <p class="eyebrow">CLAIM BOUNDARY · ALWAYS ON</p>
+          <h2>{{ state.claim_boundary.label }}</h2>
+          <p>{{ state.claim_boundary.detail }}</p>
+        </div>
+        <div class="boundary-code">
+          <code>candidateOnly: {{ state.claim_boundary.candidateOnly | lower }}</code>
+          <code>canClaimAGI: {{ state.claim_boundary.canClaimAGI | lower }}</code>
+        </div>
+      </section>
+    </main>
+
+    <div class="command-toast" data-command-toast role="status" aria-live="polite"></div>
+
+    <footer>
+      <span>LedgerLens Incident Commander</span>
+      <span>Evidence → policy → authorization → receipts → inherited memory</span>
+      <span>{{ state.observed_at or "No live observation time" }}</span>
+    </footer>
+  </body>
+</html>

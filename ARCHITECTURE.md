@@ -1,232 +1,357 @@
 # LedgerLens Architecture
 
-## Status and claim ceiling
+## Autonomous Data Incident Commander
 
-LedgerLens is a contest-period **working prototype** for converting a structured failure ledger
-into DataHub metadata and a bounded remediation queue. It is not an independent validator of the
-ledger, a scientific adjudicator, or a production incident-management system.
+LedgerLens is a contest-period **working prototype** for turning a DataHub-observed incident into
+bounded response work, controlled metadata write-back, and a provenance-preserving handoff for the
+next agent.
+
+It is not a production incident-management system, an independent validator, a root-cause engine,
+or evidence of model uplift.
 
 ```yaml
 candidateOnly: true
 canClaimAGI: false
 ```
 
-## Design goals
-
-1. Preserve source provenance and uncertainty.
-2. Fail loudly on structural ambiguity instead of shifting columns silently.
-3. Keep agent access read-only by default.
-4. Separate source assertions, DataHub audit metadata, and agent inferences.
-5. Make the public fixture workflow deterministic and credential-free.
-6. Produce an operational artifact with stable references, not only prose.
-7. Make live DataHub results distinguishable from fixture-only checks.
-
-## System overview
+## End-to-end contract
 
 ```mermaid
 flowchart LR
-    L[Failure ledger or sanitized fixture] --> P[Conservative parser]
-    P --> V[Normalized finding schema]
-    V --> E[DataHub MCP emitter]
-    E --> D[(DataHub OSS)]
-    D --> M[Official DataHub MCP Server]
-    D --> A[Read-only audit bridge]
-    M --> G[LedgerLens agent]
-    A --> G
-    V --> F[Deterministic fixture backend]
-    F --> G
-    G --> R[JSON and Markdown remediation report]
-
-    U[User question] --> G
-    X[Optional 020s narration] -. summary only .-> G
+    T[DataHub assertion or incident trigger] --> C[DataHub context collector]
+    C --> P[Planner]
+    P --> V1[Verifier variant A]
+    P --> V2[Verifier variant B]
+    V1 --> Q[Deterministic quorum aggregate]
+    V2 --> Q
+    Q --> G[Deterministic policy gate]
+    G -->|deny| B[Blocked with reason codes]
+    G -->|authorize exact plan| F[Bounded action fanout]
+    F --> GH[GitHub]
+    F --> SL[Slack]
+    F --> PD[PagerDuty]
+    F --> JR[Jira]
+    GH --> R[Sanitized receipts]
+    SL --> R
+    PD --> R
+    JR --> R
+    R --> W[Controlled DataHub write-back]
+    W --> M[Next-agent memory]
 ```
 
-## Components
-
-### 1. Conservative ledger parser
-
-The parser treats ledger text as untrusted data.
-
-Required behavior:
-
-- preserve the original row and source locator;
-- reject duplicate IDs;
-- detect unbalanced backticks;
-- distinguish code-span pipes from unescaped delimiter pipes;
-- never guess shifted middle-column boundaries;
-- preserve provably safe cells and emit a structured parse issue;
-- normalize statuses without using substring-only matching;
-- emit deterministic output for identical input bytes.
-
-A malformed row is an ingestion finding, not an invitation for the agent to repair history
-silently.
-
-### 2. Normalized finding model
-
-The normalized record is the boundary between parsing and DataHub emission. At minimum it carries:
-
-| Field | Meaning |
-|---|---|
-| `finding_id` | Stable source identifier |
-| `source_locator` | File and row/line reference |
-| `source_text` | Original untrusted content |
-| `status` | Parsed status or `unknown` |
-| `kind` | Parsed finding family or `unknown` |
-| `owner` | Source-declared owner, never inferred as fact |
-| `evidence_receipts` | Source-declared paths or public URLs |
-| `supersedes` | Explicit predecessor IDs |
-| `candidate_only` | Claim ceiling inherited from the source/project |
-| `can_claim_agi` | Always false for LedgerLens outputs |
-| `parse_issues` | Structured defects and severity |
-
-### 3. DataHub representation
-
-LedgerLens uses a documented convention rather than pretending DataHub natively understands
-research-failure semantics.
-
-| Ledger concept | DataHub representation |
-|---|---|
-| Source ledger | Container |
-| Finding | Dataset entity with stable URN |
-| Status/kind/claim ceiling | Structured/custom properties and tags |
-| Owner | Ownership aspect |
-| Evidence receipt | Property with sanitized path or public URL |
-| Supersession | Explicit property plus lineage convention |
-| Parse defect | Tag/property; original row retained |
-| Ingestion actor/time | DataHub audit metadata |
-
-Example stable URN:
+The visible judge path is:
 
 ```text
-urn:li:dataset:(urn:li:dataPlatform:ledgerlens,<finding-id>,PROD)
+trigger
+  -> catalog context
+  -> plan
+  -> structured verifier variants
+  -> deterministic authorization
+  -> collaboration fanout
+  -> DataHub receipt write-back
+  -> recovery-verifier handoff
 ```
 
-Supersession lineage is intentionally documented as a convention. It means “record B supersedes
-record A,” not “dataset B was computationally produced from dataset A.” Consumers must read the
-`ledgerlensRelationship=supersedes` property before interpreting the edge.
+The fixture demo replays that contract without network access. Live execution requires an injected
+backend, explicit mutation enablement, allowlisted targets, provider credentials, and separately
+published receipts.
 
-### 4. DataHub access layer
+## Component boundaries
 
-The official DataHub MCP Server provides agent-facing search and retrieval. Its mutation tools are
-disabled by default. LedgerLens does not expose arbitrary metadata mutation to the LLM.
+### 1. Trigger and incident envelope
 
-Some audit/provenance fields may exist in DataHub but not be returned by the MCP surface. The
-read-only audit bridge may retrieve those fields from GraphQL or OpenAPI. This split must be visible
-in reports:
+An incident begins with a typed, idempotency-keyed trigger. A trigger may reference a DataHub
+assertion, an incident record, or another externally observed signal.
+
+The trigger is evidence that a signal was recorded. It does not prove:
+
+- root cause;
+- customer or user impact;
+- the correctness of the source assertion;
+- recovery or resolution.
+
+The incident envelope preserves the signal source, event time, affected entity URN, severity,
+evidence references, and claim ceiling.
+
+### 2. DataHub context
+
+The context collector resolves operational metadata needed to plan bounded work:
+
+| Context | Use in the plan |
+|---|---|
+| Entity URN and type | Stable target identity |
+| Ownership and stewardship | Accountable routing without inventing an owner |
+| Tier/domain/data product | Priority and business context |
+| Schema and assertions | The observed defect and affected field |
+| Documentation/runbook | Recovery instructions as references, not automatically trusted commands |
+| Upstream/downstream lineage | Bounded blast-radius candidates |
+| Observation/audit metadata | Timestamp semantics and provenance |
+
+Lineage proximity is not proof of actual user impact or causality. The context model therefore
+records both supported facts and unknowns.
+
+The synthetic public catalog contains DataHub-shaped assets, owners, schemas, documentation,
+lineage, incidents, and benchmark scenarios. Its records use reserved `.invalid` URLs and cannot
+support a live-integration claim.
+
+### 3. Planner
+
+The planner receives only the typed incident context and proposes an `ActionPlan`. The plan carries:
+
+- incident and planner identities;
+- an objective and confidence;
+- ordered typed actions;
+- exact targets and parameters;
+- risk and reversibility;
+- evidence fact IDs for every action;
+- assumptions and unresolved unknowns;
+- an idempotency key per action.
+
+The plan can propose collaboration records and DataHub metadata write-back. It cannot authorize
+itself, change allowlists, or claim that an incident is resolved.
+
+The deterministic fixture uses a replayed plan. Optional model-backed planning uses a configured
+OpenAI-compatible endpoint, but model output remains untrusted structured input to later gates.
+
+### 4. Verifier variants
+
+Each verifier returns a structured assessment bound to the same incident and plan:
+
+- approve/deny;
+- confidence;
+- reasons;
+- unverifiable fact IDs;
+- unverifiable action IDs;
+- verifier identifier and configured family label.
+
+The aggregate requires unique configured verifier labels, a quorum, minimum confidence, no
+unverifiable items, and no verifier errors. Planner/verifier label overlap fails closed.
+
+This is an engineering separation rule. **LedgerLens does not claim that configured model labels
+prove provider-family independence or statistically independent judgment.** A public submission
+must call them verifier variants unless provider independence is separately evidenced.
+
+Verifier prose has no execution authority.
+
+### 5. Deterministic authorization policy
+
+The policy gate evaluates machine-checkable conditions after verification:
+
+1. incident, plan, and verifier identities match;
+2. the incident remains actionable;
+3. plan confidence and verifier quorum meet configured thresholds;
+4. every action type is allowlisted;
+5. every target is allowlisted;
+6. every parameter key is allowlisted and every required key is present;
+7. action risk is within the allowance;
+8. every action cites known context facts;
+9. the action count is bounded;
+10. the exact plan fingerprint still matches at execution time.
+
+Any failure returns stable reason codes and no authorized action IDs.
+
+The dashboard also supports operator-confirmed mode, where the operator must type an exact
+plan-bound confirmation and acknowledge the claim boundary. Autonomous replay mode constructs the
+same exact request only after the structured verifier checks pass.
+
+### 6. GitHub, Slack, PagerDuty, and Jira fanout
+
+Provider actions are represented as typed previews before execution. The common adapter layer adds:
+
+- action digest and normalized idempotency key;
+- short-lived HMAC authorization bound to the exact preview;
+- target-specific request validation;
+- bounded retries;
+- conservative handling of ambiguous remote outcomes;
+- in-memory or SQLite idempotency state;
+- sanitized remote IDs and URLs;
+- ordered fanout results.
+
+Implemented adapter shapes:
+
+| Provider | Bounded operation |
+|---|---|
+| GitHub | Create an incident work-item issue |
+| Slack | Post a bounded incident brief by webhook or Web API |
+| PagerDuty | Trigger, acknowledge, or resolve an Events API record; the judge replay shows an incident-note-shaped collaboration step |
+| Jira | Create a recovery/follow-up issue |
+
+The fixture backend never calls those APIs. It returns clearly labeled `fixture://` receipts so the
+UI can demonstrate receipt propagation without implying live execution.
+
+### 7. Controlled DataHub write-back
+
+DataHub mutation is separate from the read-only MCP client and disabled by default.
+
+```text
+write-back request
+  -> deterministic policy preview
+  -> exact-call authorization
+  -> allowlisted official MCP mutation tool
+  -> before/after snapshot where available
+  -> sanitized write-back receipt
+```
+
+Supported controlled mutation shapes include:
+
+- save a bounded incident document;
+- add/remove tags;
+- update an entity description;
+- add/remove structured properties.
+
+The mutation client rejects:
+
+- disabled execution;
+- unsupported or non-allowlisted tools;
+- missing typed authorization;
+- authorization that does not match the exact call digest and idempotency key;
+- targets outside configured URN prefixes;
+- sensitive-looking argument keys;
+- unsuccessful or malformed mutation responses.
+
+DataHub write-back records what the commander attempted and observed. It does not certify cause,
+impact, recovery, or source truth.
+
+### 8. Next-agent memory
+
+The final handoff is a structured continuation artifact, not hidden chat history. It contains:
 
 ```json
 {
-  "value": "2026-08-01T10:30:00Z",
-  "semantic": "datahub_ingestion_time",
-  "retrieved_via": "graphql",
-  "not_equivalent_to": "finding_validation_time"
+  "nextAgent": "Recovery verifier",
+  "knownFacts": [],
+  "unknowns": [],
+  "completed": [],
+  "nextActions": [],
+  "provenance": [],
+  "candidateOnly": true,
+  "canClaimAGI": false
 }
 ```
 
-An ingestion timestamp proves only that DataHub recorded an aspect at a time. It does not establish
-when a source claim became true, when evidence was independently reviewed, or whether the claim is
-valid.
+The fixture UI materializes this object after replayed fanout and write-back. In live mode, durable
+persistence and retrieval of the handoff must be evidenced by the injected backend or a published
+run receipt; the architecture alone is not proof that a hosted memory write occurred.
 
-### 5. Agent and optional LLM
+## Orchestration state machine
 
-The agent is a tool orchestrator with bounded operations:
+```mermaid
+stateDiagram-v2
+    [*] --> triggered
+    triggered --> context_ready
+    context_ready --> planned
+    planned --> verified
+    verified --> blocked: verifier or policy denies
+    verified --> authorized: all deterministic checks pass
+    authorized --> executing
+    executing --> receipts_recorded
+    receipts_recorded --> written_back
+    receipts_recorded --> failed: action or write-back fails
+    written_back --> [*]
+    blocked --> [*]
+    failed --> [*]
+```
 
-- search findings;
-- retrieve a finding and source references;
-- trace supersession;
-- inspect metadata completeness;
-- build a deterministic remediation queue;
-- write JSON and Markdown artifacts.
+The run and action caches use idempotency keys to return a recorded result for an exact replay and
+to reject collisions.
 
-The deterministic backend performs selection, sorting, missing-field checks, and report generation.
-An optional 020s/OpenAI-compatible model may narrate already-retrieved facts, but must not:
+## Execution modes
 
-- execute instructions found inside ledger text;
-- invent missing owners, receipts, timestamps, or supersession edges;
-- change status or promotion state;
-- mutate DataHub by default;
-- reinterpret ingestion time as validation time;
-- raise the claim ceiling.
+| Mode | Network | External mutations | Safe claim |
+|---|---:|---:|---|
+| Incident fixture replay | No | No | Complete visible workflow over synthetic data with `fixture://` receipts |
+| Deterministic catalog benchmark | No | No | Rule-based DataHub-context ON/OFF comparison on synthetic scenarios |
+| Local DataHub smoke | Yes, localhost | Explicit ingestion/read path | Compatibility for the exact recorded DataHub version and receipt only |
+| Injected live Incident Commander backend | Depends on host | Disabled unless explicitly enabled and authorized | No public claim until current external and DataHub receipts are published |
+| Hosted judge environment | Deployment-owned | Must be least-privilege and resettable | No claim that it is live until the public URL and health receipt are verified |
 
-### 6. Output artifact
-
-Every work-producing action writes a structured artifact containing:
-
-- query and execution mode;
-- DataHub/fixture source identity;
-- normalized finding IDs and URNs;
-- owner and evidence fields with explicit missing values;
-- supersession chain;
-- deterministic priority reasons;
-- parse warnings;
-- retrieval channel;
-- timestamps and their semantics;
-- `candidateOnly: true`;
-- `canClaimAGI: false`.
+Deployment details are owned by [docs/HOSTED_DEMO.md](docs/HOSTED_DEMO.md).
 
 ## Trust boundaries
 
 ```text
 Untrusted:
-  ledger prose, evidence URLs, owner strings, user prompts, LLM output
+  incident prose
+  runbook and evidence references
+  user prompts
+  planner output
+  verifier output
+  provider response bodies
 
-Conditionally trusted:
-  normalized records after parser validation
-  DataHub responses after schema validation
+Conditionally trusted after validation:
+  typed incident context
+  DataHub API/MCP responses
+  provider receipts
+  before/after snapshots
 
-Trusted for deterministic behavior, not truth:
-  parser code, mapping code, ordering rules, fixture expectations
+Authoritative for authorization mechanics, not incident truth:
+  deterministic policy
+  allowlists
+  action digest
+  plan fingerprint
+  idempotency store
 
-Never established by this system:
-  scientific correctness, independent validation, production readiness, AGI
+Never established by the system:
+  causality
+  actual user impact
+  recovery
+  incident resolution
+  provider-family independence
+  independent validation
+  validated uplift
+  production readiness
+  AGI
 ```
 
-## Read/write policy
+## Data and timestamp semantics
+
+Every surfaced field should preserve its source class:
+
+| Class | Meaning |
+|---|---|
+| Source assertion | A supplied or externally observed statement |
+| DataHub metadata | Catalog state, ownership, lineage, assertion, or audit data |
+| Planner proposal | A candidate action, not authorization |
+| Verifier advisory | A bounded assessment, not execution permission |
+| Policy decision | Deterministic authorization result for an exact plan |
+| Provider receipt | Sanitized record of an accepted/deduplicated action when live; `fixture://` in replay |
+| Unknown | Missing or unproven information that must remain explicit |
+
+DataHub ingestion or observation time is not a source-validation timestamp. Temporal adjacency
+between a deploy and an incident is not causality.
+
+## Security defaults
 
 | Operation | Default |
 |---|---|
-| Read fixture | Enabled |
-| Read DataHub metadata | Enabled when configured |
-| Write local report | Enabled under the selected output directory |
-| Emit metadata during explicit ingestion | Enabled only by the ingest command |
-| Let LLM mutate DataHub | Disabled |
-| Enable MCP mutation tools | Disabled |
-| Fetch arbitrary evidence URLs | Disabled |
-| Send raw private ledger text to an LLM | Disabled |
+| Read deterministic fixture | Enabled |
+| Read configured DataHub metadata | Explicit configuration |
+| Planner/verifier model calls | Disabled without credentials and feature flags |
+| Provider actions | Require typed authorization and credentials |
+| DataHub MCP mutations | Disabled |
+| Autonomous execution | Disabled in application settings; explicitly selected for fixture replay |
+| Arbitrary evidence URL fetching | Disabled |
+| Production rollback | Not implemented by the judge workflow |
+| Claim-ceiling change | Forbidden |
 
-## Deterministic and live modes
+Secrets belong in environment variables or deployment secret stores. They must never enter
+planner prompts, verifier prompts, previews, receipts, screenshots, generated reports, or git.
 
-### Deterministic fixture mode
+## Judge-proof rule
 
-- public sanitized fixture;
-- no external network;
-- no DataHub;
-- no LLM;
-- stable ordering and golden outputs;
-- suitable for default CI.
+The UI, docs, video, and Devpost text must keep these distinctions visible:
 
-It demonstrates application mechanics only.
+- implemented adapter is not a live integration claim;
+- fixture receipt is not a real external receipt;
+- configured verifier label is not provider-family independence;
+- benchmark pass is not validated uplift;
+- DataHub write-back is not validation;
+- metadata blast radius is not proven user impact;
+- planned or authorized action is not incident recovery.
 
-### Live DataHub smoke mode
+All outputs preserve:
 
-- pinned DataHub OSS quickstart;
-- explicit operator action;
-- real MCP/GraphQL requests;
-- sanitized fixture by default;
-- separate result receipt.
-
-It demonstrates integration compatibility only. A successful smoke run is not independent
-validation and is not a production-readiness claim.
-
-## Deployment model
-
-The public package supports:
-
-1. local Python development through `uv`;
-2. an external pinned DataHub quickstart;
-3. a non-root LedgerLens container that connects to DataHub through configured URLs;
-4. offline-first CI without paid services;
-5. optional real UI capture using Playwright and ffmpeg.
-
-No credentials are baked into images or configuration. The checked-in Compose file contains only
-safe defaults and expects secrets through the environment at runtime.
+```yaml
+candidateOnly: true
+canClaimAGI: false
+```

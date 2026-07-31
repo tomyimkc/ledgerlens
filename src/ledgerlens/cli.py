@@ -326,6 +326,9 @@ def _run_server(
     port: int,
     demo_mode: bool,
     open_browser: bool,
+    incident_fixture_mode: bool | None = None,
+    incident_autonomous_execution: bool | None = None,
+    incident_only: bool = False,
 ) -> None:
     try:
         import uvicorn
@@ -334,8 +337,22 @@ def _run_server(
 
     from ledgerlens.web import create_app
 
-    adapter = _resolve_adapter(demo_mode)
-    application = create_app(adapter=adapter, demo_mode=demo_mode)
+    try:
+        adapter = _resolve_adapter(demo_mode)
+    except Exception:
+        if not incident_only:
+            raise
+        from ledgerlens.web import UnavailableDataAdapter
+
+        adapter = UnavailableDataAdapter(
+            "Legacy findings adapter is not configured; Incident Commander is primary."
+        )
+    application = create_app(
+        adapter=adapter,
+        demo_mode=demo_mode,
+        incident_fixture_mode=incident_fixture_mode,
+        incident_autonomous_execution=incident_autonomous_execution,
+    )
     if open_browser:
         Timer(0.8, lambda: webbrowser.open(f"http://{host}:{port}")).start()
     uvicorn.run(application, host=host, port=port, log_level="info")
@@ -382,6 +399,53 @@ def demo(
     typer.echo("Starting LedgerLens in DEMO FIXTURE mode; DataHub will not be contacted.")
     try:
         _run_server(host=host, port=port, demo_mode=True, open_browser=open_browser)
+    except Exception as exc:
+        _fail(exc)
+
+
+@app.command("incident-commander")
+def incident_commander(
+    host: Annotated[str, typer.Option(help="Interface to bind.")] = "127.0.0.1",
+    port: Annotated[int, typer.Option(min=1, max=65535, help="TCP port.")] = 8000,
+    fixture: Annotated[
+        bool,
+        typer.Option(
+            "--fixture/--live",
+            help="Use the deterministic replay or require injected live integrations.",
+        ),
+    ] = True,
+    autonomous: Annotated[
+        bool,
+        typer.Option(
+            "--autonomous/--manual",
+            help="Run verifier-quorum plus deterministic authorization automatically.",
+        ),
+    ] = False,
+    open_browser: Annotated[
+        bool,
+        typer.Option(
+            "--open-browser/--no-open-browser",
+            help="Open the Incident Commander URL after the server starts.",
+        ),
+    ] = True,
+) -> None:
+    """Launch the Autonomous Data Incident Commander."""
+
+    mode = "FIXTURE / REPLAY" if fixture else "LIVE"
+    automation = "autonomous verifier-gated" if autonomous else "manual authorization"
+    typer.echo(f"Starting LedgerLens Incident Commander in {mode} mode ({automation}).")
+    if open_browser:
+        Timer(0.8, lambda: webbrowser.open(f"http://{host}:{port}/incident")).start()
+    try:
+        _run_server(
+            host=host,
+            port=port,
+            demo_mode=fixture,
+            open_browser=False,
+            incident_fixture_mode=fixture,
+            incident_autonomous_execution=autonomous,
+            incident_only=True,
+        )
     except Exception as exc:
         _fail(exc)
 

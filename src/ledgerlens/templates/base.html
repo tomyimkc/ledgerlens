@@ -26,6 +26,7 @@
         </span>
       </a>
       <nav aria-label="Primary navigation">
+        <a href="{{ request.url_for('incident_dashboard') }}">Incident Commander</a>
         <a href="{{ request.url_for('dashboard') }}">Findings</a>
         <a href="{{ request.url_for('queue') }}">Remediation queue</a>
         <a href="/docs">API</a>

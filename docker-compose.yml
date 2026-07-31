@@ -3,7 +3,17 @@ services:
     build:
       context: .
     image: ledgerlens:local
-    command: ["demo", "--host", "0.0.0.0", "--port", "8000", "--no-open-browser"]
+    command:
+      [
+        "incident-commander",
+        "--autonomous",
+        "--fixture",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--no-open-browser",
+      ]
     environment:
       LEDGERLENS_LLM_ENABLED: "false"
       LEDGERLENS_MUTATIONS_ENABLED: "false"

@@ -220,3 +220,30 @@ for line in sys.stdin:
     finally:
         transport.close()
     assert result == {"mutationFlag": "false", "method": "tools/list"}
+
+
+def test_stdio_transport_requires_explicit_mutation_opt_in() -> None:
+    server = r"""
+import json, os, sys
+for line in sys.stdin:
+    message = json.loads(line)
+    method = message.get("method")
+    if method == "notifications/initialized":
+        continue
+    result = (
+        {"protocolVersion": "2025-06-18", "capabilities": {}}
+        if method == "initialize"
+        else {"mutationFlag": os.environ.get("TOOLS_IS_MUTATION_ENABLED")}
+    )
+    print(json.dumps({"jsonrpc": "2.0", "id": message["id"], "result": result}), flush=True)
+"""
+    transport = StdioMCPTransport(
+        [sys.executable, "-u", "-c", server],
+        timeout=3,
+        allow_mutations=True,
+    )
+    try:
+        result = transport.request("tools/list")
+    finally:
+        transport.close()
+    assert result == {"mutationFlag": "true"}

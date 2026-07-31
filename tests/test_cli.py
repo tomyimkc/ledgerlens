@@ -24,6 +24,7 @@ def test_help_lists_required_commands() -> None:
         "supersession",
         "triage",
         "demo",
+        "incident-commander",
         "serve",
     ):
         assert command in result.stdout
@@ -158,4 +159,38 @@ def test_demo_command_injects_fixture_mode_without_starting_server(monkeypatch: 
         "port": 8123,
         "demo_mode": True,
         "open_browser": False,
+    }
+
+
+def test_incident_commander_command_enables_autonomous_fixture(
+    monkeypatch: Any,
+) -> None:
+    received: dict[str, Any] = {}
+
+    def fake_server(**kwargs: Any) -> None:
+        received.update(kwargs)
+
+    monkeypatch.setattr(cli, "_run_server", fake_server)
+    result = runner.invoke(
+        cli.app,
+        [
+            "incident-commander",
+            "--autonomous",
+            "--no-open-browser",
+            "--port",
+            "8124",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "FIXTURE / REPLAY" in result.stdout
+    assert "autonomous verifier-gated" in result.stdout
+    assert received == {
+        "host": "127.0.0.1",
+        "port": 8124,
+        "demo_mode": True,
+        "open_browser": False,
+        "incident_fixture_mode": True,
+        "incident_autonomous_execution": True,
+        "incident_only": True,
     }

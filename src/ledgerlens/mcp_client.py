@@ -119,7 +119,7 @@ class HttpMCPTransport:
                 "params": {
                     "protocolVersion": _PROTOCOL_VERSION,
                     "capabilities": {},
-                    "clientInfo": {"name": "ledgerlens", "version": "0.1.0"},
+                    "clientInfo": {"name": "ledgerlens", "version": "0.2.0"},
                 },
             }
         )
@@ -153,16 +153,18 @@ class StdioMCPTransport:
         *,
         timeout: float = 12.0,
         env: Mapping[str, str] | None = None,
+        allow_mutations: bool = False,
     ) -> None:
         if not command:
             raise ValueError("MCP stdio command cannot be empty")
         child_env = dict(os.environ)
         if env:
             child_env.update(env)
-        # Defense in depth: the official server must remain read-only even if
-        # the parent process has a permissive environment.
-        child_env["TOOLS_IS_MUTATION_ENABLED"] = "false"
-        child_env["DATAHUB_MCP_MUTATIONS_ENABLED"] = "false"
+        # Defense in depth: read-only is the default even if the parent process
+        # has a permissive environment. Controlled mutation callers must opt in
+        # explicitly and still pass the separate typed authorization gate.
+        child_env["TOOLS_IS_MUTATION_ENABLED"] = "true" if allow_mutations else "false"
+        child_env["DATAHUB_MCP_MUTATIONS_ENABLED"] = "true" if allow_mutations else "false"
         try:
             self._process = subprocess.Popen(
                 list(command),
@@ -239,7 +241,7 @@ class StdioMCPTransport:
             {
                 "protocolVersion": _PROTOCOL_VERSION,
                 "capabilities": {},
-                "clientInfo": {"name": "ledgerlens", "version": "0.1.0"},
+                "clientInfo": {"name": "ledgerlens", "version": "0.2.0"},
             },
         )
         if not isinstance(result, Mapping):

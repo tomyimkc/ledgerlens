@@ -14,7 +14,8 @@ DATAHUB_DEMO_PASSWORD ?= datahub
 .PHONY: help setup sync-ci lint format-check typecheck test build secret-scan public-check \
 	check demo demo-ui benchmark benchmark-summary datahub-up datahub-down datahub-status \
 	live-smoke docker-build docker-demo video-tools capture-demo grok-assets render-video \
-	montage-demo verify-video clean-generated
+	montage-demo verify-video clean-generated incident-demo incident-demo-headless \
+	incident-demo-manual incident-benchmark incident-catalog-bundle ai-rehearsal judge-check
 
 help: ## Show available targets.
 	@awk 'BEGIN {FS = ":.*## "; printf "LedgerLens targets:\\n\\n"} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-20s %s\\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -58,6 +59,28 @@ demo: ## Generate deterministic validation, ingestion, triage, and supersession 
 
 demo-ui: ## Serve the visibly labeled deterministic demo UI at localhost:8000.
 	uv run ledgerlens demo --host 127.0.0.1 --port 8000 --no-open-browser
+
+incident-demo: ## Launch the autonomous, visibly labeled Incident Commander fixture replay.
+	uv run bash scripts/demo_incident_commander.sh
+
+incident-demo-headless: ## Launch autonomous Incident Commander without opening a browser.
+	LEDGERLENS_OPEN_BROWSER=false uv run bash scripts/demo_incident_commander.sh
+
+incident-demo-manual: ## Launch Incident Commander with exact operator authorization.
+	LEDGERLENS_AUTONOMOUS=false uv run bash scripts/demo_incident_commander.sh
+
+incident-benchmark: ## Run the deterministic DataHub-context ON versus OFF benchmark.
+	uv run python scripts/run_incident_commander_benchmark.py \
+		--output benchmarks/incident_commander/context-ablation-receipt.json
+
+incident-catalog-bundle: ## Build the 120-asset DataHub proposal bundle without mutation.
+	uv run python scripts/ingest_incident_catalog.py \
+		--output artifacts/incident-commander/datahub-catalog-bundle.json
+
+ai-rehearsal: ## Run the live 020s planner + verifier panel without external mutations.
+	uv run python scripts/run_incident_ai_rehearsal.py --force
+
+judge-check: lint format-check typecheck test secret-scan public-check incident-benchmark ## Run judge-facing quality and evidence gates.
 
 benchmark: ## Record a deterministic fixture benchmark receipt.
 	uv run python scripts/run_benchmark.py \

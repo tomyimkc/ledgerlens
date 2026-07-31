@@ -1,0 +1,68 @@
+{
+  "adapter": "GitHubIssueAdapter",
+  "authorization": {
+    "actionDigest": "sha256:5c7550b7dbe64d7b2501eb8fd48ad68f4e7abeaeed0f7924c815c6b5fb48c7aa",
+    "adapter": "github",
+    "algorithm": "hmac-sha256-v1",
+    "authorizationId": "github-live-evidence:2026-07-31T08:13:22+00:00",
+    "expiresAt": "2026-07-31T08:18:22.396385+00:00",
+    "idempotencyKey": "user-sha256:50b7005e4daa4689b15dfb7571db95dbd6d0ad33f831b6f1833c47a08375fb00",
+    "issuedAt": "2026-07-31T08:13:22.396385+00:00",
+    "issuer": "ledgerlens-live-evidence",
+    "operation": "create_issue",
+    "signatureRecorded": false,
+    "subject": "autonomous-ai-verification-plus-deterministic-policy"
+  },
+  "canClaimAGI": false,
+  "candidateOnly": true,
+  "cleanupRequired": false,
+  "closure": {
+    "closedAt": "2026-07-31T08:13:24Z",
+    "httpStatus": 200,
+    "state": "closed",
+    "stateReason": "completed"
+  },
+  "executedAt": "2026-07-31T08:13:22Z",
+  "externalMutation": true,
+  "kind": "github-live-action-evidence",
+  "limitations": [
+    "This receipt proves issue creation and closure, not incident causality or recovery.",
+    "Slack, PagerDuty, Jira, and DataHub live mutations are not represented here."
+  ],
+  "preview": {
+    "action_digest": "sha256:5c7550b7dbe64d7b2501eb8fd48ad68f4e7abeaeed0f7924c815c6b5fb48c7aa",
+    "adapter": "github",
+    "idempotency_key": "user-sha256:50b7005e4daa4689b15dfb7571db95dbd6d0ad33f831b6f1833c47a08375fb00",
+    "operation": "create_issue",
+    "payload": {
+      "body": "This temporary issue was created by the LedgerLens signed GitHub action adapter as bounded competition evidence and is closed automatically.\n\n- No production incident is asserted.\n- No root cause, user impact, or recovery is claimed.\n- `candidateOnly: true`\n- `canClaimAGI: false`",
+      "owner": "tomyimkc",
+      "repository": "ledgerlens",
+      "title": "[LedgerLens rehearsal] Autonomous incident receipt 2026-07-31T08:13:22+00:00"
+    },
+    "requires_authorization": true,
+    "summary": "Create GitHub issue in tomyimkc/ledgerlens",
+    "target": "github:tomyimkc/ledgerlens"
+  },
+  "providerReceipt": {
+    "action_digest": "sha256:5c7550b7dbe64d7b2501eb8fd48ad68f4e7abeaeed0f7924c815c6b5fb48c7aa",
+    "adapter": "github",
+    "attempts": 1,
+    "completed_at": "2026-07-31T08:13:23.312313Z",
+    "deduplicated_from": null,
+    "details": {
+      "number": 3,
+      "repository": "tomyimkc/ledgerlens",
+      "state": "open"
+    },
+    "http_status": 201,
+    "idempotency_key": "user-sha256:50b7005e4daa4689b15dfb7571db95dbd6d0ad33f831b6f1833c47a08375fb00",
+    "operation": "create_issue",
+    "receipt_id": "b5abfaaa-2cea-58f4-91df-26d07124b01a",
+    "remote_id": "3",
+    "remote_url": "https://github.com/tomyimkc/ledgerlens/issues/3",
+    "status": "executed",
+    "target": "github:tomyimkc/ledgerlens"
+  },
+  "schemaVersion": "1.0"
+}
