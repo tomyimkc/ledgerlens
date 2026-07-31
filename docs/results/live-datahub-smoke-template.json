@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "benchmarkKind": "live-datahub-smoke",
+  "status": "NOT_RUN",
+  "candidateOnly": true,
+  "canClaimAGI": false,
+  "externalValidation": false,
+  "liveDataHub": true,
+  "llmEnabled": false,
+  "startedAtUtc": null,
+  "finishedAtUtc": null,
+  "durationSeconds": null,
+  "gitCommit": null,
+  "gitDirty": null,
+  "command": [],
+  "environment": {
+    "python": null,
+    "platform": null,
+    "datahubOssVersion": "v1.6.0",
+    "datahubCliVersion": null,
+    "mcpPackageVersion": null,
+    "gmsUrl": "http://localhost:8080",
+    "frontendUrl": "http://localhost:9002"
+  },
+  "checks": [],
+  "artifacts": [],
+  "limitations": [
+    "Template only; no live smoke has run.",
+    "A smoke pass establishes integration compatibility only.",
+    "DataHub audit timestamps are not finding-validation timestamps.",
+    "LedgerLens is not independent validation of source findings."
+  ]
+}

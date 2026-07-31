@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0",
+  "benchmarkKind": "deterministic-fixture",
+  "status": "NOT_RUN",
+  "candidateOnly": true,
+  "canClaimAGI": false,
+  "externalValidation": false,
+  "liveDataHub": false,
+  "llmEnabled": false,
+  "startedAtUtc": null,
+  "finishedAtUtc": null,
+  "durationSeconds": null,
+  "gitCommit": null,
+  "gitDirty": null,
+  "command": [],
+  "environment": {
+    "python": null,
+    "platform": null
+  },
+  "checks": [],
+  "artifacts": [],
+  "limitations": [
+    "Template only; no benchmark has run.",
+    "Fixture results do not establish live DataHub compatibility.",
+    "LedgerLens is not independent validation of source findings."
+  ]
+}

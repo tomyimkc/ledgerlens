@@ -13,9 +13,10 @@ import json
 import platform
 import statistics
 import time
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Awaitable, Callable
+from typing import Any
 
 import httpx
 from fastmcp import Client
@@ -126,4 +127,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

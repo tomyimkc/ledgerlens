@@ -1,4 +1,6 @@
 .DS_Store
+.coverage
+.claude/
 .env
 .pytest_cache/
 .ruff_cache/
@@ -12,4 +14,3 @@ coverage.xml
 htmlcov/
 triage-report.json
 triage-report.md
-

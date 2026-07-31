@@ -26,6 +26,7 @@ datahub = [
     "mcp-server-datahub==0.6.0",
 ]
 web = ["fastapi>=0.116,<1", "uvicorn[standard]>=0.35,<1"]
+video = ["pillow>=11,<13"]
 dev = [
   "mypy>=1.17,<2",
   "pytest>=8.4,<9",
@@ -55,4 +56,3 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 python_version = "3.11"
 strict = true
 packages = ["ledgerlens"]
-

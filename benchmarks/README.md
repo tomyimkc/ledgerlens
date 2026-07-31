@@ -20,3 +20,10 @@ uv run python benchmarks/live_mcp_benchmark.py \
   --output benchmarks/results/live-mcp.json
 ```
 
+Run the optional bounded 020s transport check only when a key is explicitly
+available:
+
+```bash
+SOPHIA_020S_KEY=... uv run python benchmarks/020s_smoke.py \
+  --output benchmarks/results/020s-smoke.json
+```

@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      - name: Install offline-test dependencies
+        run: uv sync --extra dev --extra web
+
+      - name: Lint
+        run: uv run ruff check src tests scripts
+
+      - name: Check formatting
+        run: uv run ruff format --check src tests scripts
+
+      - name: Unit and deterministic fixture tests
+        run: uv run pytest -m "not live_datahub"
+
+      - name: Exercise deterministic CLI
+        run: uv run bash scripts/deterministic_demo.sh
+
+      - name: Public-package checks
+        run: |
+          uv run python scripts/check_public_package.py
+          uv run pytest -q tests/test_public_package.py
+
+      - name: Offline secret safety scan
+        run: uv run python scripts/check_secrets.py
+
+      - name: Build source and wheel distributions
+        run: uv build
+
+      - name: Inspect built distributions
+        run: |
+          test -n "$(find dist -maxdepth 1 -name '*.whl' -print -quit)"
+          test -n "$(find dist -maxdepth 1 -name '*.tar.gz' -print -quit)"
+
+  container:
+    name: Container build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build non-root image
+        run: docker build --tag ledgerlens:ci .
+
+      - name: Verify image user and import
+        run: |
+          test "$(docker image inspect ledgerlens:ci --format '{{.Config.User}}')" = "ledgerlens"
+          docker run --rm --entrypoint sh ledgerlens:ci -c \
+            'command -v ledgerlens && command -v mcp-server-datahub'
+          docker run --rm --entrypoint python ledgerlens:ci -c \
+            "import datahub, ledgerlens; print(ledgerlens.__version__)"
+          docker compose config --quiet

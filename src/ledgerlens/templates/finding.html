@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}{{ finding.title }} · LedgerLens{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <a class="back-link" href="{{ request.url_for('dashboard') }}">← All findings</a>
+    <div class="heading-line">
+      <div>
+        <p class="eyebrow">{{ finding.kind }} · {{ finding.id }}</p>
+        <h1>{{ finding.title }}</h1>
+      </div>
+      <div class="heading-badges">
+        <span class="finding-priority priority-{{ finding.priority }}">{{ finding.priority }}</span>
+        <span class="status-pill status-{{ finding.status }}">{{ finding.status }}</span>
+      </div>
+    </div>
+    <p class="page-lede">{{ finding.summary }}</p>
+  </section>
+
+  <section class="detail-layout">
+    <div class="detail-main">
+      <article class="panel metadata-card" data-testid="supersession-chain">
+        <div class="section-heading compact">
+          <div>
+            <p class="eyebrow">ACCOUNTABILITY</p>
+            <h2>Ownership & response</h2>
+          </div>
+        </div>
+        <dl class="detail-list">
+          <div>
+            <dt>Owner</dt>
+            <dd>
+              {% if finding.owner %}
+                {{ finding.owner.name }}
+                <small>{{ finding.owner.type }}</small>
+              {% else %}
+                <span class="missing">Unassigned</span>
+              {% endif %}
+            </dd>
+          </div>
+          <div>
+            <dt>Required action</dt>
+            <dd>{{ finding.required_action }}</dd>
+          </div>
+          <div>
+            <dt>Claim boundary</dt>
+            <dd>
+              <code>candidateOnly: {{ finding.candidateOnly | lower }}</code>
+              <code>canClaimAGI: {{ finding.canClaimAGI | lower }}</code>
+            </dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="panel metadata-card">
+        <div class="section-heading compact">
+          <div>
+            <p class="eyebrow">PROVENANCE</p>
+            <h2>Evidence receipts</h2>
+          </div>
+          <span class="record-count">{{ finding.evidence_receipts | length }} attached</span>
+        </div>
+        {% if finding.evidence_receipts %}
+          <ul class="receipt-list">
+            {% for receipt in finding.evidence_receipts %}
+              <li>
+                <span class="receipt-icon" aria-hidden="true">⌁</span>
+                <div>
+                  <strong>{{ receipt.label }}</strong>
+                  <code>{{ receipt.uri }}</code>
+                </div>
+                <span class="receipt-state">
+                  {% if receipt.verified %}verified{% else %}unverified{% endif %}
+                </span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="empty-state small warning">
+            <h3>No evidence receipt attached</h3>
+            <p>The agent must report this metadata gap rather than infer support.</p>
+          </div>
+        {% endif %}
+      </article>
+
+      <article class="panel metadata-card">
+        <div class="section-heading compact">
+          <div>
+            <p class="eyebrow">HISTORY</p>
+            <h2>Supersession chain</h2>
+          </div>
+          <span class="record-count">{{ chain.chain | length }} records</span>
+        </div>
+        {% if chain.chain %}
+          <ol class="timeline">
+            {% for item in chain.chain %}
+              <li class="{% if item.id == chain.current_id %}current{% endif %}">
+                <span class="timeline-dot" aria-hidden="true"></span>
+                <div>
+                  <small>
+                    {% if item.id == chain.current_id %}CURRENT RECORD{% else %}HISTORICAL{% endif %}
+                  </small>
+                  <a href="{{ request.url_for('finding', finding_id=item.id) }}">
+                    {{ item.title }}
+                  </a>
+                  <code>{{ item.id }}</code>
+                </div>
+              </li>
+            {% endfor %}
+          </ol>
+          <p class="context-note">{{ chain.note }}</p>
+        {% else %}
+          <div class="empty-state small">
+            <h3>No supersession metadata</h3>
+            <p>Absence is reported as unknown, not as proof that this record is current.</p>
+          </div>
+        {% endif %}
+      </article>
+    </div>
+
+    <aside class="detail-side">
+      <article class="panel audit-card">
+        <p class="eyebrow">DATAHUB AUDIT CONTEXT</p>
+        <h2>Metadata origin</h2>
+        <dl>
+          <div>
+            <dt>Source mode</dt>
+            <dd>{{ finding.audit.source_mode }}</dd>
+          </div>
+          <div>
+            <dt>Ingested at</dt>
+            <dd>{{ finding.audit.ingested_at }}</dd>
+          </div>
+          <div>
+            <dt>Ingested by</dt>
+            <dd>{{ finding.audit.ingested_by }}</dd>
+          </div>
+          <div>
+            <dt>DataHub URN</dt>
+            <dd><code class="wrap">{{ finding.audit.datahub_urn }}</code></dd>
+          </div>
+        </dl>
+        <p class="context-note">
+          Audit time describes metadata ingestion. It is not a scientific validation time.
+        </p>
+      </article>
+
+      <article class="panel connection-card">
+        <span class="signal {% if status.connected %}signal-live{% else %}signal-offline{% endif %}">
+          <i aria-hidden="true"></i>
+          {% if status.connected %}Connected{% else %}Not connected{% endif %}
+        </span>
+        <h3>{{ status.label }}</h3>
+        <p>{{ status.diagnostic }}</p>
+      </article>
+    </aside>
+  </section>
+{% endblock %}
