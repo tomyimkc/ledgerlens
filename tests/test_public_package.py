@@ -154,6 +154,7 @@ def test_hosted_smoke_is_scheduled_and_credential_free() -> None:
 def test_workflows_use_node24_action_majors() -> None:
     workflow_root = ROOT / ".github/workflows"
     workflow_paths = sorted([*workflow_root.glob("*.yml"), *workflow_root.glob("*.yaml")])
+    assert workflow_paths
     expected_versions = {
         "actions/checkout@": "actions/checkout@v6",
         "actions/setup-python@": "actions/setup-python@v6",
@@ -163,9 +164,14 @@ def test_workflows_use_node24_action_majors() -> None:
     for path in workflow_paths:
         for line in path.read_text(encoding="utf-8").splitlines():
             stripped = line.strip()
+            if stripped.startswith("- uses:"):
+                stripped = stripped.removeprefix("- ").strip()
+            if not stripped.startswith("uses:"):
+                continue
+            action_ref = stripped.removeprefix("uses:").strip()
             for action_prefix, expected in expected_versions.items():
-                if action_prefix in stripped:
-                    assert stripped == f"uses: {expected}", f"{path}: {stripped}"
+                if action_ref.startswith(action_prefix):
+                    assert action_ref == expected, f"{path}: {action_ref}"
 
 
 def test_demo_script_is_under_three_minutes_and_requires_real_capture() -> None:

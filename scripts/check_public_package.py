@@ -149,19 +149,28 @@ def main() -> int:
     require("--extra datahub" in workflow, "CI DataHub dependency bootstrap missing", errors)
     workflow_root = ROOT / ".github/workflows"
     workflow_paths = sorted([*workflow_root.glob("*.yml"), *workflow_root.glob("*.yaml")])
-    all_workflows = "\n".join(path.read_text(encoding="utf-8") for path in workflow_paths)
-    for obsolete_action in (
-        "actions/checkout@v4",
-        "actions/setup-python@v5",
-        "actions/upload-artifact@v4",
-        "astral-sh/setup-uv@v6",
-        "astral-sh/setup-uv@v8",
-    ):
-        require(
-            obsolete_action not in all_workflows,
-            f"workflow still uses Node 20 action major: {obsolete_action}",
-            errors,
-        )
+    require(bool(workflow_paths), "no GitHub workflow files found", errors)
+    expected_actions = {
+        "actions/checkout@": "actions/checkout@v6",
+        "actions/setup-python@": "actions/setup-python@v6",
+        "actions/upload-artifact@": "actions/upload-artifact@v7",
+        "astral-sh/setup-uv@": "astral-sh/setup-uv@v9.0.0",
+    }
+    for path in workflow_paths:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if stripped.startswith("- uses:"):
+                stripped = stripped.removeprefix("- ").strip()
+            if not stripped.startswith("uses:"):
+                continue
+            action_ref = stripped.removeprefix("uses:").strip()
+            for action_prefix, expected in expected_actions.items():
+                if action_ref.startswith(action_prefix):
+                    require(
+                        action_ref == expected,
+                        f"{path.relative_to(ROOT)}: expected {expected}, found {action_ref}",
+                        errors,
+                    )
 
     dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
     require("USER ledgerlens" in dockerfile, "Dockerfile must use non-root user", errors)
