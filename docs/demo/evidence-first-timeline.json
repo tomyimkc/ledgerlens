@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "1.0",
+  "title": "LedgerLens Evidence-First Demo",
+  "targetDurationSeconds": 168,
+  "candidateOnly": true,
+  "canClaimAGI": false,
+  "scenes": [
+    {
+      "id": "00-title",
+      "durationSeconds": 10,
+      "frame": "00-title.png",
+      "cues": [
+        "A data incident starts with a symptom, not a trusted action plan.",
+        "LedgerLens makes every transition inspectable: evidence, policy, authorization, receipts, and handoff."
+      ]
+    },
+    {
+      "id": "01-live-space",
+      "durationSeconds": 20,
+      "frame": "01-live-space.png",
+      "cues": [
+        "This is the live public LedgerLens Space.",
+        "The banner matters: the hosted experience is a deterministic fixture replay, not a live provider run.",
+        "External mutations are off, fixture receipts stay visibly fixture-prefixed, candidateOnly is true, and canClaimAGI is false."
+      ]
+    },
+    {
+      "id": "02-datahub-context",
+      "durationSeconds": 20,
+      "frame": "02-datahub-context.png",
+      "cues": [
+        "DataHub is the operating context.",
+        "LedgerLens grounds the recorded entity, owner, tier, runbook pointers, and downstream lineage before proposing work.",
+        "Lineage is metadata-derived, not causal proof, so root cause, impact, and recovery remain explicit unknowns."
+      ]
+    },
+    {
+      "id": "03-policy-gate",
+      "durationSeconds": 22,
+      "frame": "03-policy-gate.png",
+      "cues": [
+        "The planner proposes reversible, allowlisted collaboration actions and binds them to an exact plan fingerprint.",
+        "Model variants provide advisory votes, but they cannot expand targets or authorize themselves.",
+        "The deterministic gate checks quorum, confidence, evidence identifiers, action types, parameters, risk, and the exact plan hash."
+      ]
+    },
+    {
+      "id": "04-fixture-execution",
+      "durationSeconds": 18,
+      "frame": "04-fixture-execution.png",
+      "cues": [
+        "Replay execution shows the full state transition without disguising simulation as production.",
+        "GitHub, Slack, PagerDuty, and Jira cards retain fixture identifiers.",
+        "The replay records a fixture write-back and a next-agent memory package of known facts, unknowns, provenance, and next checks."
+      ]
+    },
+    {
+      "id": "05-github-live",
+      "durationSeconds": 20,
+      "frame": "05-github-live.png",
+      "cues": [
+        "Now the evidence class changes.",
+        "This published receipt records a real GitHub external mutation: issue number three was created by the signed adapter and immediately closed.",
+        "It proves issue creation and closure only. It does not prove incident causality, user impact, or recovery."
+      ]
+    },
+    {
+      "id": "06-datahub-live",
+      "durationSeconds": 20,
+      "frame": "06-datahub-live.png",
+      "cues": [
+        "A separate live DataHub OSS receipt records the allowlisted save_document mutation.",
+        "DataHub returned a document URN, and the official MCP get_entities path retrieved that URN for the next agent.",
+        "This proves catalog persistence, not incident recovery; Slack, PagerDuty, and Jira were not executed live."
+      ]
+    },
+    {
+      "id": "07-ai-verification",
+      "durationSeconds": 18,
+      "frame": "07-ai-verification.png",
+      "cues": [
+        "The AI verification receipt is also separate.",
+        "A live planner and two configured verifier variants approved the bounded plan, while deterministic policy remained the authorization authority.",
+        "Distinct variants are recorded, but provider-family independence is not claimed."
+      ]
+    },
+    {
+      "id": "08-benchmark",
+      "durationSeconds": 12,
+      "frame": "08-benchmark.png",
+      "cues": [
+        "Finally, the context ablation covers one hundred twenty synthetic assets and twenty-four scenarios.",
+        "Context improves the recorded fixture metrics, but the run is offline, deterministic, and not external validation or proven model uplift."
+      ]
+    },
+    {
+      "id": "09-close",
+      "durationSeconds": 8,
+      "frame": "09-close.png",
+      "cues": [
+        "LedgerLens: real receipts where real work occurred, visible fixtures everywhere else.",
+        "Candidate only. No AGI claim."
+      ]
+    }
+  ]
+}

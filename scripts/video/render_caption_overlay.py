@@ -105,6 +105,7 @@ def render_caption(
     width: int,
     height: int,
     font_size: int,
+    bottom_margin: int,
 ) -> None:
     image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
@@ -122,7 +123,7 @@ def render_caption(
     box_width = max(box[2] - box[0] for box in measured) + padding_x * 2
     box_height = total_height + padding_y * 2
     left = (width - box_width) // 2
-    top = height - 58 - box_height
+    top = height - bottom_margin - box_height
     draw.rounded_rectangle(
         (left, top, left + box_width, top + box_height),
         radius=18,
@@ -157,7 +158,10 @@ def build_overlay_assets(
     width: int = 1920,
     height: int = 1080,
     font_size: int = 46,
+    bottom_margin: int = 58,
 ) -> Path:
+    if not 0 <= bottom_margin < height:
+        raise ValueError(f"bottom margin must be between 0 and {height - 1}; got {bottom_margin}")
     cues = parse_srt(captions)
     if duration_seconds < cues[-1].end_seconds:
         raise ValueError(
@@ -181,6 +185,7 @@ def build_overlay_assets(
             width=width,
             height=height,
             font_size=font_size,
+            bottom_margin=bottom_margin,
         )
         entries.append((image_path, cue.end_seconds - cue.start_seconds))
         cursor = cue.end_seconds
@@ -201,6 +206,7 @@ def build_overlay_assets(
         "durationSeconds": duration_seconds,
         "width": width,
         "height": height,
+        "bottomMargin": bottom_margin,
         "cues": [asdict(cue) for cue in cues],
         "manifest": str(manifest),
     }
@@ -219,6 +225,7 @@ def main() -> int:
     parser.add_argument("--width", type=int, default=1920)
     parser.add_argument("--height", type=int, default=1080)
     parser.add_argument("--font-size", type=int, default=46)
+    parser.add_argument("--bottom-margin", type=int, default=58)
     args = parser.parse_args()
     manifest = build_overlay_assets(
         args.captions,
@@ -227,6 +234,7 @@ def main() -> int:
         width=args.width,
         height=args.height,
         font_size=args.font_size,
+        bottom_margin=args.bottom_margin,
     )
     print(manifest)
     return 0

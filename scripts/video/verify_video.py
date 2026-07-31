@@ -48,12 +48,18 @@ def main() -> int:
         raise SystemExit("No video stream found.")
 
     duration = float(probe["format"]["duration"])
+    video_duration = float(video_stream.get("duration", duration))
     width = int(video_stream.get("width", 0))
     height = int(video_stream.get("height", 0))
     codec = video_stream.get("codec_name")
     errors: list[str] = []
     if duration >= 180:
         errors.append(f"duration must be under 180 seconds; got {duration:.3f}")
+    if abs(video_duration - duration) > 0.1:
+        errors.append(
+            "video stream duration must match container duration; "
+            f"got video={video_duration:.3f}, container={duration:.3f}"
+        )
     if (width, height) != (1920, 1080):
         errors.append(f"expected 1920x1080; got {width}x{height}")
     if codec != "h264":
@@ -87,6 +93,7 @@ def main() -> int:
             "bytes": video.stat().st_size,
             "sha256": sha256(video),
             "durationSeconds": duration,
+            "videoStreamDurationSeconds": video_duration,
             "width": width,
             "height": height,
             "codec": codec,
