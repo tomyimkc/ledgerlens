@@ -21,7 +21,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-datahub = ["acryl-datahub>=1.6.0.15,<1.7"]
+datahub = [
+    "acryl-datahub>=1.6.0.15,<1.7",
+    "mcp-server-datahub==0.6.0",
+]
 web = ["fastapi>=0.116,<1", "uvicorn[standard]>=0.35,<1"]
 dev = [
   "mypy>=1.17,<2",

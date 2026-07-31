@@ -1,0 +1,59 @@
+{
+  "environment": {
+    "gmsUrl": "http://localhost:8080",
+    "machine": "arm64",
+    "mcpUrl": "http://127.0.0.1:8765/mcp",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "python": "3.12.13"
+  },
+  "measuredAt": "2026-07-31T03:14:04.094903+00:00",
+  "results": {
+    "gmsHealth": {
+      "maxMs": 5.936,
+      "meanMs": 1.757,
+      "minMs": 1.09,
+      "n": 10,
+      "p50Ms": 1.262,
+      "p95Ms": 5.936
+    },
+    "mcpListTools": {
+      "maxMs": 4.72,
+      "meanMs": 3.222,
+      "minMs": 2.792,
+      "n": 10,
+      "p50Ms": 2.975,
+      "p95Ms": 4.72,
+      "toolCount": 6,
+      "tools": [
+        "get_dataset_queries",
+        "get_entities",
+        "get_lineage",
+        "get_lineage_paths_between",
+        "list_schema_fields",
+        "search"
+      ]
+    },
+    "mcpSearch": {
+      "maxMs": 425.065,
+      "meanMs": 394.983,
+      "minMs": 370.967,
+      "n": 10,
+      "p50Ms": 390.261,
+      "p95Ms": 425.065,
+      "query": "*",
+      "responseType": "CallToolResult"
+    }
+  },
+  "schemaVersion": 1,
+  "scope": {
+    "canClaimAGI": false,
+    "candidateOnly": true,
+    "measurement": "live DataHub and MCP infrastructure latency",
+    "notProven": [
+      "scientific validity of ingested findings",
+      "independent validation",
+      "agent capability uplift",
+      "AGI"
+    ]
+  }
+}

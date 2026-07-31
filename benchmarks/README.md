@@ -1,0 +1,22 @@
+# LedgerLens benchmarks
+
+Benchmarks in this directory separate three different evidence classes:
+
+1. **Deterministic fixture checks** — parser, mapping, and policy correctness on
+   public synthetic fixtures.
+2. **Live infrastructure smoke measurements** — latency and health of a pinned
+   DataHub OSS and official MCP deployment.
+3. **Optional model-assisted phrasing measurements** — never used as the source
+   of truth for factual selection or claim status.
+
+No benchmark here independently validates a source finding or demonstrates
+capability uplift. Every result remains `candidateOnly: true` and
+`canClaimAGI: false`.
+
+Run the live MCP benchmark after DataHub OSS and the MCP server are healthy:
+
+```bash
+uv run python benchmarks/live_mcp_benchmark.py \
+  --output benchmarks/results/live-mcp.json
+```
+
