@@ -61,7 +61,7 @@ actions.
 - [x] CI installs DataHub, web, video, and development dependencies needed by the gates.
 - [x] CI runs Ruff, strict mypy, deterministic tests, public-package checks, secret scan,
       non-video readiness, package build, and non-root container build.
-- [x] July 31, 2026 local judge gate passed 252 deterministic tests and strict mypy over 36 source
+- [x] July 31, 2026 local judge gate passed 253 deterministic tests and strict mypy over 36 source
       files.
 - [x] `make check` includes strict type checking.
 - [x] `make demo-ui` uses only supported CLI flags.

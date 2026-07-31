@@ -162,7 +162,7 @@ It fails closed when required receipts or claim flags drift, CI loses strict myp
 dependencies, the hosted smoke contract disappears, the old failure-ledger product copy returns,
 or documentation falsely claims that `v0.2.1` is already published.
 
-The July 31, 2026 non-video judge gate passed **252 deterministic tests**, strict mypy over 36
+The July 31, 2026 non-video judge gate passed **253 deterministic tests**, strict mypy over 36
 source files, Ruff lint/format checks, the secret scan, public-package checks, the DataHub-context
 benchmark, and this readiness guard. The hosted public smoke also passed against the live fixture
 URL. Re-run the gates after any final release-only edit rather than copying an older count.
