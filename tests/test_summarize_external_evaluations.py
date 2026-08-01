@@ -9,14 +9,14 @@ from pathlib import Path
 from typing import Any
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts/summarize_external_evaluations.py"
-CRITERIA = (
+CORE_CRITERIA = (
     "datahubUseAndWriteback",
     "technicalExecution",
     "originalityBeyondBuiltins",
     "realWorldUsefulness",
     "submissionQualityAndReproducibility",
-    "openSourceContribution",
 )
+BONUS_CRITERION = "openSourceContribution"
 TASKS = (
     "openedDemo",
     "ranReplay",
@@ -48,7 +48,10 @@ def _record(
             "publicAttribution": False,
         },
         "tasks": {task: True for task in TASKS},
-        "scores": {criterion: score for criterion in CRITERIA},
+        "scores": {
+            **{criterion: score for criterion in CORE_CRITERIA},
+            BONUS_CRITERION: score,
+        },
         "comments": {
             "mostUseful": "private observation",
             "approvedPublicExcerpt": "",
@@ -113,7 +116,8 @@ def test_public_summary_uses_only_completed_consenting_reviews(tmp_path: Path) -
     assert "Completed evaluations in this scope: **2**" in result.stdout
     assert "data engineer: 1; incident responder: 1" in result.stdout
     assert "| Meaningful Use of DataHub Tools and Write-Back | 2 | 3 | 2–4 |" in result.stdout
-    assert "median **18/24**, range **12–24 / 24**" in result.stdout
+    assert "Five-core descriptive total:** median **15/20**, range **10–20 / 20**" in result.stdout
+    assert "Separate open-source bonus:** median **3/4**, range **2–4 / 4**" in result.stdout
     assert "reviewer-data" not in result.stdout
     assert "private observation" not in result.stdout
     assert "other: 1" not in result.stdout
@@ -167,7 +171,8 @@ def test_public_summary_with_no_eligible_records_publishes_no_scores(tmp_path: P
 
     assert result.returncode == 0
     assert "No public aggregate is available" in result.stdout
-    assert "24" not in result.stdout
+    assert "Five-core descriptive total" not in result.stdout
+    assert "Separate open-source bonus" not in result.stdout
     assert "infer endorsement" in result.stdout
 
 

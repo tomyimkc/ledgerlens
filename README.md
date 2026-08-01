@@ -34,6 +34,8 @@ demo video under three minutes. LedgerLens's release plan keeps judge access fre
 - [Upstream DataHub MCP issue #159](https://github.com/acryldata/mcp-server-datahub/issues/159)
 - [Upstream DataHub MCP PR #160](https://github.com/acryldata/mcp-server-datahub/pull/160)
 - [Judge-ready submission package](docs/DEVPOST_SUBMISSION.md)
+- [Canonical evidence index](docs/EVIDENCE_INDEX.md)
+- [Non-video winner-readiness scorecard](docs/WINNER_READINESS.md)
 - [Supervised live DataHub public proof](docs/LIVE_DATAHUB_PUBLIC.md)
 - [Consent-safe external evaluation kit](docs/EXTERNAL_EVALUATION.md)
 - [Architecture and trust boundaries](ARCHITECTURE.md)
@@ -147,19 +149,25 @@ requires a published receipt that identifies the DataHub version, run mode, time
 
 ## Official judging criteria mapping
 
-The six official criteria are equally weighted at **16.67% each**.
+The official rules list five core criteria as equally weighted and call the open-source contribution a
+**bonus**. LedgerLens therefore reports a five-core average and the open-source contribution
+separately; the bonus must not hide a weak core submission.
 
-| Official criterion | LedgerLens judge evidence |
+| Core criterion | LedgerLens judge evidence |
 |---|---|
 | Meaningful Use of DataHub Tools and Write-Back | DataHub-grounded incident context, lineage-based blast radius, official MCP read path, controlled MCP mutation adapter, and visible write-back stage |
 | Technical Execution and End-to-End Functionality | Typed incident models, planner/verifier interfaces, fail-closed policy, idempotent provider adapters, write-back receipts, replay UI, tests, and one-command demo |
 | Originality and Extension Beyond Built-ins | Adds evidence-bound authorization, multi-stage verification, provider fanout, receipt semantics, and next-agent handoff beyond a default catalog Q&A agent |
 | Real-World Usefulness | Coordinates accountable owners and durable incident records while refusing to invent cause, impact, or recovery |
-| Submission Quality and Reproducibility | Public Apache-2.0 repository, deterministic fixture, exact commands, claim boundaries, architecture, security documentation, and a timed under-three-minute script |
-| Open-Source Contribution Bonus | Apache-2.0 project plus a narrowly scoped upstream DataHub MCP provenance proposal; no upstream merge is claimed until publicly evidenced |
+| Submission Quality and Reproducibility | Public Apache-2.0 repository, deterministic fixture, exact commands, claim boundaries, architecture, security documentation, and a clear evidence index |
 
-The paste-ready Devpost copy, URL fields, evidence checklist, and 2:50 demo script are in
-[docs/DEVPOST_SUBMISSION.md](docs/DEVPOST_SUBMISSION.md).
+| Separate bonus | LedgerLens evidence |
+|---|---|
+| Open-Source Contribution Bonus | A narrowly scoped upstream DataHub MCP provenance proposal; [PR #160](https://github.com/acryldata/mcp-server-datahub/pull/160) is open and unmerged, and no acceptance is claimed |
+
+Use the [evidence index](docs/EVIDENCE_INDEX.md) for direct artifact navigation and the
+[non-video scorecard](docs/WINNER_READINESS.md) for candid rubric gaps. The paste-ready Devpost
+copy and owner checklist are in [docs/DEVPOST_SUBMISSION.md](docs/DEVPOST_SUBMISSION.md).
 
 ## What is evidenced today
 

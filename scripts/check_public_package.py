@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -24,12 +25,15 @@ REQUIRED_FILES = (
     ".github/workflows/hosted-smoke.yml",
     "scripts/check_hosted_incident_demo.py",
     "scripts/check_non_video_readiness.py",
+    "docs/EVIDENCE_INDEX.md",
+    "docs/WINNER_READINESS.md",
     "docs/BENCHMARKS.md",
     "docs/DATAHUB_QUICKSTART.md",
     "docs/DEVPOST_CHECKLIST.md",
     "docs/DEVPOST_SUBMISSION.md",
     "docs/DEVPOST_WRITEUP.md",
     "docs/EXTERNAL_EVALUATION.md",
+    "docs/evaluation/INCIDENT_COMMANDER_SCORECARD.md",
     "docs/LIVE_DATAHUB_PUBLIC.md",
     "docs/demo/DEMO_SCRIPT.md",
     "docs/demo/STORYBOARD.md",
@@ -82,6 +86,21 @@ def check_shell(errors: list[str]) -> None:
             errors.append(f"{script.relative_to(ROOT)}: bash -n failed: {result.stderr.strip()}")
 
 
+def _read_required_text(relative: str, errors: list[str]) -> str:
+    path = ROOT / relative
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as error:
+        errors.append(f"{relative}: unable to read required file: {error}")
+        return ""
+
+
+def _has_six_core_rubric_drift(text: str) -> bool:
+    return "six equally weighted" in text.casefold() or bool(
+        re.search(r"(?im)^.*(?:total|score|criteria).*?(?:\d{1,2}|_+)\s*/\s*24\b.*$", text)
+    )
+
+
 def main() -> int:
     errors: list[str] = []
     for relative in REQUIRED_FILES:
@@ -113,10 +132,45 @@ def main() -> int:
             errors,
         )
 
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    readme = _read_required_text("README.md", errors)
     require("Apache License 2.0" in readme, "README: Apache-2.0 disclosure missing", errors)
     require("Agents That Do Real Work" in readme, "README: category missing", errors)
     require("make demo" in readme, "README: deterministic demo command missing", errors)
+    require("docs/EVIDENCE_INDEX.md" in readme, "README: evidence index link missing", errors)
+    require("docs/WINNER_READINESS.md" in readme, "README: winner-readiness link missing", errors)
+
+    submission = _read_required_text("docs/DEVPOST_SUBMISSION.md", errors)
+    require(
+        "EVIDENCE_INDEX.md" in submission, "Devpost submission: evidence index link missing", errors
+    )
+    require(
+        "docs/WINNER_READINESS.md" in submission,
+        "Devpost submission: winner-readiness link missing",
+        errors,
+    )
+
+    for relative, text in (
+        ("README.md", readme),
+        ("docs/DEVPOST_SUBMISSION.md", submission),
+        ("docs/EXTERNAL_EVALUATION.md", _read_required_text("docs/EXTERNAL_EVALUATION.md", errors)),
+        (
+            "docs/evaluation/INCIDENT_COMMANDER_SCORECARD.md",
+            _read_required_text("docs/evaluation/INCIDENT_COMMANDER_SCORECARD.md", errors),
+        ),
+        ("docs/WINNER_READINESS.md", _read_required_text("docs/WINNER_READINESS.md", errors)),
+    ):
+        folded = text.casefold()
+        require(
+            "five core" in folded or "five-core" in folded,
+            f"{relative}: five-core rubric framing missing",
+            errors,
+        )
+        require("bonus" in folded, f"{relative}: bonus framing missing", errors)
+        require(
+            "six equally weighted" not in folded and not _has_six_core_rubric_drift(text),
+            f"{relative}: public rubric must use five core criteria plus separate bonus",
+            errors,
+        )
 
     disclosure = (ROOT / "DISCLOSURE.md").read_text(encoding="utf-8").casefold()
     require("sophia-agi" in disclosure, "DISCLOSURE: Sophia-AGI not named", errors)

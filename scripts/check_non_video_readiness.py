@@ -82,6 +82,12 @@ def _require_text(
             errors.append(f"{label}: missing required contract text: {needle}")
 
 
+def _has_six_core_rubric_drift(text: str) -> bool:
+    return "six equally weighted" in text.casefold() or bool(
+        re.search(r"(?im)^.*(?:total|score|criteria).*?(?:\d{1,2}|_+)\s*/\s*24\b.*$", text)
+    )
+
+
 def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
     """Return hard failures and explicitly deferred owner/external blockers."""
 
@@ -139,6 +145,8 @@ def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
     required_paths = (
         ".github/workflows/hosted-smoke.yml",
         "scripts/check_hosted_incident_demo.py",
+        "docs/EVIDENCE_INDEX.md",
+        "docs/WINNER_READINESS.md",
         "docs/LIVE_DATAHUB_PUBLIC.md",
         "docs/EXTERNAL_EVALUATION.md",
         "benchmarks/results/live-public-proof-2026-07-31.json",
@@ -188,10 +196,16 @@ def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
     submission = (root / "docs/DEVPOST_SUBMISSION.md").read_text(encoding="utf-8")
     writeup = (root / "docs/DEVPOST_WRITEUP.md").read_text(encoding="utf-8")
     checklist = (root / "docs/DEVPOST_CHECKLIST.md").read_text(encoding="utf-8")
+    scorecard = (root / "docs/evaluation/INCIDENT_COMMANDER_SCORECARD.md").read_text(
+        encoding="utf-8"
+    )
+    winner_readiness = (root / "docs/WINNER_READINESS.md").read_text(encoding="utf-8")
 
     _require_text(
         readme,
         (
+            "docs/EVIDENCE_INDEX.md",
+            "docs/WINNER_READINESS.md",
             "docs/LIVE_DATAHUB_PUBLIC.md",
             "docs/EXTERNAL_EVALUATION.md",
             "benchmarks/results/live-public-proof-2026-07-31.json",
@@ -219,6 +233,8 @@ def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
         (
             "v0.2.1",
             "pending public video URL",
+            "EVIDENCE_INDEX.md",
+            "docs/WINNER_READINESS.md",
             "live-public-proof-2026-07-31.json",
             "EXTERNAL_EVALUATION.md",
             "PR #160 remains open",
@@ -230,6 +246,23 @@ def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
         errors.append("docs/DEVPOST_SUBMISSION.md: final v0.2.1 release must remain unchecked")
     if "releases/tag/v0.2.1" in submission or "releases/tag/v0.2.1" in readme:
         errors.append("release docs must not claim that v0.2.1 already exists")
+
+    for label, text in (
+        ("README.md", readme),
+        ("docs/DEVPOST_SUBMISSION.md", submission),
+        ("docs/evaluation/INCIDENT_COMMANDER_SCORECARD.md", scorecard),
+        ("docs/WINNER_READINESS.md", winner_readiness),
+    ):
+        _require_text(
+            text,
+            ("bonus",),
+            label=label,
+            errors=errors,
+        )
+        if "five core" not in text.casefold() and "five-core" not in text.casefold():
+            errors.append(f"{label}: missing required contract text: five core")
+        if _has_six_core_rubric_drift(text):
+            errors.append(f"{label}: public rubric must use five core criteria plus separate bonus")
 
     for label, text in (
         ("README.md", readme),
