@@ -33,10 +33,17 @@ def test_required_evidence_navigation_fails_closed_when_missing(tmp_path: Path) 
         ignore=shutil.ignore_patterns(".git", ".venv", "artifacts", "build", "dist"),
     )
     (repository / "docs" / "EVIDENCE_INDEX.md").unlink()
+    (repository / "docs" / "WINNER_READINESS.md").unlink()
+    (repository / "docs" / "evaluation" / "INCIDENT_COMMANDER_SCORECARD.md").unlink()
 
     errors, _ = evaluate_repository(repository)
 
     assert "missing non-video readiness file: docs/EVIDENCE_INDEX.md" in errors
+    assert "missing non-video readiness file: docs/WINNER_READINESS.md" in errors
+    assert (
+        "missing non-video readiness file: docs/evaluation/INCIDENT_COMMANDER_SCORECARD.md"
+        in errors
+    )
 
 
 def test_canonical_navigation_links_fail_closed_when_missing(tmp_path: Path) -> None:

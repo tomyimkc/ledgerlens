@@ -82,6 +82,15 @@ def _require_text(
             errors.append(f"{label}: missing required contract text: {needle}")
 
 
+def _read_required_text(root: Path, relative: str, errors: list[str]) -> str:
+    path = root / relative
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as error:
+        errors.append(f"{relative}: unable to read required file: {error}")
+        return ""
+
+
 def _has_six_core_rubric_drift(text: str) -> bool:
     return "six equally weighted" in text.casefold() or bool(
         re.search(r"(?im)^.*(?:total|score|criteria).*?(?:\d{1,2}|_+)\s*/\s*24\b.*$", text)
@@ -147,6 +156,7 @@ def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
         "scripts/check_hosted_incident_demo.py",
         "docs/EVIDENCE_INDEX.md",
         "docs/WINNER_READINESS.md",
+        "docs/evaluation/INCIDENT_COMMANDER_SCORECARD.md",
         "docs/LIVE_DATAHUB_PUBLIC.md",
         "docs/EXTERNAL_EVALUATION.md",
         "benchmarks/results/live-public-proof-2026-07-31.json",
@@ -192,14 +202,12 @@ def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
     if "secrets." in hosted_workflow:
         errors.append(".github/workflows/hosted-smoke.yml: public smoke must not require secrets")
 
-    readme = (root / "README.md").read_text(encoding="utf-8")
-    submission = (root / "docs/DEVPOST_SUBMISSION.md").read_text(encoding="utf-8")
-    writeup = (root / "docs/DEVPOST_WRITEUP.md").read_text(encoding="utf-8")
-    checklist = (root / "docs/DEVPOST_CHECKLIST.md").read_text(encoding="utf-8")
-    scorecard = (root / "docs/evaluation/INCIDENT_COMMANDER_SCORECARD.md").read_text(
-        encoding="utf-8"
-    )
-    winner_readiness = (root / "docs/WINNER_READINESS.md").read_text(encoding="utf-8")
+    readme = _read_required_text(root, "README.md", errors)
+    submission = _read_required_text(root, "docs/DEVPOST_SUBMISSION.md", errors)
+    writeup = _read_required_text(root, "docs/DEVPOST_WRITEUP.md", errors)
+    checklist = _read_required_text(root, "docs/DEVPOST_CHECKLIST.md", errors)
+    scorecard = _read_required_text(root, "docs/evaluation/INCIDENT_COMMANDER_SCORECARD.md", errors)
+    winner_readiness = _read_required_text(root, "docs/WINNER_READINESS.md", errors)
 
     _require_text(
         readme,
