@@ -18,7 +18,9 @@ const spaceUrl =
   process.env.LEDGERLENS_PUBLIC_SPACE_URL ||
   "https://tomyimkc-ledgerlens-incident-commander.hf.space/";
 const healthUrl = new URL("/healthz", spaceUrl).toString();
-const githubIssueUrl = "https://github.com/tomyimkc/ledgerlens/issues/3";
+const githubIssueUrl =
+  process.env.LEDGERLENS_PUBLIC_GITHUB_ISSUE_URL ||
+  "https://github.com/tomyimkc/ledgerlens/issues/29";
 const rawBase = "https://raw.githubusercontent.com/tomyimkc/ledgerlens/main/";
 
 const publicReceipts = {
@@ -217,10 +219,11 @@ try {
   const githubPage = await context.newPage();
   await githubPage.goto(githubIssueUrl, { waitUntil: "networkidle", timeout: 60000 });
   await addCaptureStyle(githubPage);
-  await githubPage.getByText(
-    "[LedgerLens rehearsal] Autonomous incident receipt 2026-07-31T08:13:22+00:00",
-    { exact: true },
-  ).first().waitFor({ state: "visible", timeout: 30000 });
+  // Wait for the issue title element generically so any configured issue works.
+  await githubPage
+    .locator(".js-issue-title, bdi.js-issue-title, [data-testid='issue-title']")
+    .first()
+    .waitFor({ state: "visible", timeout: 30000 });
   await githubPage.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
   await githubPage.waitForTimeout(800);
   const issueShot = path.join(screenshotRoot, "07-github-issue.png");
