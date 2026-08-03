@@ -16,7 +16,8 @@ DEFERRED_BLOCKERS = (
     "Final v0.2.1 tag and commit, cut only after the public video URL is recorded.",
     "Owner Devpost account/team review, final Submit action, and saved submission receipt.",
     "Two consented formative external reviews; no result is claimed before they exist.",
-    "Live Slack, PagerDuty, and Jira receipts unless the owner supplies scoped credentials.",
+    "A live DataHub read/write-back inside the same rehearsal run; the four-provider "
+    "fanout is produced (E-16), but the in-run DataHub segment needs the owner's instance.",
     "Upstream DataHub MCP maintainer review/merge; PR #160 remains external to this repository.",
 )
 

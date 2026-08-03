@@ -68,22 +68,29 @@ as live provider execution.
 
 Separate evidence receipts establish narrower live facts:
 
-- a live 020s planner plus two verifier variants produced a quorum-approved plan that was
-  authorized by deterministic policy without external mutation;
-- the signed GitHub adapter created and immediately closed rehearsal issue `#3`;
+- **one authorized run executed a bounded action against all four providers** — a real 020s
+  planner and two verifier variants reached quorum, the deterministic gate authorized the exact
+  plan, and the adapters created GitHub issue `#29`, posted a Slack message, sent a PagerDuty
+  Events API v2 event, and created Jira issue `KAN-2` (evidence E-16);
+- the deterministic policy gate, run against the same catalog with context on versus off, authorized
+  100% of the context-on scenarios and 0% of the context-off scenarios, each refusal carrying the
+  gate's own reason codes — proving the fail-closed gate, not model uplift (evidence E-15);
 - DataHub OSS v1.6.0 accepted an authorized `save_document` write-back and the official MCP
   `get_entities` path retrieved the resulting document;
 - a supervised authenticated public DataHub reachability proof returned 401 without gateway
   credentials, 200 for judge access, verified Reader-only grants without metadata-mutation
   authority, and completed teardown;
-- a deterministic DataHub-context ON/OFF benchmark measures owner accuracy, blast-radius recall,
-  unsupported claims, unsafe actions, duplicate actions, and plan completeness;
 - a consent-safe external evaluation kit is available, but no reviewer score or endorsement is
   claimed.
 
-LedgerLens is a working prototype. It does **not** claim provider-family independence, live Slack,
-PagerDuty, or Jira execution, incident causality, user impact, recovery, production readiness,
-independent validation, validated uplift, or AGI.
+LedgerLens reads DataHub through the same Model Context Protocol surface that DataHub's own
+[Agent Context Kit](https://docs.datahub.com/docs/dev-guides/agent-context/agent-context) wraps; it
+speaks that protocol directly rather than vendoring the `datahub-agent-context` SDK.
+
+LedgerLens is a working prototype. Each provider receipt above is **one bounded rehearsal action**.
+It does **not** claim sustained or production provider operation, provider-family independence,
+incident causality, user impact, recovery, production readiness, independent validation, validated
+uplift, or AGI.
 
 ```yaml
 candidateOnly: true
@@ -100,8 +107,8 @@ contribution separately, so the bonus cannot obscure a weakness in judge access 
 | Core criterion | LedgerLens judge evidence |
 |---|---|
 | Meaningful Use of DataHub Tools and Write-Back | DataHub-grounded incident context, ownership, schema, documentation, quality signal, lineage-based blast radius, official MCP reads, controlled `save_document` write-back, and next-agent retrieval |
-| Technical Execution and End-to-End Functionality | Typed state machine, planner/verifier contracts, fail-closed policy, signed provider authorization, idempotency, replay UI, strict mypy, deterministic tests, secret scan, hosted smoke, and readiness gates |
-| Originality and Extension Beyond Built-ins | Evidence-bound authorization and receipted operational fanout rather than catalog Q&A or unrestricted model tool use |
+| Technical Execution and End-to-End Functionality | Typed state machine, planner/verifier contracts, fail-closed policy, signed provider authorization, idempotency, replay UI, strict mypy, 283 deterministic tests, secret scan, hosted smoke, readiness gates, a real-pipeline benchmark over the production gate (E-15), and one authorized run that executed against all four providers (E-16) |
+| Originality and Extension Beyond Built-ins | Evidence-bound deterministic authorization over the same MCP surface DataHub's Agent Context Kit wraps — a reviewed-plan-fingerprint gate that neither DataHub's Actions Framework nor an unrestricted LLM agent provides |
 | Real-World Usefulness | Coordinates accountable response work and durable handoff while refusing to invent cause, impact, recovery, or resolution |
 | Submission Quality and Reproducibility | Public Apache-2.0 repository, one-command replay, public Space, exact receipts, context ablation, architecture/security docs, and fail-closed automation |
 
@@ -121,12 +128,20 @@ scope from a filename.
 - Hosted smoke checker: `scripts/check_hosted_incident_demo.py`
 - AI verification:
   `benchmarks/incident_commander/ai-verification-receipt.json`
+- Live four-provider rehearsal (E-16):
+  `benchmarks/incident_commander/live-incident-rehearsal-receipt.json`
+- Real-pipeline context ablation (E-15):
+  `benchmarks/incident_commander/real-pipeline-ablation-receipt.json`
 - Live GitHub action:
   `benchmarks/incident_commander/github-live-action-receipt.json`
 - Live DataHub write-back:
   `benchmarks/incident_commander/datahub-live-writeback-receipt.json`
-- DataHub context ON/OFF:
+- DataHub context ON/OFF (scripted schema demo):
   `benchmarks/incident_commander/context-ablation-receipt.json`
+- Read-without-running examples: `examples/README.md`
+- Clean-clone reproduction receipt:
+  `benchmarks/results/clean-clone-2026-08-03.json`
+- Submission data ledger: `docs/SUBMISSION_LEDGER.md`
 - Local live DataHub smoke:
   `benchmarks/results/live-datahub-smoke-2026-07-31.json`
 - Supervised public DataHub proof:
@@ -177,11 +192,13 @@ It fails closed when required receipts or claim flags drift, CI loses strict myp
 dependencies, the hosted smoke contract disappears, the old failure-ledger product copy returns,
 or documentation falsely claims that `v0.2.1` is already published.
 
-A historical July 31, 2026 non-video judge-gate receipt recorded **254 deterministic tests**, strict
-mypy over 36 source files, Ruff lint/format checks, the secret scan, public-package checks, the
-DataHub-context benchmark, and the readiness guard. It applies only to that recorded revision.
-Re-run the gates after any final release-only edit rather than copying its count. The hosted public
-smoke also passed against the live fixture URL.
+The most recent auditable reproduction is the clean-clone receipt
+[`benchmarks/results/clean-clone-2026-08-03.json`](../benchmarks/results/clean-clone-2026-08-03.json)
+(evidence E-17): from a fresh clone of commit `987bd7d`, `make setup` and `make judge-check` passed —
+Ruff lint/format, strict mypy over 36 source files, **283 deterministic tests**, the secret scan,
+public-package checks, both DataHub-context benchmarks, and the readiness guard. Re-run the gates
+after any final release-only edit rather than copying the count; the receipt records the exact commit
+it was captured against. The hosted public smoke also passed against the live fixture URL.
 
 ## Final owner/video boundary
 
@@ -190,7 +207,7 @@ smoke also passed against the live fixture URL.
 - [x] Keep the hosted replay explicitly labeled fixture/replay.
 - [x] Publish the supervised live-public DataHub proof and teardown receipt.
 - [x] Publish the external evaluation kit without inventing results.
-- [x] Describe Slack, PagerDuty, and Jira as implemented but not executed live.
+- [x] Describe Slack, PagerDuty, and Jira as executed once as a bounded rehearsal (E-16), not as sustained or production operation.
 - [x] Open upstream issue #159 and PR #160; state that PR #160 remains open, not merged.
 - [ ] Publish final `v0.2.1` only after the public video URL is recorded.
 - [ ] Record the real final release SHA after the tag is cut.
