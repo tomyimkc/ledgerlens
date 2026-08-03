@@ -22,7 +22,7 @@ def test_repository_satisfies_non_video_readiness_contract() -> None:
     assert errors == []
     assert any("video URL" in blocker for blocker in deferred)
     assert any("v0.2.1" in blocker for blocker in deferred)
-    assert any("Slack, PagerDuty, and Jira" in blocker for blocker in deferred)
+    assert any("live DataHub read/write-back" in blocker for blocker in deferred)
 
 
 def test_required_evidence_navigation_fails_closed_when_missing(tmp_path: Path) -> None:

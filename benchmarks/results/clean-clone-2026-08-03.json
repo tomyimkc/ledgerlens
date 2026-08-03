@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ledgerlens.clean-clone-reproduction.v1",
+  "kind": "clean-clone-reproduction",
+  "status": "PASS",
+  "candidateOnly": true,
+  "canClaimAGI": false,
+  "externalValidation": false,
+  "performedAtUtc": "2026-08-03T18:52:41+00:00",
+  "commit": "987bd7dd2a4a90128034784f672ba76d9308b7ef",
+  "method": "Fresh shallow git clone of the public repository, then only the documented commands.",
+  "environment": {
+    "os": "Darwin 27.0.0 arm64",
+    "hostPython": "3.14.6",
+    "resolvedPython": "3.12 (provisioned by uv)",
+    "uv": "0.11.22"
+  },
+  "steps": [
+    {
+      "command": "git clone --depth 1 https://github.com/tomyimkc/ledgerlens.git",
+      "result": "cloned at commit 987bd7d"
+    },
+    {
+      "command": "make setup",
+      "result": "OK",
+      "durationSeconds": 2.23
+    },
+    {
+      "command": "make judge-check",
+      "result": "OK",
+      "durationSeconds": 16.9,
+      "observed": {
+        "deterministicTests": 283,
+        "realPipelineAblation": {
+          "planAuthorizationRateOn": 1.0,
+          "planAuthorizationRateOff": 0.0
+        }
+      }
+    }
+  ],
+  "requiredNoUndeclaredInputs": true,
+  "requiredNoCredentials": true,
+  "limitations": [
+    "Reproduces the deterministic offline gates only; it does not exercise live DataHub, live providers, or the hosted Space.",
+    "A pass validates that the published commands work from a clean clone; it does not establish production readiness or independent validation.",
+    "Timing is local wall-clock on one machine and is diagnostic, not a performance claim."
+  ]
+}

@@ -60,6 +60,7 @@ demo video under three minutes. LedgerLens's release plan keeps judge access fre
 - [Judge-ready submission package](docs/DEVPOST_SUBMISSION.md)
 - [Canonical evidence index](docs/EVIDENCE_INDEX.md)
 - [Non-video winner-readiness scorecard](docs/WINNER_READINESS.md)
+- [Submission data ledger](docs/SUBMISSION_LEDGER.md)
 - [Supervised live DataHub public proof](docs/LIVE_DATAHUB_PUBLIC.md)
 - [Live provider rehearsal setup](docs/LIVE_PROVIDER_REHEARSAL.md)
 - [Consent-safe external evaluation kit](docs/EXTERNAL_EVALUATION.md)
