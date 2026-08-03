@@ -275,6 +275,61 @@ def test_backend_trigger_execute_runs_full_fanout_offline() -> None:
         assert len(transport.requests) == 1
 
 
+class _DisapprovingVerifier:
+    def __init__(self, verifier_id: str, family: str) -> None:
+        self.verifier_id = verifier_id
+        self.family = family
+
+    def verify(self, context: IncidentContext, plan: ActionPlan) -> VerifierAssessment:
+        del context, plan
+        return VerifierAssessment(
+            approved=False, confidence=0.99, reasons=("withholding approval for this test",)
+        )
+
+
+def test_backend_denied_plan_executes_no_provider_action() -> None:
+    """A plan the panel does not approve must reach ZERO providers — fail-closed end to end.
+
+    This is the authority-boundary guarantee: no provider is contacted unless the deterministic
+    gate authorizes the exact reviewed plan.
+    """
+    context = _context()
+    authorizer = ActionAuthorizer(SIGNING_SECRET, clock=lambda: NOW, nonce_factory=lambda: "n1")
+    transports = _fake_transports()
+    executor = SCRIPT.build_action_executor(
+        _credentials(), authorizer, transports=transports, timeout=5.0
+    )
+    backend = OrchestratorIncidentBackend(
+        incident_resolver=lambda payload: context.incident,
+        context_provider=lambda incident: context,
+        planner=_DeterministicPlanner(),
+        verifier_panel=VerifierPanel(
+            (
+                _DisapprovingVerifier("v1", "grounding-lint"),
+                _ApprovingVerifier("v2", "policy-shape"),
+            )
+        ),
+        policy_gate=build_policy_gate(
+            SCRIPT.POLICY_TARGETS,
+            minimum_plan_confidence=0.8,
+            minimum_verifier_confidence=0.85,
+            quorum=2,
+        ),
+        executor=executor,
+        writeback=lambda run: None,
+        clock=lambda: NOW,
+    )
+
+    prepared, result, state, executed = SCRIPT.run_backend(backend, context.incident.incident_id)
+
+    assert prepared.authorization.authorized is False
+    assert executed is False
+    assert result is None
+    # Not a single provider was contacted.
+    for transport in transports.values():
+        assert transport.requests == []
+
+
 def test_real_executor_fans_out_to_all_four_providers_offline() -> None:
     authorizer = ActionAuthorizer(SIGNING_SECRET, clock=lambda: NOW, nonce_factory=lambda: "n1")
     transports = _fake_transports()

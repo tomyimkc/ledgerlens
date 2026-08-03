@@ -16,7 +16,7 @@ DATAHUB_DEMO_PASSWORD ?= datahub
 	live-smoke docker-build docker-demo video-tools capture-demo grok-assets render-video \
 	montage-demo verify-video clean-generated incident-demo incident-demo-headless \
 	incident-demo-manual incident-benchmark incident-benchmark-real-pipeline \
-	incident-catalog-bundle ai-rehearsal judge-check \
+	incident-catalog-bundle ai-rehearsal judge-check submission-consistency \
 	hosted-smoke non-video-readiness
 
 help: ## Show available targets.
@@ -93,8 +93,11 @@ hosted-smoke: ## Verify the public fixture replay and write a sanitized receipt.
 non-video-readiness: ## Fail closed on missing non-video evidence, CI, or submission contracts.
 	uv run python scripts/check_non_video_readiness.py
 
+submission-consistency: ## Fail closed when judge-facing values drift from the artifacts.
+	uv run python scripts/check_submission_consistency.py
+
 judge-check: lint format-check typecheck test secret-scan public-check incident-benchmark \
-	incident-benchmark-real-pipeline non-video-readiness ## Run judge-facing quality and evidence gates.
+	incident-benchmark-real-pipeline non-video-readiness submission-consistency ## Run judge-facing quality and evidence gates.
 
 benchmark: ## Record a deterministic fixture benchmark receipt.
 	uv run python scripts/run_benchmark.py \

@@ -1,0 +1,52 @@
+name: Evidence freshness
+
+# Runs daily (and on demand) up to the submission window so judge-facing evidence and
+# public links do not silently rot before Aug 10. Consistency drift fails the run; external
+# link liveness is reported but does not fail (transient outages must not page anyone).
+
+on:
+  schedule:
+    - cron: "43 13 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ledgerlens-evidence-freshness
+  cancel-in-progress: false
+
+jobs:
+  freshness:
+    name: Verify submission evidence freshness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up supported Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Submission consistency (fails closed on drift)
+        run: python3 scripts/check_submission_consistency.py
+
+      - name: Non-video readiness (fails closed on evidence/contract drift)
+        run: python3 scripts/check_non_video_readiness.py
+
+      - name: Public link liveness (report-only)
+        run: |
+          set +e
+          check() {
+            code=$(curl -sS -o /dev/null -w "%{http_code}" -L --max-time 25 "$1")
+            printf '%s -> HTTP %s\n' "$1" "$code"
+          }
+          echo "== public evidence links (report-only; does not fail the run) =="
+          check "https://tomyimkc-ledgerlens-incident-commander.hf.space/"
+          check "https://github.com/tomyimkc/ledgerlens/issues/29"
+          check "https://tomyimkc.atlassian.net/browse/KAN-2"
+          check "https://github.com/acryldata/mcp-server-datahub/pull/160"
+          exit 0

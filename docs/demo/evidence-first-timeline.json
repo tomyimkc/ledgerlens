@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "title": "LedgerLens Evidence-First Demo",
-  "targetDurationSeconds": 168,
+  "targetDurationSeconds": 170,
   "candidateOnly": true,
   "canClaimAGI": false,
   "scenes": [
@@ -56,22 +56,22 @@
     },
     {
       "id": "05-github-live",
-      "durationSeconds": 20,
+      "durationSeconds": 22,
       "frame": "05-github-live.png",
       "cues": [
-        "Now the evidence class changes.",
-        "This published receipt records a real GitHub external mutation: issue number three was created by the signed adapter and immediately closed.",
-        "It proves issue creation and closure only. It does not prove incident causality, user impact, or recovery."
+        "Now the evidence class changes to real, bounded execution.",
+        "In one authorized run, the deterministic gate approved the exact plan and the adapters executed one bounded action against all four providers: a GitHub issue, a Slack message, a PagerDuty event, and a Jira issue.",
+        "Each is one rehearsal action. It proves the adapter path, not sustained operation, incident causality, or recovery."
       ]
     },
     {
       "id": "06-datahub-live",
-      "durationSeconds": 20,
+      "durationSeconds": 18,
       "frame": "06-datahub-live.png",
       "cues": [
         "A separate live DataHub OSS receipt records the allowlisted save_document mutation.",
         "DataHub returned a document URN, and the official MCP get_entities path retrieved that URN for the next agent.",
-        "This proves catalog persistence, not incident recovery; Slack, PagerDuty, and Jira were not executed live."
+        "This proves catalog persistence, not incident recovery."
       ]
     },
     {
@@ -86,11 +86,12 @@
     },
     {
       "id": "08-benchmark",
-      "durationSeconds": 12,
+      "durationSeconds": 14,
       "frame": "08-benchmark.png",
       "cues": [
-        "Finally, the context ablation covers one hundred twenty synthetic assets and twenty-four scenarios.",
-        "Context improves the recorded fixture metrics, but the run is offline, deterministic, and not external validation or proven model uplift."
+        "The context ablation is now run through the real policy gate, not a scripted responder.",
+        "With catalog context the gate authorizes every scenario; without it, it refuses every scenario with its own reason codes.",
+        "That proves the fail-closed gate. It is offline, deterministic, and not external validation or proven model uplift."
       ]
     },
     {
