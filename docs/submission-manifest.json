@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ledgerlens.submission-manifest.v1",
+  "project": "LedgerLens — Autonomous Data Incident Commander",
+  "category": "Agents That Do Real Work",
+  "candidateOnly": true,
+  "canClaimAGI": false,
+  "externalValidation": false,
+  "publicSurfaces": {
+    "repository": "https://github.com/tomyimkc/ledgerlens",
+    "license": "Apache-2.0",
+    "publicApp": "https://tomyimkc-ledgerlens-incident-commander.hf.space/",
+    "spacePage": "https://huggingface.co/spaces/tomyimkc/ledgerlens-incident-commander",
+    "videoUrl": "OWNER INPUT REQUIRED",
+    "publicBaseline": "v0.2.0@00063e40bfc785f13e6db938e0795928e4f843ba",
+    "finalRelease": "v0.2.1 (not yet published)"
+  },
+  "deadline": {
+    "submission": "2026-08-10T17:00:00-04:00",
+    "judgeAccessThrough": "2026-08-31T17:00:00-04:00"
+  },
+  "upstreamBonus": {
+    "issue": "https://github.com/acryldata/mcp-server-datahub/issues/159",
+    "pr": "https://github.com/acryldata/mcp-server-datahub/pull/160",
+    "state": "open",
+    "merged": false
+  },
+  "benchmark": {
+    "syntheticCatalogAssets": 120,
+    "syntheticCatalogScenarios": 24,
+    "source": "fixtures/incident_commander/catalog.json"
+  },
+  "readinessSnapshot": {
+    "verdict": "finalist-capable",
+    "fiveCoreAverage": 6.6,
+    "bonus": 4.5,
+    "note": "Internal readiness assessment, not an official judging score. See docs/WINNER_READINESS.md."
+  },
+  "evidence": [
+    {"id": "E-01", "claim": "Credential-free judge replay", "artifact": "https://tomyimkc-ledgerlens-incident-commander.hf.space/", "scope": "public fixture only"},
+    {"id": "E-02", "claim": "DataHub context central (scripted schema demo)", "artifact": "benchmarks/incident_commander/context-ablation-receipt.json", "scope": "scripted responders; schema/contract demo, not model capability"},
+    {"id": "E-06", "claim": "GitHub adapter executed a bounded action", "artifact": "benchmarks/incident_commander/github-live-action-receipt.json", "scope": "one bounded action"},
+    {"id": "E-07", "claim": "Controlled DataHub OSS write-back + MCP read-back", "artifact": "benchmarks/incident_commander/datahub-live-writeback-receipt.json", "scope": "local OSS; not recovery/causality"},
+    {"id": "E-08", "claim": "Planner + two verifiers produced a policy-authorized plan", "artifact": "benchmarks/incident_commander/ai-verification-receipt.json", "scope": "no provider action; not provider-family independence"},
+    {"id": "E-11", "claim": "Real, still-open upstream contribution", "artifact": "https://github.com/acryldata/mcp-server-datahub/pull/160", "scope": "open, unmerged"},
+    {"id": "E-12", "claim": "External-review kit ready, no result claimed", "artifact": "docs/EXTERNAL_EVALUATION.md", "scope": "infrastructure only"},
+    {"id": "E-15", "claim": "Real PolicyGate/VerifierPanel authorizes only fact-grounded actions", "artifact": "benchmarks/incident_commander/real-pipeline-ablation-receipt.json", "scope": "deterministic stub planner; proves fail-closed gate, not uplift"},
+    {"id": "E-16", "claim": "One run executed a bounded action against all four providers", "artifact": "benchmarks/incident_commander/live-incident-rehearsal-receipt.json", "scope": "one bounded rehearsal action per provider; not sustained/production"},
+    {"id": "E-17", "claim": "Published commands reproduce from a clean clone", "artifact": "benchmarks/results/clean-clone-2026-08-03.json", "scope": "offline gates only"}
+  ],
+  "producedLiveArtifacts": {
+    "date": "2026-08-03",
+    "receipt": "benchmarks/incident_commander/live-incident-rehearsal-receipt.json",
+    "providers": {
+      "github": "https://github.com/tomyimkc/ledgerlens/issues/29",
+      "slack": "webhook message (no browsable URL by design)",
+      "pagerduty": "Events API v2 event (dedup_key = incident id)",
+      "jira": "https://tomyimkc.atlassian.net/browse/KAN-2"
+    },
+    "boundary": "Each is one bounded rehearsal action; not sustained/production operation, causality, or recovery."
+  },
+  "reproduce": {
+    "fullGate": "make judge-check",
+    "realPipelineBenchmark": "make incident-benchmark-real-pipeline",
+    "localReplay": "make incident-demo",
+    "liveRehearsal": "uv run python scripts/run_live_incident_rehearsal.py --confirm-live"
+  },
+  "ownerOnly": [
+    "Record the public under-three-minute video URL.",
+    "Cut and publish v0.2.1 from the final commit (after the video URL exists); record the real SHA.",
+    "Complete Devpost account/team/eligibility review; click Submit; save the receipt.",
+    "Optional: supervised live-DataHub session against the owner's own instance.",
+    "Optional: two consented external reviews via docs/EXTERNAL_EVALUATION.md.",
+    "Revoke the throwaway provider credentials used for E-16."
+  ]
+}
