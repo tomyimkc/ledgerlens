@@ -15,7 +15,8 @@ DATAHUB_DEMO_PASSWORD ?= datahub
 	check demo demo-ui benchmark benchmark-summary datahub-up datahub-down datahub-status \
 	live-smoke docker-build docker-demo video-tools capture-demo grok-assets render-video \
 	montage-demo verify-video clean-generated incident-demo incident-demo-headless \
-	incident-demo-manual incident-benchmark incident-catalog-bundle ai-rehearsal judge-check \
+	incident-demo-manual incident-benchmark incident-benchmark-real-pipeline \
+	incident-catalog-bundle ai-rehearsal judge-check \
 	hosted-smoke non-video-readiness
 
 help: ## Show available targets.
@@ -74,6 +75,10 @@ incident-benchmark: ## Run the deterministic DataHub-context ON versus OFF bench
 	uv run python scripts/run_incident_commander_benchmark.py \
 		--output benchmarks/incident_commander/context-ablation-receipt.json
 
+incident-benchmark-real-pipeline: ## Run the DataHub ON/OFF ablation through the real PolicyGate.
+	uv run python scripts/run_real_pipeline_ablation.py \
+		--output benchmarks/incident_commander/real-pipeline-ablation-receipt.json
+
 incident-catalog-bundle: ## Build the 120-asset DataHub proposal bundle without mutation.
 	uv run python scripts/ingest_incident_catalog.py \
 		--output artifacts/incident-commander/datahub-catalog-bundle.json
@@ -89,7 +94,7 @@ non-video-readiness: ## Fail closed on missing non-video evidence, CI, or submis
 	uv run python scripts/check_non_video_readiness.py
 
 judge-check: lint format-check typecheck test secret-scan public-check incident-benchmark \
-	non-video-readiness ## Run judge-facing quality and evidence gates.
+	incident-benchmark-real-pipeline non-video-readiness ## Run judge-facing quality and evidence gates.
 
 benchmark: ## Record a deterministic fixture benchmark receipt.
 	uv run python scripts/run_benchmark.py \
