@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,6 +23,50 @@ def test_repository_satisfies_non_video_readiness_contract() -> None:
     assert any("video URL" in blocker for blocker in deferred)
     assert any("v0.2.1" in blocker for blocker in deferred)
     assert any("Slack, PagerDuty, and Jira" in blocker for blocker in deferred)
+
+
+def test_required_evidence_navigation_fails_closed_when_missing(tmp_path: Path) -> None:
+    repository = tmp_path / "ledgerlens"
+    shutil.copytree(
+        ROOT,
+        repository,
+        ignore=shutil.ignore_patterns(".git", ".venv", "artifacts", "build", "dist"),
+    )
+    (repository / "docs" / "EVIDENCE_INDEX.md").unlink()
+    (repository / "docs" / "WINNER_READINESS.md").unlink()
+    (repository / "docs" / "evaluation" / "INCIDENT_COMMANDER_SCORECARD.md").unlink()
+
+    errors, _ = evaluate_repository(repository)
+
+    assert "missing non-video readiness file: docs/EVIDENCE_INDEX.md" in errors
+    assert "missing non-video readiness file: docs/WINNER_READINESS.md" in errors
+    assert (
+        "missing non-video readiness file: docs/evaluation/INCIDENT_COMMANDER_SCORECARD.md"
+        in errors
+    )
+
+
+def test_canonical_navigation_links_fail_closed_when_missing(tmp_path: Path) -> None:
+    repository = tmp_path / "ledgerlens"
+    shutil.copytree(
+        ROOT,
+        repository,
+        ignore=shutil.ignore_patterns(".git", ".venv", "artifacts", "build", "dist"),
+    )
+    readme_path = repository / "README.md"
+    readme_path.write_text(
+        readme_path.read_text(encoding="utf-8").replace("docs/EVIDENCE_INDEX.md", ""),
+        encoding="utf-8",
+    )
+
+    errors, _ = evaluate_repository(repository)
+
+    assert "README.md: missing required contract text: docs/EVIDENCE_INDEX.md" in errors
+
+
+def test_readiness_rubric_drift_detection_allows_unrelated_slash_24() -> None:
+    assert not MODULE._has_six_core_rubric_drift("Demo network: 10.0.0.0/24.")
+    assert MODULE._has_six_core_rubric_drift("Core total: 24 / 24")
 
 
 def test_receipt_check_fails_closed_on_claim_drift(tmp_path: Path) -> None:

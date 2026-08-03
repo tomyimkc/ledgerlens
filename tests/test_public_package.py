@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
+import shutil
 import stat
 import subprocess
 from pathlib import Path
@@ -13,6 +15,14 @@ from ledgerlens.models import LedgerParseError
 from ledgerlens.parser import parse_ledger_file
 
 ROOT = Path(__file__).resolve().parents[1]
+PUBLIC_PACKAGE_SCRIPT = ROOT / "scripts" / "check_public_package.py"
+PUBLIC_PACKAGE_SPEC = importlib.util.spec_from_file_location(
+    "check_public_package", PUBLIC_PACKAGE_SCRIPT
+)
+assert PUBLIC_PACKAGE_SPEC is not None and PUBLIC_PACKAGE_SPEC.loader is not None
+PUBLIC_PACKAGE_MODULE = importlib.util.module_from_spec(PUBLIC_PACKAGE_SPEC)
+PUBLIC_PACKAGE_SPEC.loader.exec_module(PUBLIC_PACKAGE_MODULE)
+public_package_main = PUBLIC_PACKAGE_MODULE.main
 
 REQUIRED_PUBLIC_PATHS = (
     "README.md",
@@ -29,12 +39,15 @@ REQUIRED_PUBLIC_PATHS = (
     ".github/workflows/hosted-smoke.yml",
     "scripts/check_hosted_incident_demo.py",
     "scripts/check_non_video_readiness.py",
+    "docs/EVIDENCE_INDEX.md",
+    "docs/WINNER_READINESS.md",
     "docs/DEVPOST_CHECKLIST.md",
     "docs/DEVPOST_SUBMISSION.md",
     "docs/DEVPOST_WRITEUP.md",
     "docs/BENCHMARKS.md",
     "docs/DATAHUB_QUICKSTART.md",
     "docs/EXTERNAL_EVALUATION.md",
+    "docs/evaluation/INCIDENT_COMMANDER_SCORECARD.md",
     "docs/LIVE_DATAHUB_PUBLIC.md",
     "docs/demo/DEMO_SCRIPT.md",
     "docs/demo/STORYBOARD.md",
@@ -113,6 +126,59 @@ def test_result_templates_are_not_claimed_runs(name: str, kind: str, live: bool)
     assert payload["externalValidation"] is False
     assert payload["candidateOnly"] is True
     assert payload["canClaimAGI"] is False
+
+
+def test_public_package_reports_missing_documents_without_traceback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    repository = tmp_path / "ledgerlens"
+    shutil.copytree(
+        ROOT,
+        repository,
+        ignore=shutil.ignore_patterns(".git", ".venv", "artifacts", "build", "dist"),
+    )
+    (repository / "docs" / "DEVPOST_SUBMISSION.md").unlink()
+    (repository / "docs" / "EXTERNAL_EVALUATION.md").unlink()
+    monkeypatch.setattr(PUBLIC_PACKAGE_MODULE, "ROOT", repository)
+
+    assert public_package_main() == 1
+
+    output = capsys.readouterr().out
+    assert "missing required file: docs/DEVPOST_SUBMISSION.md" in output
+    assert "missing required file: docs/EXTERNAL_EVALUATION.md" in output
+
+
+def test_canonical_non_video_navigation_is_linked() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    submission = (ROOT / "docs/DEVPOST_SUBMISSION.md").read_text(encoding="utf-8")
+    evidence = (ROOT / "docs/EVIDENCE_INDEX.md").read_text(encoding="utf-8")
+
+    assert "docs/EVIDENCE_INDEX.md" in readme
+    assert "docs/WINNER_READINESS.md" in readme
+    assert "EVIDENCE_INDEX.md" in submission
+    assert "docs/WINNER_READINESS.md" in submission
+    assert "WINNER_READINESS.md" in evidence
+
+
+def test_rubric_drift_detection_allows_unrelated_slash_24() -> None:
+    assert not PUBLIC_PACKAGE_MODULE._has_six_core_rubric_drift("Demo network: 10.0.0.0/24.")
+    assert PUBLIC_PACKAGE_MODULE._has_six_core_rubric_drift("Core total: 24 / 24")
+
+
+def test_public_rubric_uses_five_core_plus_separate_bonus() -> None:
+    for relative in (
+        "README.md",
+        "docs/DEVPOST_SUBMISSION.md",
+        "docs/EXTERNAL_EVALUATION.md",
+        "docs/evaluation/INCIDENT_COMMANDER_SCORECARD.md",
+        "docs/WINNER_READINESS.md",
+    ):
+        text = (ROOT / relative).read_text(encoding="utf-8")
+        folded = text.casefold()
+        assert "five core" in folded or "five-core" in folded, relative
+        assert "bonus" in folded, relative
+        assert "six equally weighted" not in folded, relative
+        assert not PUBLIC_PACKAGE_MODULE._has_six_core_rubric_drift(text), relative
 
 
 def test_ci_is_offline_first_and_has_both_python_versions() -> None:

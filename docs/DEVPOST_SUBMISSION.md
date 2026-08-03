@@ -91,18 +91,29 @@ canClaimAGI: false
 externalValidation: false
 ```
 
-## Six equally weighted judging criteria
+## Five equally weighted core criteria, plus a separate bonus
 
-| Official criterion | LedgerLens judge evidence |
+The official rules describe the listed criteria as equally weighted and label the open-source
+contribution a **bonus**. LedgerLens presents the five core criteria first and treats the upstream
+contribution separately, so the bonus cannot obscure a weakness in judge access or reproducibility.
+
+| Core criterion | LedgerLens judge evidence |
 |---|---|
 | Meaningful Use of DataHub Tools and Write-Back | DataHub-grounded incident context, ownership, schema, documentation, quality signal, lineage-based blast radius, official MCP reads, controlled `save_document` write-back, and next-agent retrieval |
 | Technical Execution and End-to-End Functionality | Typed state machine, planner/verifier contracts, fail-closed policy, signed provider authorization, idempotency, replay UI, strict mypy, deterministic tests, secret scan, hosted smoke, and readiness gates |
 | Originality and Extension Beyond Built-ins | Evidence-bound authorization and receipted operational fanout rather than catalog Q&A or unrestricted model tool use |
 | Real-World Usefulness | Coordinates accountable response work and durable handoff while refusing to invent cause, impact, recovery, or resolution |
 | Submission Quality and Reproducibility | Public Apache-2.0 repository, one-command replay, public Space, exact receipts, context ablation, architecture/security docs, and fail-closed automation |
+
+| Separate bonus | LedgerLens judge evidence |
+|---|---|
 | Open-Source Contribution Bonus | Upstream DataHub MCP provenance/audit-context issue #159 and PR #160 with focused tests; the PR remains open and no upstream merge is claimed |
 
 ## Evidence links
+
+Start with the [canonical evidence index](EVIDENCE_INDEX.md). It separates the public fixture,
+local-live receipts, temporary public proof, and test evidence so a judge does not need to infer
+scope from a filename.
 
 - Public Incident Commander:
   `https://tomyimkc-ledgerlens-incident-commander.hf.space/`
@@ -126,6 +137,7 @@ externalValidation: false
   `docs/EXTERNAL_EVALUATION.md`
 - Architecture and security: `ARCHITECTURE.md`, `SECURITY.md`
 - Pre-existing-work disclosure: `DISCLOSURE.md`
+- Candid non-video rubric scorecard and gap matrix: `docs/WINNER_READINESS.md`
 
 ## Public deployment and live-proof status
 
@@ -162,10 +174,11 @@ It fails closed when required receipts or claim flags drift, CI loses strict myp
 dependencies, the hosted smoke contract disappears, the old failure-ledger product copy returns,
 or documentation falsely claims that `v0.2.1` is already published.
 
-The July 31, 2026 non-video judge gate passed **254 deterministic tests**, strict mypy over 36
-source files, Ruff lint/format checks, the secret scan, public-package checks, the DataHub-context
-benchmark, and this readiness guard. The hosted public smoke also passed against the live fixture
-URL. Re-run the gates after any final release-only edit rather than copying an older count.
+A historical July 31, 2026 non-video judge-gate receipt recorded **254 deterministic tests**, strict
+mypy over 36 source files, Ruff lint/format checks, the secret scan, public-package checks, the
+DataHub-context benchmark, and the readiness guard. It applies only to that recorded revision.
+Re-run the gates after any final release-only edit rather than copying its count. The hosted public
+smoke also passed against the live fixture URL.
 
 ## Final owner/video boundary
 

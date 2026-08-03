@@ -97,20 +97,26 @@ Use integer scores only:
 | 3 | Clearly demonstrated in the fixture with inspectable evidence and limitations |
 | 4 | Exceptionally clear and complete for a short fixture review; evidence and limits are easy to inspect |
 
-The six criteria are equally weighted. The total is a reviewer-perception score, not an official
-judge score or evidence of production performance.
+The five core criteria are equally weighted. The open-source contribution is shown separately as a
+bonus. This scorecard is a reviewer-perception tool, not an official judge score or evidence of
+production performance.
 
-| Competition-aligned criterion | What to inspect | Score 0–4 |
+| Competition-aligned core criterion | What to inspect | Score 0–4 |
 |---|---|---:|
 | Meaningful Use of DataHub Tools and Write-Back | DataHub context materially shapes owner, blast radius, evidence, authorization, write-back, or handoff rather than appearing as branding | `__` |
 | Technical Execution and End-to-End Functionality | Trigger → context → plan → verification → deterministic gate → fanout → write-back → memory is coherent, visible, and fail-closed in scope | `__` |
 | Originality and Extension Beyond Built-ins | The workflow adds evidence-bound authorization, receipted operational fanout, and handoff beyond catalog search or chat summarization | `__` |
 | Real-World Usefulness | A responder can identify accountable next work without the interface inventing cause, impact, recovery, or resolution | `__` |
 | Submission Quality and Reproducibility | The fixture mode, synthetic receipts, limitations, and replay path are understandable and reproducible without credentials | `__` |
+
+- Core total: `____ / 20`
+- Core descriptive percentage, if useful: `core total ÷ 20 × 100 = ______%`
+
+| Separate bonus | What to inspect | Score 0–4 |
+|---|---|---:|
 | Open-Source Contribution Bonus | The demo or linked material makes the open-source contribution concrete without claiming an unverified upstream merge | `__` |
 
-- Total: `____ / 24`
-- Descriptive percentage, if useful: `total ÷ 24 × 100 = ______%`
+- Bonus score: `____ / 4` (report separately; do not fold it into the core total)
 
 ## 4. Task checks for aggregation
 

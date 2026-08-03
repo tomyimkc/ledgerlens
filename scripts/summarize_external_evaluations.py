@@ -19,8 +19,9 @@ CRITERIA = {
     "originalityBeyondBuiltins": "Originality and Extension Beyond Built-ins",
     "realWorldUsefulness": "Real-World Usefulness",
     "submissionQualityAndReproducibility": "Submission Quality and Reproducibility",
-    "openSourceContribution": "Open-Source Contribution Bonus",
 }
+BONUS_CRITERION = "openSourceContribution"
+BONUS_LABEL = "Open-Source Contribution Bonus"
 TASKS = {
     "openedDemo": "Opened the public demo",
     "ranReplay": "Ran the replay",
@@ -98,7 +99,7 @@ def _validate_record(record: Any, *, line_number: int) -> dict[str, Any]:
             field="scores",
             line_number=line_number,
         )
-        for criterion in CRITERIA:
+        for criterion in (*CRITERIA, BONUS_CRITERION):
             score = scores.get(criterion)
             if isinstance(score, bool) or not isinstance(score, int) or not 0 <= score <= 4:
                 raise EvaluationError(
@@ -225,7 +226,7 @@ def render_summary(
     lines.extend(
         [
             "",
-            "## Competition-aligned descriptive rubric",
+            "## Competition-aligned descriptive core rubric",
             "",
             "| Criterion | n | Median (0–4) | Range |",
             "|---|---:|---:|---:|",
@@ -241,18 +242,25 @@ def render_summary(
         for record in eligible
     ]
     total_median, total_range = _median_and_range(totals)
+    bonus_values = [float(record["scores"][BONUS_CRITERION]) for record in eligible]
+    bonus_median, bonus_range = _median_and_range(bonus_values)
     lines.extend(
         [
             "",
             (
-                f"**Overall descriptive total:** median **{total_median}/24**, "
-                f"range **{total_range} / 24**."
+                f"**Five-core descriptive total:** median **{total_median}/20**, "
+                f"range **{total_range} / 20**."
+            ),
+            (
+                f"**Separate open-source bonus:** median **{bonus_median}/4**, "
+                f"range **{bonus_range} / 4**."
             ),
             "",
             (
-                "This total summarizes reviewer perception across six equally weighted criteria. "
-                "It must not be presented as an official judge score or evidence of production "
-                "performance."
+                "The core total summarizes reviewer perception across the five core criteria. "
+                "The open-source contribution is reported separately as a bonus and is not folded "
+                "into the core total. Neither value is an official judge score or evidence of "
+                "production performance."
             ),
             "",
             "Free-text comments, reviewer IDs, relationships, and attribution are intentionally "

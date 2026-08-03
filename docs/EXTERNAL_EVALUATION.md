@@ -55,7 +55,7 @@ without coaching the reviewer through the interface.
 | 1:15–3:30 | Run the visible replay and narrate what changed |
 | 3:30–5:30 | Find DataHub context, authorization scope, synthetic receipts, unknowns, and handoff |
 | 5:30–6:30 | Answer the bounded-response prompt without assuming cause, impact, or recovery |
-| 6:30–9:00 | Complete six 0–4 scores, task checks, and optional comments |
+| 6:30–9:00 | Complete five core 0–4 scores, the separate open-source bonus score, task checks, and optional comments |
 | 9:00–10:00 | Optional clarification and separate public-use consent |
 
 Stop at 10 minutes. If the demo is unavailable after one reload, record the run as incomplete and
@@ -108,14 +108,19 @@ Recommended private storage is one JSON object per line:
 ```
 
 Allowed `role` values are `data_engineer`, `incident_responder`, and `other`. Every record must
-provide all six Boolean task checks. Completed reviews must also provide all six integer scores
-from 0 through 4 under these exact keys:
+provide all six Boolean task checks. Completed reviews must also provide five core integer scores
+from 0 through 4 and the separate open-source bonus score under these exact keys:
+
+Core criteria:
 
 - `datahubUseAndWriteback`
 - `technicalExecution`
 - `originalityBeyondBuiltins`
 - `realWorldUsefulness`
 - `submissionQualityAndReproducibility`
+
+Separate bonus:
+
 - `openSourceContribution`
 
 The zero-duration, all-false object above is an unstarted template, not an evaluation result.
@@ -134,7 +139,8 @@ The default public mode:
 - includes only completed records with `consent.publicAggregate: true`;
 - prints no reviewer IDs, relationships, attribution, or free text;
 - reports sample size, broad role counts, task completion counts, medians, and ranges;
-- labels the rubric total as descriptive and not an official competition score;
+- reports the five-core rubric total and open-source bonus separately;
+- labels the descriptive totals as not official competition scores;
 - says when the planned two-reviewer sample has not been reached.
 
 For private diagnosis only, `--scope internal` includes completed non-public records and prints a
@@ -143,12 +149,13 @@ prominent do-not-publish warning. Store private review records outside the publi
 When reporting results manually:
 
 1. report the number of completed, public-consented reviews and reviewer-role mix;
-2. report all six criteria, including low scores and disagreements;
-3. use median and range rather than unsupported precision;
-4. separate task completion from subjective rubric scores;
-5. describe comments as reviewer observations, not facts about production behavior;
-6. publish an exact comment only if its separate anonymous-comment permission is checked;
-7. do not claim that two reviewers validate reliability, usefulness, safety, or competition merit.
+2. report the five core criteria, including low scores and disagreements;
+3. report the open-source contribution bonus separately rather than folding it into the core total;
+4. use median and range rather than unsupported precision;
+5. separate task completion from subjective rubric scores;
+6. describe comments as reviewer observations, not facts about production behavior;
+7. publish an exact comment only if its separate anonymous-comment permission is checked;
+8. do not claim that two reviewers validate reliability, usefulness, safety, or competition merit.
 
 If zero reviewers consent to a public aggregate, publish no numeric result. If one reviewer
 consents, label it as one person's formative review. If two consent, label it as a two-person
@@ -172,9 +179,9 @@ We are seeking **two volunteer reviewers** for a 7–10 minute evaluation of Led
 
 Demo: `LEDGERLENS_PUBLIC_URL`
 
-You will run one synthetic fixture replay, answer a bounded-response prompt, and score six
-competition-aligned criteria. No account, credentials, private incident data, screen recording, or
-testimonial is requested.
+You will run one synthetic fixture replay, answer a bounded-response prompt, and score five core
+competition-aligned criteria plus a separate open-source contribution bonus. No account,
+credentials, private incident data, screen recording, or testimonial is requested.
 
 Feedback is private by default. Anonymous numeric aggregation, anonymous comment publication, and
 attribution each require separate opt-in consent. Participation is not presented as endorsement or
