@@ -8,6 +8,24 @@
 
 **LedgerLens turns a DataHub-observed data incident into bounded, auditable response work.**
 
+### The problem, concretely
+
+It is 02:14. A freshness assertion fails on the table behind the company revenue dashboard, and an
+on-call data engineer gets paged for a dataset she did not build. Before she can do anything useful
+she has to answer questions the catalog already knows: who owns this, what broke, what is downstream,
+which of those consumers matter, is there a runbook, and did someone already respond an hour ago.
+She assembles that by hand from the catalog, lineage, Slack scrollback, and memory — every time,
+under time pressure.
+
+An LLM agent can draft that response in seconds. The reason most teams will not let one touch
+production is not draft quality: it is that the same model that proposes the action also decides
+the action is safe to run.
+
+**LedgerLens splits those two jobs.** The model proposes and checks the response. A deterministic
+policy — ordinary Python, not a prompt — decides whether it may execute, and authorizes only the
+exact plan that was reviewed. Every approved action leaves a receipt, and the incident state is
+written back to DataHub so the next responder starts from verified facts instead of scrollback.
+
 The working prototype follows one visible chain:
 
 ```text
@@ -75,6 +93,33 @@ LedgerLens presents one incident workspace instead of a chatbot transcript:
 AI output is advisory. It cannot authorize itself, expand target allowlists, relabel unknowns as
 facts, or raise the claim ceiling.
 
+## Why this is not DataHub's Actions Framework, and not a generic LLM agent
+
+DataHub already ships an **Actions Framework**: it subscribes to metadata change events and fires
+pre-written automations. That is the right tool when you know in advance exactly what should happen.
+It does not decide what a *novel* incident needs, and it has nothing to decide about — the response
+is fixed at configuration time by a human.
+
+A generic LLM agent has the opposite problem. It can propose a response to an unfamiliar incident,
+but it also decides for itself whether that response is safe to run. Its plan can drift between the
+moment a human reviews it and the moment it executes.
+
+LedgerLens is the middle path, and the mechanism is the contribution:
+
+| | DataHub Actions Framework | Generic LLM agent | LedgerLens |
+|---|---|---|---|
+| Chooses the response | Human, at config time | Model, at run time | Model proposes, at run time |
+| Approves the response | Human, at config time | Model approves itself | **Deterministic policy, not the model** |
+| Handles a novel incident | No — only pre-wired rules | Yes | Yes |
+| Binds approval to a specific plan | N/A | No | **Yes — exact plan fingerprint** |
+| Rejects ungrounded claims | N/A | Best-effort in the prompt | **Fail-closed, with reason codes** |
+
+Concretely: the plan a verifier reviewed is hashed, and only that exact fingerprint can execute. Edit
+one action parameter after review and authorization fails closed
+([`src/ledgerlens/verification.py`](src/ledgerlens/verification.py),
+[`tests/test_verification.py`](tests/test_verification.py)). The model never holds the authority to
+approve its own work — that is enforced in deterministic Python, not requested in a prompt.
+
 ## Run the judge demo
 
 The public deterministic replay is live at:
@@ -123,7 +168,17 @@ make incident-demo-manual
 
 # Validate the CLI, synthetic catalog, claim ceiling, shell syntax, and local doc targets.
 make judge-check
+
+# Reproduce the DataHub context ON/OFF numbers this submission reports.
+make incident-benchmark
 ```
+
+`make incident-benchmark` is the benchmark behind every figure in this submission. It also runs
+inside `make judge-check`. Read
+[the mechanism disclosure](benchmarks/incident_commander/README.md) before quoting its numbers:
+both arms are scripted responders, so the ON/OFF gap demonstrates what an evidence-grounded schema
+can express with and without catalog context — it does not measure planner, verifier, or model
+capability.
 
 The original deterministic failure-ledger workflow remains available:
 
@@ -131,6 +186,10 @@ The original deterministic failure-ledger workflow remains available:
 make demo
 make benchmark
 ```
+
+Those two targets belong to LedgerLens's earlier failure-ledger workflow. They are **not** the
+Incident Commander evidence this submission is judged on — use `make incident-demo` and
+`make incident-benchmark` for that.
 
 ## DataHub is the operating context, not decoration
 
@@ -146,6 +205,34 @@ LedgerLens uses DataHub on both sides of the incident:
 
 The fixture replay demonstrates this contract with synthetic DataHub-shaped data. A live claim
 requires a published receipt that identifies the DataHub version, run mode, time, and limitations.
+
+## Pointing LedgerLens at your own DataHub (prototype stage)
+
+Everything in this repository is credential-free and synthetic by default. To read from a real
+catalog instead, copy `.env.example` to `.env` and set:
+
+| Variable | Purpose |
+|---|---|
+| `DATAHUB_GMS_URL` | Your DataHub GMS endpoint |
+| `DATAHUB_GMS_TOKEN` | A DataHub personal access token (read-only is enough to start) |
+| `DATAHUB_MCP_URL` or `DATAHUB_MCP_COMMAND` | The official DataHub MCP server, for the read path |
+| `LEDGERLENS_LLM_ENABLED=true` + `SOPHIA_020S_KEY` | Enable the planner/verifier models (off by default) |
+
+Write-back stays off until you deliberately set `LEDGERLENS_MUTATIONS_ENABLED=true`, and any action
+execution additionally requires `LEDGERLENS_ACTION_AUTHORIZATION_SECRET`. Start with
+[`docs/DATAHUB_QUICKSTART.md`](docs/DATAHUB_QUICKSTART.md), which stands up DataHub OSS locally so
+you can try this against a real instance without touching production.
+
+**Be clear about what is not ready.** This is prototype-stage software:
+
+- Slack, PagerDuty, and Jira adapters are implemented and tested, but no live credential wiring or
+  workspace-onboarding flow ships here — only GitHub has a recorded live execution receipt.
+- Entity allowlists, action policy, and the incident-policy table are tuned for the bundled synthetic
+  catalog and would need to be written for your domain model.
+- There is no multi-tenancy, no RBAC integration with your DataHub roles, and no operational runbook
+  for running this continuously.
+- Nothing here has been validated against a production incident. Treat it as a working demonstration
+  of the authority model, not an on-call tool you can adopt as-is.
 
 ## Official judging criteria mapping
 
@@ -178,7 +265,7 @@ copy and owner checklist are in [docs/DEVPOST_SUBMISSION.md](docs/DEVPOST_SUBMIS
 | Provider action layer | All four adapters implement typed previews, authorization binding, idempotency, retries, and sanitized receipts; the published GitHub receipt records creation and immediate closure of rehearsal issue `#3` | Slack, PagerDuty, or Jira live execution; production permissions |
 | DataHub write-back layer | A published local DataHub OSS v1.6.0 receipt records an authorized `save_document` mutation and fresh official-MCP retrieval of the resulting document | Incident causality, user impact, recovery, or production readiness |
 | Verifier layer | A published live 020s rehearsal records one planner, two verifier variants, four bounded actions, quorum approval, and deterministic authorization with no external mutation | Provider-family independence, independent validation, or validated uplift |
-| Benchmarks | The synthetic DataHub-context ON/OFF ablation records owner accuracy, blast-radius recall, unsupported claims, unsafe actions, duplicate actions, and plan completeness | Production reliability, scientific validity, or general performance uplift |
+| Benchmarks | The synthetic DataHub-context ON/OFF ablation records owner accuracy, blast-radius recall, unsupported claims, unsafe actions, duplicate actions, and plan completeness | Production reliability, scientific validity, or general performance uplift. **Both arms are scripted responders, not the LedgerLens pipeline:** context-ON copies the fixture's pre-labeled ground-truth actions, and context-OFF is a fixed generic script that adds an unsafe action in about half of scenarios by a stable hash of the scenario ID. The gap shows what an evidence-grounded schema can express with and without catalog context; it does not measure planner, verifier, or system capability. See the [mechanism disclosure](benchmarks/incident_commander/README.md). |
 | External evaluation | The repository provides a consent-safe 7–10 minute scorecard and aggregation tool, and public recruitment is open | Any reviewer result, endorsement, external validation, or official judging score |
 
 Evidence details:

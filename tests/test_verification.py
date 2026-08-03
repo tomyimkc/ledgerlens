@@ -237,6 +237,7 @@ def test_policy_authorizes_only_grounded_exact_allowlist_matches() -> None:
     [
         (_plan(action_type="drop_table"), "action_not_allowlisted:action-1"),
         (_plan(fact_ids=("fact-invented",)), "action_references_unknown_fact:action-1"),
+        (_plan(fact_ids=()), "action_has_no_grounding:action-1"),
         (
             _plan(parameters={"channel": "incident-room", "shell": "rm -rf /"}),
             "parameter_not_allowlisted:action-1",

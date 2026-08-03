@@ -125,6 +125,37 @@ def test_deterministic_gate_denies_wrong_phrase_and_does_not_execute_actions() -
     assert current["memory"]["status"] == "draft"
 
 
+def test_deterministic_gate_denies_tampered_plan_hash_despite_correct_phrase() -> None:
+    """A correct confirmation phrase must not authorize a plan that was not reviewed.
+
+    This is the plan-fingerprint binding claim: authorization is bound to the exact
+    reviewed plan, independently of whether the operator typed the right phrase.
+    """
+    client = _fixture_client()
+    state = client.get("/incident/api/state").json()["state"]
+
+    response = client.post(
+        "/incident/api/authorize",
+        json={
+            "actor": "incident-commander@example.com",
+            "plan_hash": "deadbeefdeadbeef",
+            "confirmation": state["authorization"]["expected_confirmation"],
+            "acknowledge_claim_boundary": True,
+        },
+    )
+    execute = client.post("/incident/api/execute")
+    current = client.get("/incident/api/state").json()["state"]
+
+    assert response.status_code == 409
+    authorization = response.json()["authorization"]
+    assert authorization["decision"] == "denied"
+    assert "Exact plan hash supplied" in authorization["failures"]
+    assert execute.status_code == 409
+    assert all(action["status"] == "held" for action in current["actions"])
+    assert current["writeback"]["receipt"] is None
+    assert current["memory"]["status"] == "draft"
+
+
 def test_exact_authorization_executes_fanout_writeback_and_inherited_memory() -> None:
     client = _fixture_client()
     state = client.get("/incident/api/state").json()["state"]

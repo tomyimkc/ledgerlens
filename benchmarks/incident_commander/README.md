@@ -13,6 +13,32 @@ or use an LLM judge. Its local schema and validators fail closed on dangling
 lineage, cycles, missing owners or documentation, mismatched ground truth,
 unsafe claim flags, or out-of-range corpus sizes.
 
+## What this benchmark does and does not measure — read before quoting numbers
+
+Both arms are **hand-written scripted responders**, not the LedgerLens
+planner/verifier/policy pipeline. Read the mechanism before citing any figure:
+
+- **Context ON is a ground-truth oracle.** Its action plan is
+  `deepcopy(incident["safeActions"])` (`benchmark.py:140`) — it copies the
+  scenario's pre-labeled correct answer verbatim, and builds its claims directly
+  from the fixture's known-good context. It does not reason, plan, or verify.
+- **Context OFF is a fixed generic script.** It emits the same five actions for
+  every incident, guesses the owner from a per-domain default table, and returns
+  an empty blast radius. In roughly half of scenarios — selected by a stable hash
+  of the scenario ID, not by any model behaviour — it also appends an `UNSAFE`
+  `disable_auditing` action (`benchmark.py:~199`).
+
+Consequently the ON/OFF gap measures **how much an evidence-grounded response
+schema can express when DataHub context is present versus absent**. It is a
+contract- and schema-shape demonstration on synthetic fixtures.
+
+It is **not** a measurement of model uplift, planner quality, verifier quality,
+LedgerLens end-to-end capability, or any production outcome. The separation
+between the arms is fixed by construction, so the size of the gap is a property
+of the fixture design and carries no statistical claim about the running system.
+For evidence about the actual pipeline, see the deterministic tests
+(`make test`) and the live DataHub write-back receipt in `docs/EVIDENCE_INDEX.md`.
+
 ## Metrics
 
 | Metric | Definition |
