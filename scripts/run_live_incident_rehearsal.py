@@ -73,13 +73,27 @@ from ledgerlens.runtime_factory import build_020s_ai_roles, build_policy_gate  #
 DEFAULT_INCIDENT = "inc-analytics-downstream_availability-01"
 DEFAULT_OUTPUT = Path("benchmarks/incident_commander/live-incident-rehearsal-receipt.json")
 
-# The four real collaboration surfaces, matching the production policy allowlist.
-POLICY_TARGETS = {
-    "github.issue.create": ["tomyimkc/ledgerlens"],
-    "slack.message.post": ["#inc-data-platform"],
-    "pagerduty.event.trigger": ["pagerduty:events-v2"],
-    "jira.issue.create": ["DATAOPS"],
-}
+DEFAULT_JIRA_PROJECT = "DATAOPS"
+DEFAULT_JIRA_ISSUE_TYPE = "Task"
+
+
+def policy_targets(jira_project: str = DEFAULT_JIRA_PROJECT) -> dict[str, list[str]]:
+    """The four real collaboration surfaces, matching the production policy allowlist.
+
+    The Jira project key varies by workspace, so it is parameterized (and read from
+    ``LEDGERLENS_JIRA_PROJECT_KEY`` at run time).
+    """
+
+    return {
+        "github.issue.create": ["tomyimkc/ledgerlens"],
+        "slack.message.post": ["#inc-data-platform"],
+        "pagerduty.event.trigger": ["pagerduty:events-v2"],
+        "jira.issue.create": [jira_project],
+    }
+
+
+# Default targets for tooling/tests; the live run rebuilds these from the environment.
+POLICY_TARGETS = policy_targets()
 
 
 @dataclass(frozen=True)
@@ -161,11 +175,17 @@ def build_action_executor(
     return ActionRegistryExecutor(adapters, authorizer=authorizer)
 
 
-def _automation_policy(incident: Incident) -> dict[str, Any]:
+def _automation_policy(
+    incident: Incident,
+    *,
+    jira_project: str = DEFAULT_JIRA_PROJECT,
+    jira_issue_type: str = DEFAULT_JIRA_ISSUE_TYPE,
+) -> dict[str, Any]:
     """Map any incident onto the four real collaboration action types.
 
     Mirrors ``scripts/run_incident_ai_rehearsal.py`` so the 020s planner proposes only
-    bounded collaboration actions, never a production mutation.
+    bounded collaboration actions, never a production mutation. The Jira project key and
+    issue-type name vary by workspace (and are localized), so both are parameterized.
     """
 
     fact_ids = [
@@ -225,15 +245,15 @@ def _automation_policy(incident: Incident) -> dict[str, Any]:
             },
             {
                 "action_type": "jira.issue.create",
-                "target": "DATAOPS",
+                "target": jira_project,
                 "parameters": {
-                    "project_key": "DATAOPS",
+                    "project_key": jira_project,
                     "summary": f"{incident.incident_id}: verify recovery",
                     "description": (
                         "Verify a fresh DataHub assertion before resolving. Provider receipts "
                         "do not prove incident recovery."
                     ),
-                    "issue_type": "Task",
+                    "issue_type": jira_issue_type,
                     "labels": ["incident", "ledgerlens", "rehearsal"],
                 },
                 **common,
@@ -247,10 +267,18 @@ def _automation_policy(incident: Incident) -> dict[str, Any]:
     }
 
 
-def _with_policy(provider: CatalogContextProvider, incident: Incident) -> IncidentContext:
+def _with_policy(
+    provider: CatalogContextProvider,
+    incident: Incident,
+    *,
+    jira_project: str = DEFAULT_JIRA_PROJECT,
+    jira_issue_type: str = DEFAULT_JIRA_ISSUE_TYPE,
+) -> IncidentContext:
     context = provider(incident)
     metadata = dict(context.metadata)
-    metadata["automationPolicy"] = _automation_policy(incident)
+    metadata["automationPolicy"] = _automation_policy(
+        incident, jira_project=jira_project, jira_issue_type=jira_issue_type
+    )
     return context.model_copy(update={"metadata": metadata})
 
 
@@ -379,6 +407,10 @@ def main() -> int:
         print(f"missing provider credentials: {', '.join(missing)}", file=sys.stderr)
         return 2
 
+    jira_project = os.getenv("LEDGERLENS_JIRA_PROJECT_KEY", DEFAULT_JIRA_PROJECT)
+    jira_issue_type = os.getenv("LEDGERLENS_JIRA_ISSUE_TYPE", DEFAULT_JIRA_ISSUE_TYPE)
+    targets = policy_targets(jira_project)
+
     catalog = load_incident_catalog()
     incident = incident_from_catalog(catalog, args.incident_id)
     provider = CatalogContextProvider(catalog)
@@ -404,11 +436,13 @@ def main() -> int:
     try:
         backend = OrchestratorIncidentBackend(
             incident_resolver=lambda payload: incident,
-            context_provider=lambda value: _with_policy(provider, value),
+            context_provider=lambda value: _with_policy(
+                provider, value, jira_project=jira_project, jira_issue_type=jira_issue_type
+            ),
             planner=roles.planner,
             verifier_panel=roles.verifier_panel,
             policy_gate=build_policy_gate(
-                POLICY_TARGETS,
+                targets,
                 minimum_plan_confidence=0.8,
                 minimum_verifier_confidence=0.85,
                 quorum=2,

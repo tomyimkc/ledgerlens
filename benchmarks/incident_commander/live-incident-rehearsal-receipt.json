@@ -1,0 +1,1381 @@
+{
+  "authorization": {
+    "authorized": true,
+    "authorized_action_ids": [
+      "action-3fee203c-8bdc-4a0c-98a5-ad4caf63cbcd",
+      "action-db207006-d52b-48d3-88a2-110a4c3a478f",
+      "action-5f8ce0d8-7e10-4c7f-b92e-82d9df3b9670",
+      "action-eaf46b9f-f579-477a-bac0-c6ecdff791f5"
+    ],
+    "canClaimAGI": false,
+    "candidateOnly": true,
+    "evaluated_at": "2026-08-03T16:35:59.990450Z",
+    "incident_id": "inc-analytics-downstream_availability-01",
+    "plan_id": "plan-21531cbf-cf1f-4046-ba85-088982078293",
+    "policy_version": "incident-commander/v2",
+    "reason_codes": [
+      "authorized"
+    ]
+  },
+  "canClaimAGI": false,
+  "candidateOnly": true,
+  "contextDigest": "sha256:37b5e4dbc300eb692b2a95e5deb2e38daae51997a695d76fb97d7bbec4ed37b8",
+  "dashboardState": {
+    "actions": [
+      {
+        "detail": "github accepted the bounded action",
+        "operation": "Create incident issue",
+        "provider": "GitHub",
+        "receipt": "https://github.com/tomyimkc/ledgerlens/issues/29",
+        "short": "GH",
+        "status": "succeeded",
+        "target": "tomyimkc/ledgerlens"
+      },
+      {
+        "detail": "slack accepted the bounded action",
+        "operation": "Post incident brief",
+        "provider": "Slack",
+        "receipt": "slack://receipt/47d01223-6c75-59a3-a7a1-4610aae09af3",
+        "short": "SL",
+        "status": "succeeded",
+        "target": "#inc-data-platform"
+      },
+      {
+        "detail": "pagerduty accepted the bounded action",
+        "operation": "Trigger incident event",
+        "provider": "PagerDuty",
+        "receipt": "pagerduty://receipt/e80e652b-bc04-5835-8597-62ce9fbb705d",
+        "short": "PD",
+        "status": "succeeded",
+        "target": "pagerduty:events-v2"
+      },
+      {
+        "detail": "jira accepted the bounded action",
+        "operation": "Create recovery task",
+        "provider": "Jira",
+        "receipt": "https://tomyimkc.atlassian.net/browse/KAN-2",
+        "short": "JR",
+        "status": "succeeded",
+        "target": "KAN"
+      }
+    ],
+    "availability": "ready",
+    "capabilities": {
+      "authorize": true,
+      "execute": true,
+      "replay": false,
+      "trigger": true
+    },
+    "context": {
+      "blast_radius": {
+        "asset_count": 3,
+        "assets": [
+          {
+            "criticality": "recorded",
+            "name": "urn:li:dashboard:(looker,analytics.dashboard_product_health)",
+            "relationship": "downstream",
+            "type": "DataHub entity"
+          },
+          {
+            "criticality": "recorded",
+            "name": "urn:li:dataProduct:analytics.serving_metrics_api",
+            "relationship": "downstream",
+            "type": "DataHub entity"
+          },
+          {
+            "criticality": "recorded",
+            "name": "urn:li:mlModel:(mlflow,analytics.model_conversion_propensity,PROD)",
+            "relationship": "downstream",
+            "type": "DataHub entity"
+          }
+        ],
+        "authorization_boundary": "bounded",
+        "confidence": "metadata-derived, not causal proof",
+        "critical_count": 0,
+        "people_on_call": 1,
+        "summary": "3 downstream assets recorded.",
+        "unknowns": [
+          "Lineage proximity does not establish user-visible impact.",
+          "Root cause and recovery remain unverified."
+        ]
+      },
+      "entity": {
+        "domain": "analytics",
+        "last_observed": "2026-07-12T12:15:00Z",
+        "name": "mart_product_kpis",
+        "owner": "BI and Insights",
+        "platform": "snowflake",
+        "tier": "1",
+        "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)"
+      },
+      "evidence": [
+        {
+          "kind": "source_record",
+          "label": "The incident identifier is inc-analytics-downstream_availability-01.",
+          "receipt": "incident:inc-analytics-downstream_availability-01"
+        },
+        {
+          "kind": "source_record",
+          "label": "The recorded severity is SEV-1.",
+          "receipt": "incident:inc-analytics-downstream_availability-01#severity"
+        },
+        {
+          "kind": "datahub_entity",
+          "label": "The triggering DataHub asset is urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD).",
+          "receipt": "asset:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)"
+        },
+        {
+          "kind": "datahub_entity",
+          "label": "The recorded primary owner is bi-insights.",
+          "receipt": "asset:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#ownership"
+        },
+        {
+          "kind": "datahub_entity",
+          "label": "The recorded affected field is event_time.",
+          "receipt": "schema:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#event_time"
+        },
+        {
+          "kind": "datahub_entity",
+          "label": "DataHub lineage records 3 downstream assets.",
+          "receipt": "lineage:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)"
+        },
+        {
+          "kind": "datahub_entity",
+          "label": "The recorded runbook URL is https://runbooks.example.invalid/analytics/mart_product_kpis.",
+          "receipt": "doc:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#runbook"
+        }
+      ],
+      "source": "deterministic-datahub-shaped-catalog",
+      "status": "grounded"
+    },
+    "diagnostic": null,
+    "events": [
+      {
+        "detail": "downstream_availability",
+        "label": "Trigger observed",
+        "source": "datahub-incident-catalog",
+        "time": "12:15:00"
+      },
+      {
+        "detail": "7 evidence-grounded facts collected.",
+        "label": "Context grounded",
+        "source": "deterministic-datahub-shaped-catalog",
+        "time": "12:15:00"
+      },
+      {
+        "detail": "quorum_approved",
+        "label": "Plan and verifier panel completed",
+        "source": "AI advisory plus deterministic policy",
+        "time": "16:35:43"
+      },
+      {
+        "detail": "written_back",
+        "label": "Orchestration completed",
+        "source": "IncidentOrchestrator",
+        "time": "16:36:09"
+      }
+    ],
+    "incident": {
+      "commander": "BI and Insights",
+      "detected_at": "2026-07-12T12:15:00Z",
+      "elapsed": "not measured",
+      "environment": "PROD",
+      "id": "inc-analytics-downstream_availability-01",
+      "service": "mart_product_kpis",
+      "severity": "CRITICAL",
+      "status": "written_back",
+      "title": "Product Analytics: Critical data product unavailable",
+      "trigger": {
+        "classification": "source assertion",
+        "observed": "2026-07-12T12:15:00Z",
+        "signal": "downstream_availability",
+        "source": "datahub-incident-catalog",
+        "summary": "tier-one consumers could not read the published data product",
+        "threshold": "recorded incident policy"
+      }
+    },
+    "memory": {
+      "completed": [
+        "GitHub: Create incident issue",
+        "Slack: Post incident brief",
+        "PagerDuty: Trigger incident event",
+        "Jira: Create recovery task"
+      ],
+      "known_facts": [
+        "The incident identifier is inc-analytics-downstream_availability-01.",
+        "The recorded severity is SEV-1.",
+        "The triggering DataHub asset is urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD).",
+        "The recorded primary owner is bi-insights.",
+        "The recorded affected field is event_time.",
+        "DataHub lineage records 3 downstream assets.",
+        "The recorded runbook URL is https://runbooks.example.invalid/analytics/mart_product_kpis."
+      ],
+      "memory_id": "ledgerlens://memory/run-80d26954-6856-4c4f-b415-df0a537debfd",
+      "next_actions": [
+        "Verify a fresh DataHub assertion before claiming recovery.",
+        "Reconcile any failed or ambiguous provider action."
+      ],
+      "next_agent": "Recovery verifier",
+      "provenance": [
+        "incident:inc-analytics-downstream_availability-01",
+        "incident:inc-analytics-downstream_availability-01#severity",
+        "asset:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+        "asset:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#ownership",
+        "schema:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#event_time",
+        "lineage:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+        "doc:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#runbook",
+        "https://github.com/tomyimkc/ledgerlens/issues/29",
+        "slack://receipt/47d01223-6c75-59a3-a7a1-4610aae09af3",
+        "pagerduty://receipt/e80e652b-bc04-5835-8597-62ce9fbb705d",
+        "https://tomyimkc.atlassian.net/browse/KAN-2"
+      ],
+      "status": "ready",
+      "summary": "Authorized action and write-back receipts are ready for the next agent.",
+      "unknowns": [
+        "Root cause is not established.",
+        "End-user impact is not established.",
+        "Recovery has not been independently observed."
+      ]
+    },
+    "mode": "live",
+    "observed_at": "2026-08-03T16:36:09Z",
+    "planner": {
+      "assumptions": [
+        "Targets remain within deterministic allowlists.",
+        "Provider credentials are held outside model prompts."
+      ],
+      "generated_by": "020s:gpt-5.6-sol",
+      "objective": "Create the four required rehearsal records and notifications for the recorded SEV-1 incident. DataHub records three downstream assets, but root cause, causality, user impact, and recovery remain unverified.",
+      "plan_hash": "e444ac230419bad4",
+      "risk": "Production mutations and unsupported remediation remain prohibited.",
+      "scope": "Allowlisted collaboration actions plus DataHub receipt write-back",
+      "status": "ready",
+      "steps": [
+        {
+          "action": "github.issue.create",
+          "order": 1,
+          "reason": "Create the required rehearsal incident record using the recorded incident, asset, ownership, field, lineage, and runbook context without asserting a verified cause or recovery.",
+          "reversible": true,
+          "target": "tomyimkc/ledgerlens",
+          "title": "Create incident issue"
+        },
+        {
+          "action": "slack.message.post",
+          "order": 2,
+          "reason": "Post the required incident notification while preserving the boundary that root cause and recovery have not been verified.",
+          "reversible": true,
+          "target": "#inc-data-platform",
+          "title": "Post incident brief"
+        },
+        {
+          "action": "pagerduty.event.trigger",
+          "order": 3,
+          "reason": "Trigger the required deduplicated critical event for the recorded SEV-1 incident while stating that metadata does not verify causality or recovery.",
+          "reversible": true,
+          "target": "pagerduty:events-v2",
+          "title": "Trigger incident event"
+        },
+        {
+          "action": "jira.issue.create",
+          "order": 4,
+          "reason": "Create the required recovery-verification task so resolution depends on fresh evidence rather than provider receipts.",
+          "reversible": true,
+          "target": "KAN",
+          "title": "Create recovery task"
+        },
+        {
+          "action": "datahub.incident.writeback",
+          "order": 5,
+          "reason": "Preserve the plan, verifier verdicts, actions, and unknowns.",
+          "reversible": true,
+          "target": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+          "title": "Record the incident command receipt in DataHub"
+        }
+      ],
+      "unknowns": [
+        "The plan does not establish incident causality.",
+        "A provider receipt does not establish incident recovery."
+      ]
+    },
+    "schemaVersion": "1.0",
+    "verifier": {
+      "approved": true,
+      "authority_note": "Model variants provide advisory votes. Deterministic policy is the authorization authority; provider-family independence is not claimed.",
+      "label": "Independent AI verifier panel",
+      "model": "gpt-5.6-terra, gpt-5.5",
+      "policy_checks": [
+        {
+          "detail": "All four candidate actions exactly match the automation policy's required action types, targets, parameters, risk levels, approval requirements, and required evidence fact IDs. Each cited fact ID exists in the supplied incident context and supports the recorded incident context referenced by the actions. The action contents preserve the stated claim boundary: root cause, causality, user impact, and recovery are not asserted as verified. No action uses a forbidden action type, and all required actions are present. The requested targets are explicitly prescribed by the automation policy; none changes production data, deletes assets, disables auditing, or publishes an unverified fix.",
+          "name": "Verifier 020s:gpt-5.6-terra",
+          "status": "pass"
+        },
+        {
+          "detail": "All four candidate actions exactly match the automationPolicy requiredActions for action_type, target, requires_human_approval, risk, evidence_fact_ids, and parameters. All cited evidence_fact_ids are present in the supplied incidentContext facts. No candidate action uses a forbidden action type: delete_lineage, disable_auditing, drop_asset, or publish_unverified_fix. The actions are limited to creating records/notifications/events/tasks and do not target unsafe or irreversible operations. The action text preserves the stated claim boundary that causality/root cause/recovery are unverified and does not assert unsupported recovery or causality.",
+          "name": "Verifier 020s:gpt-5.5",
+          "status": "pass"
+        },
+        {
+          "detail": "authorized",
+          "name": "Deterministic policy preauthorization",
+          "status": "pass"
+        }
+      ],
+      "status": "complete",
+      "summary": "quorum_approved",
+      "verdict": "APPROVED"
+    },
+    "writeback": {
+      "detail": "writeback callback completed",
+      "entity": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+      "operation": "DataHub incident command receipt",
+      "receipt": null,
+      "status": "recorded"
+    }
+  },
+  "externalMutations": true,
+  "incident": {
+    "affected_entities": [
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+      "urn:li:dashboard:(looker,analytics.dashboard_product_health)",
+      "urn:li:dataProduct:analytics.serving_metrics_api",
+      "urn:li:mlModel:(mlflow,analytics.model_conversion_propensity,PROD)"
+    ],
+    "canClaimAGI": false,
+    "candidateOnly": true,
+    "detected_at": "2026-07-12T12:15:00Z",
+    "incident_id": "inc-analytics-downstream_availability-01",
+    "severity": "critical",
+    "status": "triggered",
+    "title": "Product Analytics: Critical data product unavailable",
+    "trigger": {
+      "canClaimAGI": false,
+      "candidateOnly": true,
+      "evidence_references": [
+        "incident:inc-analytics-downstream_availability-01",
+        "asset:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+        "schema:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#event_time",
+        "doc:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#runbook"
+      ],
+      "idempotency_key": "catalog:inc-analytics-downstream_availability-01",
+      "kind": "downstream_availability",
+      "occurred_at": "2026-07-12T12:15:00Z",
+      "payload": {
+        "incidentId": "inc-analytics-downstream_availability-01",
+        "rootAssetUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+        "signal": "tier-one consumers could not read the published data product"
+      },
+      "source": "datahub-incident-catalog",
+      "trigger_id": "trigger-inc-analytics-downstream_availability-01"
+    }
+  },
+  "kind": "live-incident-rehearsal",
+  "limitations": [
+    "Each provider receipt proves exactly one bounded rehearsal action, not sustained reliability, scale, or real on-call adoption.",
+    "The Slack message, PagerDuty event, and Jira issue persist as small, clearly-labeled rehearsal artifacts in throwaway/rehearsal-scoped destinations.",
+    "Distinct model variants were used; provider-family independence is not claimed.",
+    "No incident causality, user impact, or recovery is established.",
+    "The DataHub context read uses the bundled synthetic catalog; the controlled DataHub write-back remains the separately receipted E-07 path."
+  ],
+  "models": {
+    "planner": "gpt-5.6-sol",
+    "provider": "https://api.020s.com/v1",
+    "providerFamilyIndependenceClaimed": false,
+    "verifiers": [
+      "gpt-5.6-terra",
+      "gpt-5.5"
+    ]
+  },
+  "networkUsed": true,
+  "orchestrationResult": {
+    "authorization": {
+      "authorized": true,
+      "authorized_action_ids": [
+        "action-3fee203c-8bdc-4a0c-98a5-ad4caf63cbcd",
+        "action-db207006-d52b-48d3-88a2-110a4c3a478f",
+        "action-5f8ce0d8-7e10-4c7f-b92e-82d9df3b9670",
+        "action-eaf46b9f-f579-477a-bac0-c6ecdff791f5"
+      ],
+      "canClaimAGI": false,
+      "candidateOnly": true,
+      "evaluated_at": "2026-08-03T16:35:59.990450Z",
+      "incident_id": "inc-analytics-downstream_availability-01",
+      "plan_id": "plan-21531cbf-cf1f-4046-ba85-088982078293",
+      "policy_version": "incident-commander/v2",
+      "reason_codes": [
+        "authorized"
+      ]
+    },
+    "canClaimAGI": false,
+    "candidateOnly": true,
+    "completed_at": "2026-08-03T16:36:09.730848Z",
+    "context": {
+      "canClaimAGI": false,
+      "candidateOnly": true,
+      "collected_at": "2026-07-12T12:15:00Z",
+      "context_id": "context-inc-analytics-downstream_availability-01",
+      "facts": [
+        {
+          "evidence": [
+            {
+              "content_digest": null,
+              "kind": "source_record",
+              "observed_at": null,
+              "reference": "incident:inc-analytics-downstream_availability-01"
+            }
+          ],
+          "fact_id": "incident-id",
+          "statement": "The incident identifier is inc-analytics-downstream_availability-01."
+        },
+        {
+          "evidence": [
+            {
+              "content_digest": null,
+              "kind": "source_record",
+              "observed_at": null,
+              "reference": "incident:inc-analytics-downstream_availability-01#severity"
+            }
+          ],
+          "fact_id": "incident-severity",
+          "statement": "The recorded severity is SEV-1."
+        },
+        {
+          "evidence": [
+            {
+              "content_digest": null,
+              "kind": "datahub_entity",
+              "observed_at": null,
+              "reference": "asset:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)"
+            }
+          ],
+          "fact_id": "root-asset",
+          "statement": "The triggering DataHub asset is urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)."
+        },
+        {
+          "evidence": [
+            {
+              "content_digest": null,
+              "kind": "datahub_entity",
+              "observed_at": null,
+              "reference": "asset:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#ownership"
+            }
+          ],
+          "fact_id": "primary-owner",
+          "statement": "The recorded primary owner is bi-insights."
+        },
+        {
+          "evidence": [
+            {
+              "content_digest": null,
+              "kind": "datahub_entity",
+              "observed_at": null,
+              "reference": "schema:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#event_time"
+            }
+          ],
+          "fact_id": "affected-field",
+          "statement": "The recorded affected field is event_time."
+        },
+        {
+          "evidence": [
+            {
+              "content_digest": null,
+              "kind": "datahub_entity",
+              "observed_at": null,
+              "reference": "lineage:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)"
+            }
+          ],
+          "fact_id": "blast-radius",
+          "statement": "DataHub lineage records 3 downstream assets."
+        },
+        {
+          "evidence": [
+            {
+              "content_digest": null,
+              "kind": "datahub_entity",
+              "observed_at": null,
+              "reference": "doc:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#runbook"
+            }
+          ],
+          "fact_id": "runbook",
+          "statement": "The recorded runbook URL is https://runbooks.example.invalid/analytics/mart_product_kpis."
+        }
+      ],
+      "incident": {
+        "affected_entities": [
+          "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+          "urn:li:dashboard:(looker,analytics.dashboard_product_health)",
+          "urn:li:dataProduct:analytics.serving_metrics_api",
+          "urn:li:mlModel:(mlflow,analytics.model_conversion_propensity,PROD)"
+        ],
+        "canClaimAGI": false,
+        "candidateOnly": true,
+        "detected_at": "2026-07-12T12:15:00Z",
+        "incident_id": "inc-analytics-downstream_availability-01",
+        "severity": "critical",
+        "status": "triggered",
+        "title": "Product Analytics: Critical data product unavailable",
+        "trigger": {
+          "canClaimAGI": false,
+          "candidateOnly": true,
+          "evidence_references": [
+            "incident:inc-analytics-downstream_availability-01",
+            "asset:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+            "schema:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#event_time",
+            "doc:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#runbook"
+          ],
+          "idempotency_key": "catalog:inc-analytics-downstream_availability-01",
+          "kind": "downstream_availability",
+          "occurred_at": "2026-07-12T12:15:00Z",
+          "payload": {
+            "incidentId": "inc-analytics-downstream_availability-01",
+            "rootAssetUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+            "signal": "tier-one consumers could not read the published data product"
+          },
+          "source": "datahub-incident-catalog",
+          "trigger_id": "trigger-inc-analytics-downstream_availability-01"
+        }
+      },
+      "metadata": {
+        "automationPolicy": {
+          "claimBoundary": {
+            "canClaimAGI": false,
+            "candidateOnly": true,
+            "providerFamilyIndependenceClaimed": false
+          },
+          "requiredActions": [
+            {
+              "action_type": "github.issue.create",
+              "evidence_fact_ids": [
+                "incident-id",
+                "incident-severity",
+                "root-asset",
+                "primary-owner",
+                "affected-field",
+                "blast-radius",
+                "runbook"
+              ],
+              "parameters": {
+                "body": "LedgerLens live rehearsal incident record. Root cause, user impact, and recovery remain unverified.",
+                "labels": [
+                  "incident",
+                  "ledgerlens",
+                  "rehearsal"
+                ],
+                "owner": "tomyimkc",
+                "repository": "ledgerlens",
+                "title": "inc-analytics-downstream_availability-01: Product Analytics: Critical data product unavailable"
+              },
+              "requires_human_approval": false,
+              "risk": "low",
+              "target": "tomyimkc/ledgerlens"
+            },
+            {
+              "action_type": "slack.message.post",
+              "evidence_fact_ids": [
+                "incident-id",
+                "incident-severity",
+                "root-asset",
+                "primary-owner",
+                "affected-field",
+                "blast-radius",
+                "runbook"
+              ],
+              "parameters": {
+                "channel": "#inc-data-platform",
+                "text": "inc-analytics-downstream_availability-01: LedgerLens live rehearsal. Recorded DataHub incident context is available. Root cause and recovery unverified."
+              },
+              "requires_human_approval": false,
+              "risk": "low",
+              "target": "#inc-data-platform"
+            },
+            {
+              "action_type": "pagerduty.event.trigger",
+              "evidence_fact_ids": [
+                "incident-id",
+                "incident-severity",
+                "root-asset",
+                "primary-owner",
+                "affected-field",
+                "blast-radius",
+                "runbook"
+              ],
+              "parameters": {
+                "custom_details": {
+                  "claimBoundary": "Metadata-derived context; causality and recovery unverified."
+                },
+                "dedup_key": "inc-analytics-downstream_availability-01",
+                "severity": "critical",
+                "source": "ledgerlens",
+                "summary": "inc-analytics-downstream_availability-01: Product Analytics: Critical data product unavailable"
+              },
+              "requires_human_approval": false,
+              "risk": "low",
+              "target": "pagerduty:events-v2"
+            },
+            {
+              "action_type": "jira.issue.create",
+              "evidence_fact_ids": [
+                "incident-id",
+                "incident-severity",
+                "root-asset",
+                "primary-owner",
+                "affected-field",
+                "blast-radius",
+                "runbook"
+              ],
+              "parameters": {
+                "description": "Verify a fresh DataHub assertion before resolving. Provider receipts do not prove incident recovery.",
+                "issue_type": "任務",
+                "labels": [
+                  "incident",
+                  "ledgerlens",
+                  "rehearsal"
+                ],
+                "project_key": "KAN",
+                "summary": "inc-analytics-downstream_availability-01: verify recovery"
+              },
+              "requires_human_approval": false,
+              "risk": "low",
+              "target": "KAN"
+            }
+          ]
+        },
+        "blastRadiusUrns": [
+          "urn:li:dashboard:(looker,analytics.dashboard_product_health)",
+          "urn:li:dataProduct:analytics.serving_metrics_api",
+          "urn:li:mlModel:(mlflow,analytics.model_conversion_propensity,PROD)"
+        ],
+        "claimBoundary": "Lineage is metadata-derived context and does not establish causality.",
+        "forbiddenActionTypes": [
+          "delete_lineage",
+          "disable_auditing",
+          "drop_asset",
+          "publish_unverified_fix"
+        ],
+        "owner": {
+          "displayName": "BI and Insights",
+          "domain": "analytics",
+          "email": "bi-insights@example.invalid",
+          "escalationPolicy": "24x7 primary then analytics incident lead",
+          "id": "bi-insights",
+          "pagerDutyService": "pd-bi-insights",
+          "slackChannel": "#bi-insights",
+          "type": "TEAM"
+        },
+        "rootAsset": {
+          "displayName": "Mart Product Kpis",
+          "documentation": {
+            "availabilitySloPercent": 99.9,
+            "catalogUrl": "https://datahub.example.invalid/analytics/mart_product_kpis",
+            "freshnessSloMinutes": 120,
+            "glossaryTerms": [
+              "analytics:product_kpis",
+              "layer:mart"
+            ],
+            "qualityChecks": [
+              "mart_product_kpis.primary_key_not_null",
+              "mart_product_kpis.freshness_within_slo",
+              "mart_product_kpis.accepted_record_status"
+            ],
+            "runbookUrl": "https://runbooks.example.invalid/analytics/mart_product_kpis",
+            "summary": "Synthetic production-like dataset for the Product Analytics domain."
+          },
+          "domain": "analytics",
+          "entityType": "dataset",
+          "environment": "PROD",
+          "id": "analytics.mart.product_kpis",
+          "name": "mart_product_kpis",
+          "operationalMetadata": {
+            "containsRestrictedData": false,
+            "materialization": "scheduled",
+            "retentionDays": 90,
+            "schedule": "0 * * * *"
+          },
+          "owners": [
+            "bi-insights"
+          ],
+          "platform": "snowflake",
+          "schema": [
+            {
+              "classification": "INTERNAL",
+              "description": "Stable identifier for product kpis.",
+              "name": "product_kpis_id",
+              "nullable": false,
+              "type": "STRING"
+            },
+            {
+              "classification": "INTERNAL",
+              "description": "UTC event or materialization timestamp.",
+              "name": "event_time",
+              "nullable": false,
+              "type": "TIMESTAMP"
+            },
+            {
+              "classification": "INTERNAL",
+              "description": "Lifecycle or quality status.",
+              "name": "record_status",
+              "nullable": false,
+              "type": "STRING"
+            },
+            {
+              "classification": "INTERNAL",
+              "description": "Measured product or business metric.",
+              "name": "metric_value",
+              "nullable": true,
+              "type": "DOUBLE"
+            }
+          ],
+          "stewardOwnerId": "data-governance",
+          "tags": [
+            "domain:analytics",
+            "layer:mart",
+            "tier:1",
+            "synthetic"
+          ],
+          "tier": 1,
+          "upstreamUrns": [
+            "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.curated_event,PROD)",
+            "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.curated_order,PROD)"
+          ],
+          "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)"
+        },
+        "safeActions": [
+          {
+            "actionType": "acknowledge",
+            "approvalRequired": false,
+            "evidenceRefs": [
+              "incident:inc-analytics-downstream_availability-01",
+              "asset:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+              "doc:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#runbook"
+            ],
+            "ownerId": "bi-insights",
+            "runbookUrl": "https://runbooks.example.invalid/analytics/mart_product_kpis",
+            "safety": "CONTROLLED",
+            "targetUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)"
+          },
+          {
+            "actionType": "diagnose",
+            "approvalRequired": false,
+            "evidenceRefs": [
+              "incident:inc-analytics-downstream_availability-01",
+              "asset:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+              "doc:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#runbook"
+            ],
+            "ownerId": "bi-insights",
+            "runbookUrl": "https://runbooks.example.invalid/analytics/mart_product_kpis",
+            "safety": "READ_ONLY",
+            "targetUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)"
+          },
+          {
+            "actionType": "reroute_consumers",
+            "approvalRequired": true,
+            "evidenceRefs": [
+              "incident:inc-analytics-downstream_availability-01",
+              "asset:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+              "doc:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#runbook"
+            ],
+            "ownerId": "bi-insights",
+            "runbookUrl": "https://runbooks.example.invalid/analytics/mart_product_kpis",
+            "safety": "CONTROLLED",
+            "targetUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)"
+          },
+          {
+            "actionType": "communicate",
+            "approvalRequired": false,
+            "evidenceRefs": [
+              "incident:inc-analytics-downstream_availability-01",
+              "asset:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+              "doc:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#runbook"
+            ],
+            "ownerId": "bi-insights",
+            "runbookUrl": "https://runbooks.example.invalid/analytics/mart_product_kpis",
+            "safety": "CONTROLLED",
+            "targetUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)"
+          },
+          {
+            "actionType": "validate_recovery",
+            "approvalRequired": false,
+            "evidenceRefs": [
+              "incident:inc-analytics-downstream_availability-01",
+              "asset:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+              "doc:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#runbook"
+            ],
+            "ownerId": "bi-insights",
+            "runbookUrl": "https://runbooks.example.invalid/analytics/mart_product_kpis",
+            "safety": "CONTROLLED",
+            "targetUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)"
+          },
+          {
+            "actionType": "postmortem",
+            "approvalRequired": false,
+            "evidenceRefs": [
+              "incident:inc-analytics-downstream_availability-01",
+              "asset:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)",
+              "doc:urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)#runbook"
+            ],
+            "ownerId": "bi-insights",
+            "runbookUrl": "https://runbooks.example.invalid/analytics/mart_product_kpis",
+            "safety": "CONTROLLED",
+            "targetUrn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.mart_product_kpis,PROD)"
+          }
+        ],
+        "source": "deterministic-datahub-shaped-catalog"
+      }
+    },
+    "error": null,
+    "idempotent_replay": false,
+    "incident_id": "inc-analytics-downstream_availability-01",
+    "plan": {
+      "actions": [
+        {
+          "action_id": "action-3fee203c-8bdc-4a0c-98a5-ad4caf63cbcd",
+          "action_type": "github.issue.create",
+          "evidence_fact_ids": [
+            "incident-id",
+            "incident-severity",
+            "root-asset",
+            "primary-owner",
+            "affected-field",
+            "blast-radius",
+            "runbook"
+          ],
+          "idempotency_key": "idempotency-b989f463-d80b-42ec-a89b-8726b84da7f6",
+          "parameters": {
+            "body": "LedgerLens live rehearsal incident record. Root cause, user impact, and recovery remain unverified.",
+            "labels": [
+              "incident",
+              "ledgerlens",
+              "rehearsal"
+            ],
+            "owner": "tomyimkc",
+            "repository": "ledgerlens",
+            "title": "inc-analytics-downstream_availability-01: Product Analytics: Critical data product unavailable"
+          },
+          "rationale": "Create the required rehearsal incident record using the recorded incident, asset, ownership, field, lineage, and runbook context without asserting a verified cause or recovery.",
+          "requires_human_approval": false,
+          "risk": "low",
+          "target": "tomyimkc/ledgerlens"
+        },
+        {
+          "action_id": "action-db207006-d52b-48d3-88a2-110a4c3a478f",
+          "action_type": "slack.message.post",
+          "evidence_fact_ids": [
+            "incident-id",
+            "incident-severity",
+            "root-asset",
+            "primary-owner",
+            "affected-field",
+            "blast-radius",
+            "runbook"
+          ],
+          "idempotency_key": "idempotency-a11ed95e-ba4c-4b50-91ed-cb4f1814e1ab",
+          "parameters": {
+            "channel": "#inc-data-platform",
+            "text": "inc-analytics-downstream_availability-01: LedgerLens live rehearsal. Recorded DataHub incident context is available. Root cause and recovery unverified."
+          },
+          "rationale": "Post the required incident notification while preserving the boundary that root cause and recovery have not been verified.",
+          "requires_human_approval": false,
+          "risk": "low",
+          "target": "#inc-data-platform"
+        },
+        {
+          "action_id": "action-5f8ce0d8-7e10-4c7f-b92e-82d9df3b9670",
+          "action_type": "pagerduty.event.trigger",
+          "evidence_fact_ids": [
+            "incident-id",
+            "incident-severity",
+            "root-asset",
+            "primary-owner",
+            "affected-field",
+            "blast-radius",
+            "runbook"
+          ],
+          "idempotency_key": "idempotency-85ce9fdb-5ea2-454f-9d93-bfda553477d3",
+          "parameters": {
+            "custom_details": {
+              "claimBoundary": "Metadata-derived context; causality and recovery unverified."
+            },
+            "dedup_key": "inc-analytics-downstream_availability-01",
+            "severity": "critical",
+            "source": "ledgerlens",
+            "summary": "inc-analytics-downstream_availability-01: Product Analytics: Critical data product unavailable"
+          },
+          "rationale": "Trigger the required deduplicated critical event for the recorded SEV-1 incident while stating that metadata does not verify causality or recovery.",
+          "requires_human_approval": false,
+          "risk": "low",
+          "target": "pagerduty:events-v2"
+        },
+        {
+          "action_id": "action-eaf46b9f-f579-477a-bac0-c6ecdff791f5",
+          "action_type": "jira.issue.create",
+          "evidence_fact_ids": [
+            "incident-id",
+            "incident-severity",
+            "root-asset",
+            "primary-owner",
+            "affected-field",
+            "blast-radius",
+            "runbook"
+          ],
+          "idempotency_key": "idempotency-c0d69256-f43a-4100-850d-ac24477dbd4b",
+          "parameters": {
+            "description": "Verify a fresh DataHub assertion before resolving. Provider receipts do not prove incident recovery.",
+            "issue_type": "任務",
+            "labels": [
+              "incident",
+              "ledgerlens",
+              "rehearsal"
+            ],
+            "project_key": "KAN",
+            "summary": "inc-analytics-downstream_availability-01: verify recovery"
+          },
+          "rationale": "Create the required recovery-verification task so resolution depends on fresh evidence rather than provider receipts.",
+          "requires_human_approval": false,
+          "risk": "low",
+          "target": "KAN"
+        }
+      ],
+      "canClaimAGI": false,
+      "candidateOnly": true,
+      "confidence": 0.98,
+      "created_at": "2026-08-03T16:35:43.736939Z",
+      "incident_id": "inc-analytics-downstream_availability-01",
+      "plan_id": "plan-21531cbf-cf1f-4046-ba85-088982078293",
+      "planner_family": "gpt-5.6-sol",
+      "planner_id": "020s:gpt-5.6-sol",
+      "summary": "Create the four required rehearsal records and notifications for the recorded SEV-1 incident. DataHub records three downstream assets, but root cause, causality, user impact, and recovery remain unverified."
+    },
+    "receipts": [
+      {
+        "action_id": "action-3fee203c-8bdc-4a0c-98a5-ad4caf63cbcd",
+        "canClaimAGI": false,
+        "candidateOnly": true,
+        "completed_at": "2026-08-03T16:36:02.215806Z",
+        "details": {
+          "actionType": "github.issue.create",
+          "providerReceipt": {
+            "action_digest": "sha256:30028029dbe91331a48e1da0924bf64d437f113f3d0ea00af245ab224d04a821",
+            "adapter": "github",
+            "attempts": 1,
+            "completed_at": "2026-08-03T16:36:02.215631Z",
+            "deduplicated_from": null,
+            "details": {
+              "number": 29,
+              "repository": "tomyimkc/ledgerlens",
+              "state": "open"
+            },
+            "http_status": 201,
+            "idempotency_key": "user-sha256:256ce4c687d277512ff1cf20f1962ad7e0c671503da17994837fcc07ff13ec34",
+            "operation": "create_issue",
+            "receipt_id": "c3008d48-227b-5514-adc0-c75b411a02fd",
+            "remote_id": "29",
+            "remote_url": "https://github.com/tomyimkc/ledgerlens/issues/29",
+            "status": "executed",
+            "target": "github:tomyimkc/ledgerlens"
+          }
+        },
+        "executor": "github:create_issue",
+        "idempotency_key": "idempotency-b989f463-d80b-42ec-a89b-8726b84da7f6",
+        "incident_id": "inc-analytics-downstream_availability-01",
+        "message": "github accepted the bounded action",
+        "output_references": [
+          "https://github.com/tomyimkc/ledgerlens/issues/29",
+          "github://receipt/c3008d48-227b-5514-adc0-c75b411a02fd"
+        ],
+        "plan_id": "plan-21531cbf-cf1f-4046-ba85-088982078293",
+        "receipt_id": "receipt-caabb91e-15f3-4c1d-bce1-0d23ee11b397",
+        "run_id": "run-80d26954-6856-4c4f-b415-df0a537debfd",
+        "started_at": "2026-08-03T16:35:59.990704Z",
+        "status": "succeeded"
+      },
+      {
+        "action_id": "action-db207006-d52b-48d3-88a2-110a4c3a478f",
+        "canClaimAGI": false,
+        "candidateOnly": true,
+        "completed_at": "2026-08-03T16:36:03.912678Z",
+        "details": {
+          "actionType": "slack.message.post",
+          "providerReceipt": {
+            "action_digest": "sha256:ed4f6f21625fe95fee081070e21c7c27b001dd286b7b79f55d3e2e4ca876f720",
+            "adapter": "slack",
+            "attempts": 1,
+            "completed_at": "2026-08-03T16:36:03.912536Z",
+            "deduplicated_from": null,
+            "details": {
+              "delivery": "accepted",
+              "mode": "webhook"
+            },
+            "http_status": 200,
+            "idempotency_key": "user-sha256:f5bc3dab0874692dfb4f438d6bf57e99e6e1c56a25329000307e9a53fa4d5b8d",
+            "operation": "post_message",
+            "receipt_id": "47d01223-6c75-59a3-a7a1-4610aae09af3",
+            "remote_id": null,
+            "remote_url": null,
+            "status": "executed",
+            "target": "slack:webhook"
+          }
+        },
+        "executor": "slack:post_message",
+        "idempotency_key": "idempotency-a11ed95e-ba4c-4b50-91ed-cb4f1814e1ab",
+        "incident_id": "inc-analytics-downstream_availability-01",
+        "message": "slack accepted the bounded action",
+        "output_references": [
+          "slack://receipt/47d01223-6c75-59a3-a7a1-4610aae09af3"
+        ],
+        "plan_id": "plan-21531cbf-cf1f-4046-ba85-088982078293",
+        "receipt_id": "receipt-152908bd-3919-484e-aadc-82b958d38750",
+        "run_id": "run-80d26954-6856-4c4f-b415-df0a537debfd",
+        "started_at": "2026-08-03T16:36:02.215839Z",
+        "status": "succeeded"
+      },
+      {
+        "action_id": "action-5f8ce0d8-7e10-4c7f-b92e-82d9df3b9670",
+        "canClaimAGI": false,
+        "candidateOnly": true,
+        "completed_at": "2026-08-03T16:36:05.696121Z",
+        "details": {
+          "actionType": "pagerduty.event.trigger",
+          "providerReceipt": {
+            "action_digest": "sha256:e33646763eadb3a761e01e3b16aa857ff925c291990a3e7baa7ee6107dd04b68",
+            "adapter": "pagerduty",
+            "attempts": 1,
+            "completed_at": "2026-08-03T16:36:05.695939Z",
+            "deduplicated_from": null,
+            "details": {
+              "delivery": "accepted",
+              "event_action": "trigger"
+            },
+            "http_status": 202,
+            "idempotency_key": "user-sha256:bc1db164ff79fc7f4cde1cf0edf39f2e64b1ff4f9b69fc61eab4b12c29419a4c",
+            "operation": "send_event",
+            "receipt_id": "e80e652b-bc04-5835-8597-62ce9fbb705d",
+            "remote_id": "inc-analytics-downstream_availability-01",
+            "remote_url": null,
+            "status": "executed",
+            "target": "pagerduty:events-v2"
+          }
+        },
+        "executor": "pagerduty:send_event",
+        "idempotency_key": "idempotency-85ce9fdb-5ea2-454f-9d93-bfda553477d3",
+        "incident_id": "inc-analytics-downstream_availability-01",
+        "message": "pagerduty accepted the bounded action",
+        "output_references": [
+          "pagerduty://receipt/e80e652b-bc04-5835-8597-62ce9fbb705d"
+        ],
+        "plan_id": "plan-21531cbf-cf1f-4046-ba85-088982078293",
+        "receipt_id": "receipt-b6125503-c807-4d88-8829-6cfb5f61f8bf",
+        "run_id": "run-80d26954-6856-4c4f-b415-df0a537debfd",
+        "started_at": "2026-08-03T16:36:03.912719Z",
+        "status": "succeeded"
+      },
+      {
+        "action_id": "action-eaf46b9f-f579-477a-bac0-c6ecdff791f5",
+        "canClaimAGI": false,
+        "candidateOnly": true,
+        "completed_at": "2026-08-03T16:36:09.730758Z",
+        "details": {
+          "actionType": "jira.issue.create",
+          "providerReceipt": {
+            "action_digest": "sha256:838e182048885325ce7682f1bb0d28f505251c203a123d7612bbf345c9e4a7da",
+            "adapter": "jira",
+            "attempts": 1,
+            "completed_at": "2026-08-03T16:36:09.730560Z",
+            "deduplicated_from": null,
+            "details": {
+              "issue_key": "KAN-2",
+              "project_key": "KAN"
+            },
+            "http_status": 201,
+            "idempotency_key": "user-sha256:db5318566830ca0dec202a1c2da4d0072456655b8597190ee6e25f1ff7a38002",
+            "operation": "create_issue",
+            "receipt_id": "4e58283b-c179-5a1b-85fc-0a9d8af0f33b",
+            "remote_id": "KAN-2",
+            "remote_url": "https://tomyimkc.atlassian.net/browse/KAN-2",
+            "status": "executed",
+            "target": "jira:project:KAN"
+          }
+        },
+        "executor": "jira:create_issue",
+        "idempotency_key": "idempotency-c0d69256-f43a-4100-850d-ac24477dbd4b",
+        "incident_id": "inc-analytics-downstream_availability-01",
+        "message": "jira accepted the bounded action",
+        "output_references": [
+          "https://tomyimkc.atlassian.net/browse/KAN-2",
+          "jira://receipt/4e58283b-c179-5a1b-85fc-0a9d8af0f33b"
+        ],
+        "plan_id": "plan-21531cbf-cf1f-4046-ba85-088982078293",
+        "receipt_id": "receipt-5faf1896-dafd-4a9f-b5e2-8d142d9c25dc",
+        "run_id": "run-80d26954-6856-4c4f-b415-df0a537debfd",
+        "started_at": "2026-08-03T16:36:05.696160Z",
+        "status": "succeeded"
+      }
+    ],
+    "run_id": "run-80d26954-6856-4c4f-b415-df0a537debfd",
+    "started_at": "2026-08-03T16:35:59.990692Z",
+    "state": "written_back",
+    "state_history": [
+      "triggered",
+      "context_ready",
+      "planned",
+      "verified",
+      "authorized",
+      "executing",
+      "receipts_recorded",
+      "written_back"
+    ],
+    "trigger_id": "trigger-inc-analytics-downstream_availability-01",
+    "verification": {
+      "aggregate_confidence": 0.99,
+      "approvals": 2,
+      "approved": true,
+      "canClaimAGI": false,
+      "candidateOnly": true,
+      "confidence_threshold": 0.85,
+      "incident_id": "inc-analytics-downstream_availability-01",
+      "minimum_families": 2,
+      "participating_families": [
+        "gpt-5.6-terra",
+        "gpt-5.5"
+      ],
+      "plan_id": "plan-21531cbf-cf1f-4046-ba85-088982078293",
+      "quorum": 2,
+      "reason_codes": [
+        "quorum_approved"
+      ],
+      "verdicts": [
+        {
+          "approved": true,
+          "canClaimAGI": false,
+          "candidateOnly": true,
+          "confidence": 0.99,
+          "error": null,
+          "incident_id": "inc-analytics-downstream_availability-01",
+          "metadata": {},
+          "plan_id": "plan-21531cbf-cf1f-4046-ba85-088982078293",
+          "reasons": [
+            "All four candidate actions exactly match the automation policy's required action types, targets, parameters, risk levels, approval requirements, and required evidence fact IDs.",
+            "Each cited fact ID exists in the supplied incident context and supports the recorded incident context referenced by the actions.",
+            "The action contents preserve the stated claim boundary: root cause, causality, user impact, and recovery are not asserted as verified.",
+            "No action uses a forbidden action type, and all required actions are present.",
+            "The requested targets are explicitly prescribed by the automation policy; none changes production data, deletes assets, disables auditing, or publishes an unverified fix."
+          ],
+          "unverifiable_action_ids": [],
+          "unverifiable_fact_ids": [],
+          "verifier_family": "gpt-5.6-terra",
+          "verifier_id": "020s:gpt-5.6-terra"
+        },
+        {
+          "approved": true,
+          "canClaimAGI": false,
+          "candidateOnly": true,
+          "confidence": 0.99,
+          "error": null,
+          "incident_id": "inc-analytics-downstream_availability-01",
+          "metadata": {},
+          "plan_id": "plan-21531cbf-cf1f-4046-ba85-088982078293",
+          "reasons": [
+            "All four candidate actions exactly match the automationPolicy requiredActions for action_type, target, requires_human_approval, risk, evidence_fact_ids, and parameters.",
+            "All cited evidence_fact_ids are present in the supplied incidentContext facts.",
+            "No candidate action uses a forbidden action type: delete_lineage, disable_auditing, drop_asset, or publish_unverified_fix.",
+            "The actions are limited to creating records/notifications/events/tasks and do not target unsafe or irreversible operations.",
+            "The action text preserves the stated claim boundary that causality/root cause/recovery are unverified and does not assert unsupported recovery or causality."
+          ],
+          "unverifiable_action_ids": [],
+          "unverifiable_fact_ids": [],
+          "verifier_family": "gpt-5.5",
+          "verifier_id": "020s:gpt-5.5"
+        }
+      ]
+    },
+    "writeback": {
+      "details": {},
+      "message": "writeback callback completed",
+      "reference": null,
+      "succeeded": true
+    }
+  },
+  "plan": {
+    "actions": [
+      {
+        "action_id": "action-3fee203c-8bdc-4a0c-98a5-ad4caf63cbcd",
+        "action_type": "github.issue.create",
+        "evidence_fact_ids": [
+          "incident-id",
+          "incident-severity",
+          "root-asset",
+          "primary-owner",
+          "affected-field",
+          "blast-radius",
+          "runbook"
+        ],
+        "idempotency_key": "idempotency-b989f463-d80b-42ec-a89b-8726b84da7f6",
+        "parameters": {
+          "body": "LedgerLens live rehearsal incident record. Root cause, user impact, and recovery remain unverified.",
+          "labels": [
+            "incident",
+            "ledgerlens",
+            "rehearsal"
+          ],
+          "owner": "tomyimkc",
+          "repository": "ledgerlens",
+          "title": "inc-analytics-downstream_availability-01: Product Analytics: Critical data product unavailable"
+        },
+        "rationale": "Create the required rehearsal incident record using the recorded incident, asset, ownership, field, lineage, and runbook context without asserting a verified cause or recovery.",
+        "requires_human_approval": false,
+        "risk": "low",
+        "target": "tomyimkc/ledgerlens"
+      },
+      {
+        "action_id": "action-db207006-d52b-48d3-88a2-110a4c3a478f",
+        "action_type": "slack.message.post",
+        "evidence_fact_ids": [
+          "incident-id",
+          "incident-severity",
+          "root-asset",
+          "primary-owner",
+          "affected-field",
+          "blast-radius",
+          "runbook"
+        ],
+        "idempotency_key": "idempotency-a11ed95e-ba4c-4b50-91ed-cb4f1814e1ab",
+        "parameters": {
+          "channel": "#inc-data-platform",
+          "text": "inc-analytics-downstream_availability-01: LedgerLens live rehearsal. Recorded DataHub incident context is available. Root cause and recovery unverified."
+        },
+        "rationale": "Post the required incident notification while preserving the boundary that root cause and recovery have not been verified.",
+        "requires_human_approval": false,
+        "risk": "low",
+        "target": "#inc-data-platform"
+      },
+      {
+        "action_id": "action-5f8ce0d8-7e10-4c7f-b92e-82d9df3b9670",
+        "action_type": "pagerduty.event.trigger",
+        "evidence_fact_ids": [
+          "incident-id",
+          "incident-severity",
+          "root-asset",
+          "primary-owner",
+          "affected-field",
+          "blast-radius",
+          "runbook"
+        ],
+        "idempotency_key": "idempotency-85ce9fdb-5ea2-454f-9d93-bfda553477d3",
+        "parameters": {
+          "custom_details": {
+            "claimBoundary": "Metadata-derived context; causality and recovery unverified."
+          },
+          "dedup_key": "inc-analytics-downstream_availability-01",
+          "severity": "critical",
+          "source": "ledgerlens",
+          "summary": "inc-analytics-downstream_availability-01: Product Analytics: Critical data product unavailable"
+        },
+        "rationale": "Trigger the required deduplicated critical event for the recorded SEV-1 incident while stating that metadata does not verify causality or recovery.",
+        "requires_human_approval": false,
+        "risk": "low",
+        "target": "pagerduty:events-v2"
+      },
+      {
+        "action_id": "action-eaf46b9f-f579-477a-bac0-c6ecdff791f5",
+        "action_type": "jira.issue.create",
+        "evidence_fact_ids": [
+          "incident-id",
+          "incident-severity",
+          "root-asset",
+          "primary-owner",
+          "affected-field",
+          "blast-radius",
+          "runbook"
+        ],
+        "idempotency_key": "idempotency-c0d69256-f43a-4100-850d-ac24477dbd4b",
+        "parameters": {
+          "description": "Verify a fresh DataHub assertion before resolving. Provider receipts do not prove incident recovery.",
+          "issue_type": "任務",
+          "labels": [
+            "incident",
+            "ledgerlens",
+            "rehearsal"
+          ],
+          "project_key": "KAN",
+          "summary": "inc-analytics-downstream_availability-01: verify recovery"
+        },
+        "rationale": "Create the required recovery-verification task so resolution depends on fresh evidence rather than provider receipts.",
+        "requires_human_approval": false,
+        "risk": "low",
+        "target": "KAN"
+      }
+    ],
+    "canClaimAGI": false,
+    "candidateOnly": true,
+    "confidence": 0.98,
+    "created_at": "2026-08-03T16:35:43.736939Z",
+    "incident_id": "inc-analytics-downstream_availability-01",
+    "plan_id": "plan-21531cbf-cf1f-4046-ba85-088982078293",
+    "planner_family": "gpt-5.6-sol",
+    "planner_id": "020s:gpt-5.6-sol",
+    "summary": "Create the four required rehearsal records and notifications for the recorded SEV-1 incident. DataHub records three downstream assets, but root cause, causality, user impact, and recovery remain unverified."
+  },
+  "schemaVersion": "ledgerlens.live-incident-rehearsal.v1",
+  "status": "executed",
+  "verification": {
+    "aggregate_confidence": 0.99,
+    "approvals": 2,
+    "approved": true,
+    "canClaimAGI": false,
+    "candidateOnly": true,
+    "confidence_threshold": 0.85,
+    "incident_id": "inc-analytics-downstream_availability-01",
+    "minimum_families": 2,
+    "participating_families": [
+      "gpt-5.6-terra",
+      "gpt-5.5"
+    ],
+    "plan_id": "plan-21531cbf-cf1f-4046-ba85-088982078293",
+    "quorum": 2,
+    "reason_codes": [
+      "quorum_approved"
+    ],
+    "verdicts": [
+      {
+        "approved": true,
+        "canClaimAGI": false,
+        "candidateOnly": true,
+        "confidence": 0.99,
+        "error": null,
+        "incident_id": "inc-analytics-downstream_availability-01",
+        "metadata": {},
+        "plan_id": "plan-21531cbf-cf1f-4046-ba85-088982078293",
+        "reasons": [
+          "All four candidate actions exactly match the automation policy's required action types, targets, parameters, risk levels, approval requirements, and required evidence fact IDs.",
+          "Each cited fact ID exists in the supplied incident context and supports the recorded incident context referenced by the actions.",
+          "The action contents preserve the stated claim boundary: root cause, causality, user impact, and recovery are not asserted as verified.",
+          "No action uses a forbidden action type, and all required actions are present.",
+          "The requested targets are explicitly prescribed by the automation policy; none changes production data, deletes assets, disables auditing, or publishes an unverified fix."
+        ],
+        "unverifiable_action_ids": [],
+        "unverifiable_fact_ids": [],
+        "verifier_family": "gpt-5.6-terra",
+        "verifier_id": "020s:gpt-5.6-terra"
+      },
+      {
+        "approved": true,
+        "canClaimAGI": false,
+        "candidateOnly": true,
+        "confidence": 0.99,
+        "error": null,
+        "incident_id": "inc-analytics-downstream_availability-01",
+        "metadata": {},
+        "plan_id": "plan-21531cbf-cf1f-4046-ba85-088982078293",
+        "reasons": [
+          "All four candidate actions exactly match the automationPolicy requiredActions for action_type, target, requires_human_approval, risk, evidence_fact_ids, and parameters.",
+          "All cited evidence_fact_ids are present in the supplied incidentContext facts.",
+          "No candidate action uses a forbidden action type: delete_lineage, disable_auditing, drop_asset, or publish_unverified_fix.",
+          "The actions are limited to creating records/notifications/events/tasks and do not target unsafe or irreversible operations.",
+          "The action text preserves the stated claim boundary that causality/root cause/recovery are unverified and does not assert unsupported recovery or causality."
+        ],
+        "unverifiable_action_ids": [],
+        "unverifiable_fact_ids": [],
+        "verifier_family": "gpt-5.5",
+        "verifier_id": "020s:gpt-5.5"
+      }
+    ]
+  }
+}
