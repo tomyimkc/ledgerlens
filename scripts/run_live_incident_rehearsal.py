@@ -254,6 +254,33 @@ def _with_policy(provider: CatalogContextProvider, incident: Incident) -> Incide
     return context.model_copy(update={"metadata": metadata})
 
 
+def run_backend(
+    backend: OrchestratorIncidentBackend,
+    incident_id: str,
+) -> tuple[Any, Any, dict[str, Any], bool]:
+    """Trigger the backend, then execute if the plan authorized.
+
+    Returns ``(prepared, result, state, executed)``. Extracted so the full trigger ->
+    execute path can be exercised offline with a deterministic planner and fake adapters.
+    """
+
+    state = backend.trigger({"incident_id": incident_id})
+    prepared = backend.prepared_run
+    if prepared is None:
+        raise RuntimeError("backend did not retain the prepared run")
+    result = None
+    executed = False
+    if prepared.authorization.authorized:
+        # execute() compares plan_hash against plan_fingerprint(state); the trigger state
+        # exposes exactly that value at planner.plan_hash. Passing authorization.plan_id
+        # would fail closed with "dashboard grant plan fingerprint does not match".
+        plan_hash = state.get("planner", {}).get("plan_hash")
+        state = backend.execute({"incident_id": incident_id, "plan_hash": plan_hash})
+        result = backend.orchestration_result
+        executed = True
+    return prepared, result, dict(state), executed
+
+
 def assemble_receipt(
     *,
     prepared: Any,
@@ -389,19 +416,7 @@ def main() -> int:
             executor=executor,
             writeback=lambda run: None,
         )
-        state = backend.trigger({"incident_id": incident.incident_id})
-        prepared = backend.prepared_run
-        if prepared is None:
-            raise RuntimeError("backend did not retain the prepared run")
-        if prepared.authorization.authorized:
-            state = backend.execute(
-                {
-                    "incident_id": incident.incident_id,
-                    "plan_hash": prepared.authorization.plan_id,
-                }
-            )
-            result = backend.orchestration_result
-            executed = True
+        prepared, result, state, executed = run_backend(backend, incident.incident_id)
         receipt = assemble_receipt(
             prepared=prepared,
             result=result,
@@ -409,6 +424,24 @@ def main() -> int:
             settings=settings,
             executed=executed,
         )
+    except Exception as exc:
+        # A partial fanout can leave some real artifacts; record what happened rather than
+        # crashing. Any already-created provider artifacts are noted in the error.
+        receipt = {
+            "schemaVersion": "ledgerlens.live-incident-rehearsal.v1",
+            "kind": "live-incident-rehearsal",
+            "status": "failed-closed",
+            "networkUsed": True,
+            "externalMutations": executed,
+            "incidentId": incident.incident_id,
+            "error": f"{type(exc).__name__}: {exc}",
+            "limitations": [
+                "The run did not complete the full authorized fanout.",
+                "Inspect the error and any provider dashboards for partial rehearsal artifacts.",
+            ],
+            "candidateOnly": True,
+            "canClaimAGI": False,
+        }
     finally:
         roles.close()
 
