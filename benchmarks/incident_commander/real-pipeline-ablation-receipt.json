@@ -1,0 +1,715 @@
+{
+  "arms": {
+    "datahub-context-off": {
+      "blockReasonDistribution": {
+        "action_references_unknown_fact": 72,
+        "verification_not_approved": 24,
+        "verifier_quorum_not_met": 24,
+        "verifier_reported_unverifiable_items": 24
+      },
+      "metrics": {
+        "actionGroundingRate": 0.5,
+        "blastRadiusRecall": 0.0,
+        "ownerAccuracy": 0.0,
+        "planAuthorizationRate": 0.0,
+        "verifierApprovalRate": 0.0
+      },
+      "mode": "datahub-context-off",
+      "scenarioCount": 24,
+      "scenarios": [
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-ml-model_drift-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-ml-model_drift",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-customer-schema_drift-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-customer-schema_drift",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-finance-downstream_availability-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-finance-downstream_availability",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-customer-downstream_availability-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-customer-downstream_availability",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-finance-model_drift-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-finance-model_drift",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-finance-quality_regression-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-finance-quality_regression",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-analytics-freshness_breach-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-analytics-freshness_breach",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-analytics-quality_regression-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-analytics-quality_regression",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-customer-model_drift-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-customer-model_drift",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-ml-schema_drift-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-ml-schema_drift",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-finance-schema_drift-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-finance-schema_drift",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-ml-freshness_breach-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-ml-freshness_breach",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-finance-freshness_breach-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-finance-freshness_breach",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-customer-freshness_breach-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-customer-freshness_breach",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-customer-quality_regression-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-customer-quality_regression",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-finance-pii_exposure-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-finance-pii_exposure",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-ml-downstream_availability-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-ml-downstream_availability",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-ml-pii_exposure-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-ml-pii_exposure",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-analytics-pii_exposure-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-analytics-pii_exposure",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-ml-quality_regression-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-ml-quality_regression",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-analytics-schema_drift-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-analytics-schema_drift",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-analytics-model_drift-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-analytics-model_drift",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-analytics-downstream_availability-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-analytics-downstream_availability",
+          "verifierApproved": false
+        },
+        {
+          "actionCount": 6,
+          "authorized": false,
+          "groundedActionCount": 3,
+          "incidentId": "inc-customer-pii_exposure-01",
+          "reasonCodes": [
+            "verification_not_approved",
+            "verifier_quorum_not_met",
+            "verifier_reported_unverifiable_items",
+            "action_references_unknown_fact:notify-owner",
+            "action_references_unknown_fact:coordinate-blast-radius",
+            "action_references_unknown_fact:schedule-recovery-validation"
+          ],
+          "scenarioId": "scenario-customer-pii_exposure",
+          "verifierApproved": false
+        }
+      ]
+    },
+    "datahub-context-on": {
+      "blockReasonDistribution": {
+        "authorized": 24
+      },
+      "metrics": {
+        "actionGroundingRate": 1.0,
+        "blastRadiusRecall": 1.0,
+        "ownerAccuracy": 1.0,
+        "planAuthorizationRate": 1.0,
+        "verifierApprovalRate": 1.0
+      },
+      "mode": "datahub-context-on",
+      "scenarioCount": 24,
+      "scenarios": [
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-ml-model_drift-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-ml-model_drift",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-customer-schema_drift-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-customer-schema_drift",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-finance-downstream_availability-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-finance-downstream_availability",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-customer-downstream_availability-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-customer-downstream_availability",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-finance-model_drift-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-finance-model_drift",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-finance-quality_regression-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-finance-quality_regression",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-analytics-freshness_breach-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-analytics-freshness_breach",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-analytics-quality_regression-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-analytics-quality_regression",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-customer-model_drift-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-customer-model_drift",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-ml-schema_drift-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-ml-schema_drift",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-finance-schema_drift-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-finance-schema_drift",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-ml-freshness_breach-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-ml-freshness_breach",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-finance-freshness_breach-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-finance-freshness_breach",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-customer-freshness_breach-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-customer-freshness_breach",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-customer-quality_regression-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-customer-quality_regression",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-finance-pii_exposure-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-finance-pii_exposure",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-ml-downstream_availability-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-ml-downstream_availability",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-ml-pii_exposure-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-ml-pii_exposure",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-analytics-pii_exposure-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-analytics-pii_exposure",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-ml-quality_regression-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-ml-quality_regression",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-analytics-schema_drift-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-analytics-schema_drift",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-analytics-model_drift-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-analytics-model_drift",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-analytics-downstream_availability-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-analytics-downstream_availability",
+          "verifierApproved": true
+        },
+        {
+          "actionCount": 6,
+          "authorized": true,
+          "groundedActionCount": 6,
+          "incidentId": "inc-customer-pii_exposure-01",
+          "reasonCodes": [
+            "authorized"
+          ],
+          "scenarioId": "scenario-customer-pii_exposure",
+          "verifierApproved": true
+        }
+      ]
+    }
+  },
+  "canClaimAGI": false,
+  "candidateOnly": true,
+  "catalog": {
+    "assetCount": 120,
+    "scenarioCount": 24,
+    "seed": 20260731
+  },
+  "contentDigest": "sha256:d57144fc4bf23cb64164621d7c1239ab3753e81edd591296b95447456b8ce8a0",
+  "externalValidation": false,
+  "kind": "real-pipeline-context-ablation",
+  "limitations": [
+    "The planner is a fixed, non-fabricating deterministic stub \u2014 the OFF arm fails to ground actions by construction. This exercises the fail-closed gate on a controlled input; it does NOT measure model or system capability or 'uplift'.",
+    "The real LLM-backed JsonIncidentPlanner/JsonPlanVerifier are not exercised here.",
+    "ownerAccuracy and blastRadiusRecall measure what the context contained, not planner skill: the ON context is populated from the fixture's own ground truth.",
+    "Synthetic fixture only; no live DataHub, provider, or production incident."
+  ],
+  "pipeline": {
+    "planner": "deterministic-playbook (deterministic, no LLM)",
+    "policyGate": "ledgerlens.runtime_factory.build_policy_gate (production class)",
+    "quorum": 2,
+    "verifierFamilies": [
+      "grounding-lint",
+      "policy-shape"
+    ]
+  },
+  "schemaVersion": "ledgerlens.real-pipeline-ablation.v1",
+  "status": "PASS",
+  "whatThisMeasures": "Whether the real deterministic PolicyGate authorizes only fact-grounded actions when DataHub context is present, and refuses them when it is absent. Both arms run the identical planner and the identical production VerifierPanel + PolicyGate; the only difference is the IncidentContext supplied."
+}

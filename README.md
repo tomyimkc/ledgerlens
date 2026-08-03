@@ -21,6 +21,12 @@ An LLM agent can draft that response in seconds. The reason most teams will not 
 production is not draft quality: it is that the same model that proposes the action also decides
 the action is safe to run.
 
+This is the gap DataHub itself frames as central to agentic data work. As DataHub co-founder and
+CTO Shirshanka Das put it at the April 2026 DataHub Town Hall, *"This is not an LLM problem. It is
+a context problem."* ([source](https://datahub.com/blog/trusted-context-for-talk-to-data-april-2026-town-hall-highlights/))
+LedgerLens takes that literally: the trusted context is DataHub's metadata graph, and the authority
+to act is bound to that context, not to the model's confidence.
+
 **LedgerLens splits those two jobs.** The model proposes and checks the response. A deterministic
 policy — ordinary Python, not a prompt — decides whether it may execute, and authorizes only the
 exact plan that was reviewed. Every approved action leaves a receipt, and the incident state is
@@ -205,6 +211,15 @@ LedgerLens uses DataHub on both sides of the incident:
 
 The fixture replay demonstrates this contract with synthetic DataHub-shaped data. A live claim
 requires a published receipt that identifies the DataHub version, run mode, time, and limitations.
+
+LedgerLens reaches this context through the **same Model Context Protocol (MCP) surface that
+DataHub's own [Agent Context Kit](https://docs.datahub.com/docs/dev-guides/agent-context/agent-context)
+wraps** — the kit of guides, SDKs, and an MCP server DataHub ships for building agents against its
+graph. LedgerLens speaks that MCP protocol directly (`src/ledgerlens/mcp_client.py`) rather than
+vendoring the `datahub-agent-context` SDK, and its one upstream contribution
+([PR #160](https://github.com/acryldata/mcp-server-datahub/pull/160), open, unmerged) proposes an
+opt-in audit-context field for that same MCP server. The point is alignment, not adoption: this is
+the agent-context path DataHub is itself investing in.
 
 ## Pointing LedgerLens at your own DataHub (prototype stage)
 

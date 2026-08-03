@@ -75,7 +75,11 @@ evidence references, and claim ceiling.
 
 ### 2. DataHub context
 
-The context collector resolves operational metadata needed to plan bounded work:
+The context collector reads through the official DataHub Model Context Protocol (MCP) surface —
+the same agent-facing protocol DataHub's [Agent Context Kit](https://docs.datahub.com/docs/dev-guides/agent-context/agent-context)
+wraps. LedgerLens speaks that protocol directly (`mcp_client.py`, `datahub_context.py`) rather than
+vendoring the `datahub-agent-context` SDK. It resolves operational metadata needed to plan bounded
+work:
 
 | Context | Use in the plan |
 |---|---|
