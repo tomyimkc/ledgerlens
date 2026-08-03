@@ -201,6 +201,80 @@ def _actions() -> list[PlannedAction]:
     ]
 
 
+from ledgerlens.incident_integration import OrchestratorIncidentBackend  # noqa: E402
+from ledgerlens.incident_models import ActionPlan  # noqa: E402
+from ledgerlens.runtime_factory import build_policy_gate  # noqa: E402
+from ledgerlens.verification import VerifierAssessment, VerifierPanel  # noqa: E402
+
+
+class _DeterministicPlanner:
+    planner_id = "deterministic:live-rehearsal"
+    family = "live-rehearsal-planner"
+
+    def plan(self, context: IncidentContext) -> ActionPlan:
+        return ActionPlan(
+            plan_id=f"{context.incident.incident_id}:plan",
+            incident_id=context.incident.incident_id,
+            planner_id=self.planner_id,
+            planner_family=self.family,
+            created_at=NOW,
+            confidence=0.9,
+            summary="four bounded collaboration actions",
+            actions=tuple(_actions()),
+        )
+
+
+class _ApprovingVerifier:
+    def __init__(self, verifier_id: str, family: str) -> None:
+        self.verifier_id = verifier_id
+        self.family = family
+
+    def verify(self, context: IncidentContext, plan: ActionPlan) -> VerifierAssessment:
+        del context, plan
+        return VerifierAssessment(approved=True, confidence=0.95, reasons=("ok",))
+
+
+def test_backend_trigger_execute_runs_full_fanout_offline() -> None:
+    """The full real backend path (trigger -> authorize -> execute) fans out to all four
+    providers offline. This guards the plan_hash the execute() grant must carry: passing the
+    wrong value fails closed and never touches a provider."""
+    context = _context()
+    authorizer = ActionAuthorizer(SIGNING_SECRET, clock=lambda: NOW, nonce_factory=lambda: "n1")
+    transports = _fake_transports()
+    executor = SCRIPT.build_action_executor(
+        _credentials(), authorizer, transports=transports, timeout=5.0
+    )
+    backend = OrchestratorIncidentBackend(
+        incident_resolver=lambda payload: context.incident,
+        context_provider=lambda incident: context,
+        planner=_DeterministicPlanner(),
+        verifier_panel=VerifierPanel(
+            (
+                _ApprovingVerifier("v1", "grounding-lint"),
+                _ApprovingVerifier("v2", "policy-shape"),
+            )
+        ),
+        policy_gate=build_policy_gate(
+            SCRIPT.POLICY_TARGETS,
+            minimum_plan_confidence=0.8,
+            minimum_verifier_confidence=0.85,
+            quorum=2,
+        ),
+        executor=executor,
+        writeback=lambda run: None,
+        clock=lambda: NOW,
+    )
+
+    prepared, result, state, executed = SCRIPT.run_backend(backend, context.incident.incident_id)
+
+    assert prepared.authorization.authorized is True
+    assert executed is True
+    assert result is not None
+    # Every provider was actually called exactly once — the fanout really executed.
+    for transport in transports.values():
+        assert len(transport.requests) == 1
+
+
 def test_real_executor_fans_out_to_all_four_providers_offline() -> None:
     authorizer = ActionAuthorizer(SIGNING_SECRET, clock=lambda: NOW, nonce_factory=lambda: "n1")
     transports = _fake_transports()
