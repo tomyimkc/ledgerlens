@@ -78,8 +78,9 @@ class FakePlanner:
     planner_id = "planner-1"
     family = "planner-family"
 
-    def __init__(self, *, action_type: str = "notify_owner") -> None:
+    def __init__(self, *, action_type: str = "notify_owner", action_count: int = 1) -> None:
         self.action_type = action_type
+        self.action_count = action_count
         self.calls = 0
 
     def plan(self, context: IncidentContext) -> ActionPlan:
@@ -92,17 +93,18 @@ class FakePlanner:
             created_at=NOW,
             confidence=0.96,
             summary="Notify the owner using the grounded assertion state.",
-            actions=(
+            actions=tuple(
                 PlannedAction(
-                    action_id="action-1",
+                    action_id=f"action-{index}",
                     action_type=self.action_type,
                     target="urn:li:corpgroup:data-platform",
                     parameters={"channel": "incident-room"},
                     rationale="The allowlisted owner should receive the incident.",
                     evidence_fact_ids=("fact-1",),
-                    idempotency_key="incident-1:action-1",
+                    idempotency_key=f"incident-1:action-{index}",
                     risk=ActionRisk.LOW,
-                ),
+                )
+                for index in range(1, self.action_count + 1)
             ),
         )
 
@@ -160,6 +162,7 @@ def _commander(
         [OrchestrationResult],
         WritebackOutcome | dict[str, Any] | None,
     ],
+    stop_on_action_failure: bool = True,
 ) -> IncidentOrchestrator:
     return IncidentOrchestrator(
         context_provider=_context,
@@ -175,7 +178,27 @@ def _commander(
         writeback=writeback,
         clock=lambda: NOW,
         id_factory=_id_factory(),
+        stop_on_action_failure=stop_on_action_failure,
     )
+
+
+def _failing_second_action_executor(
+    attempted: list[str],
+) -> Callable[[IncidentContext, PlannedAction], ExecutionOutcome]:
+    """Return an executor that succeeds on every action except `action-2`."""
+
+    def execute(context: IncidentContext, action: PlannedAction) -> ExecutionOutcome:
+        del context
+        attempted.append(action.action_id)
+        if action.action_id == "action-2":
+            raise RuntimeError("provider rejected action-2")
+        return ExecutionOutcome(
+            succeeded=True,
+            executor="notification-tool",
+            message=f"{action.action_id} delivered",
+        )
+
+    return execute
 
 
 def test_orchestrator_runs_every_stage_and_writes_back_receipts() -> None:
@@ -280,6 +303,59 @@ def test_trigger_idempotency_replays_without_model_tool_or_writeback_calls() -> 
     assert replay.receipts == first.receipts
     assert planner.calls == 1
     assert calls == {"executor": 1, "writeback": 1}
+
+
+def test_multi_action_plan_halts_on_first_failure_by_default() -> None:
+    """Actions run sequentially; the default halts the plan at the first failed receipt.
+
+    A three-action plan whose second action fails must record exactly two receipts, never
+    attempt the third, and still write the partial result back for auditability.
+    """
+    attempted: list[str] = []
+    snapshots: list[OrchestrationResult] = []
+
+    def writeback(result: OrchestrationResult) -> WritebackOutcome:
+        snapshots.append(result)
+        return WritebackOutcome(succeeded=True, message="partial receipts recorded")
+
+    result = _commander(
+        planner=FakePlanner(action_count=3),
+        executor=_failing_second_action_executor(attempted),
+        writeback=writeback,
+    ).run(_incident())
+
+    assert attempted == ["action-1", "action-2"]
+    assert [receipt.action_id for receipt in result.receipts] == ["action-1", "action-2"]
+    assert result.receipts[0].status is ActionReceiptStatus.SUCCEEDED
+    assert result.receipts[1].status is ActionReceiptStatus.FAILED
+    assert result.state is OrchestrationState.FAILED
+    assert snapshots[0].receipts == result.receipts
+    assert result.writeback is not None and result.writeback.succeeded is True
+
+
+def test_multi_action_plan_continues_past_failure_when_configured() -> None:
+    """With stop_on_action_failure disabled, every action still gets its own receipt."""
+    attempted: list[str] = []
+
+    def writeback(result: OrchestrationResult) -> WritebackOutcome:
+        del result
+        return WritebackOutcome(succeeded=True, message="all receipts recorded")
+
+    result = _commander(
+        planner=FakePlanner(action_count=3),
+        executor=_failing_second_action_executor(attempted),
+        writeback=writeback,
+        stop_on_action_failure=False,
+    ).run(_incident())
+
+    assert attempted == ["action-1", "action-2", "action-3"]
+    assert [receipt.status for receipt in result.receipts] == [
+        ActionReceiptStatus.SUCCEEDED,
+        ActionReceiptStatus.FAILED,
+        ActionReceiptStatus.SUCCEEDED,
+    ]
+    assert result.state is OrchestrationState.FAILED
+    assert result.writeback is not None and result.writeback.succeeded is True
 
 
 def test_executor_exception_becomes_failed_receipt_and_is_written_back() -> None:

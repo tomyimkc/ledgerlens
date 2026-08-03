@@ -23,6 +23,12 @@ make check
 
 Python 3.11 and 3.12 are supported. Default CI does not call paid APIs or start live DataHub.
 
+**Reviewing the contest evidence?** Run `make judge-check` instead of `make check`. The two gates
+overlap but are not the same: `judge-check` additionally runs `incident-benchmark` (the DataHub
+context ON/OFF benchmark behind the submission's reported figures) and `non-video-readiness` (the
+fail-closed evidence and submission-contract check), while it skips `build`. Use `make check` for
+ordinary development and `make judge-check` to reproduce what the submission claims.
+
 Useful targets:
 
 ```bash
@@ -35,6 +41,8 @@ make secret-scan
 make public-check
 make demo
 make benchmark
+make judge-check        # full evidence gate — use this to verify submission claims
+make incident-benchmark # DataHub context ON/OFF benchmark
 ```
 
 ## Contribution rules

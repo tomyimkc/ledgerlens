@@ -26,6 +26,14 @@ The following existed before LedgerLens:
 4. **Historical infrastructure observations.** Earlier exploratory work reported that a DataHub
    OSS quickstart could run and identified possible packaging/MCP-surface limitations. LedgerLens
    revalidates current behavior rather than treating those observations as current proof.
+5. **A reused Hugging Face Space slot.** The public demo is hosted on a Space account slot the
+   author already owned, previously used for an unrelated personal project
+   (`tomyimkc/sophia-governance-gate`). With the owner's explicit authorization it was renamed to
+   `tomyimkc/ledgerlens-incident-commander` and redeployed; the prior contents were preserved on
+   the `backup/governance-gate-20260731` branch rather than destroyed. Only the hosting slot is
+   pre-existing — every byte of the deployed LedgerLens application was written during the contest
+   period and is built from this repository by
+   [`.github/workflows/deploy-hf-space.yml`](.github/workflows/deploy-hf-space.yml).
 
 Only material that is safe and eligible for public redistribution may be included in this
 repository. The bundled fixture is intentionally small and sanitized.

@@ -141,9 +141,12 @@ scope from a filename.
 
 ## Public deployment and live-proof status
 
-The owner's existing `tomyimkc/sophia-governance-gate` Space was preserved, repurposed with
-explicit authorization, renamed to `tomyimkc/ledgerlens-incident-commander`, and deployed as the
-LedgerLens Docker fixture replay on Hugging Face `cpu-basic`.
+The public demo runs on a Hugging Face Space slot the author already owned. It was renamed to
+`tomyimkc/ledgerlens-incident-commander` with explicit authorization and redeployed as the
+LedgerLens Docker fixture replay on `cpu-basic`; the slot's previous unrelated contents were
+preserved rather than destroyed. Only the hosting slot is pre-existing — the deployed application
+is built from this repository. This reuse is disclosed in
+[`DISCLOSURE.md`](../DISCLOSURE.md#pre-existing-material).
 
 The public replay currently exposes a secret-free contract:
 
