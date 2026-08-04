@@ -304,3 +304,21 @@ def test_untrusted_backend_text_is_escaped_and_secret_fields_are_redacted() -> N
     assert "sensitive-value" not in page.text
     assert state["context"]["api_token"] == "[REDACTED]"
     assert state["context"]["blast_radius"]["unknowns"] == ["Authorization: Bearer [REDACTED]"]
+
+
+def test_plan_exact_and_quorum_demos_reject_via_the_real_gate() -> None:
+    client = _fixture_client()
+
+    gate = client.get("/incident/api/gate-demo").json()["demo"]
+    assert gate["dataHubContextChanged"] is False
+    assert gate["reviewedPlanFingerprint"] != gate["executedPlanFingerprint"]
+    assert gate["approved"]["decision"] == "authorized"
+    assert gate["denied"]["decision"] == "denied"
+    assert "Plan fingerprint is intact" in gate["denied"]["failedConditions"]
+
+    quorum = client.get("/incident/api/quorum-demo").json()["demo"]
+    verdicts = {v["id"]: v["verdict"] for v in quorum["verifiers"]}
+    assert verdicts.get("verifier-B") == "objected"
+    assert quorum["unanimous"]["decision"] == "authorized"
+    assert quorum["split"]["decision"] == "denied"
+    assert "Verifier policy checks are complete" in quorum["split"]["failedConditions"]

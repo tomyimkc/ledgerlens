@@ -8,6 +8,15 @@
 
 **LedgerLens turns a DataHub-observed data incident into bounded, auditable response work.**
 
+**What makes it different — plan-exact authorization.** Many agents ground context in DataHub and
+take actions. LedgerLens's edge is *what it authorizes*: authorization is bound to a cryptographic
+fingerprint of the **exact reviewed plan** — not the DataHub context or a risk verdict — and is
+released only on an independent **2-of-2 AI verifier quorum**. AI proposes and reviews; a
+deterministic policy (plain Python) authorizes the exact plan across GitHub/Slack/PagerDuty/Jira,
+and every action leaves a receipt written back to DataHub. The [live demo](https://tomyimkc-ledgerlens-incident-commander.hf.space/)
+shows two proofs against the *real* gate: a plan tampered *after* review is refused on fingerprint
+mismatch (same DataHub context), and a split verifier quorum holds the gate.
+
 ### The problem, concretely
 
 It is 02:14. A freshness assertion fails on the table behind the company revenue dashboard, and an
