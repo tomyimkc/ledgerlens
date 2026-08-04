@@ -2281,3 +2281,35 @@ footer {
   .pnode { flex: 0 0 116px; }
   .parrow { flex: 0 0 22px; }
 }
+
+/* --- DataHub-forward extras: orientation strip, MCP badges, lineage graph --- */
+.orient {
+  display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between;
+  margin: -8px 0 20px; padding: 11px 16px; border: 1px solid var(--line);
+  border-radius: 12px; background: var(--surface-2);
+}
+.orient-lead { font-size: 13.5px; color: var(--muted); }
+.orient-lead strong { color: var(--teal); }
+.orient-lead code { color: var(--teal); background: var(--teal-dim); padding: 1px 6px; border-radius: 6px; font-size: 12px; }
+.orient-links { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.orient-links a { color: var(--ink); font-weight: 700; font-size: 13px; text-decoration: none; border-bottom: 1px solid var(--teal); padding-bottom: 1px; }
+.orient-links a:hover { color: var(--teal); }
+
+.logtag.mcp { background: var(--teal-dim); border-color: var(--teal); color: var(--teal); }
+.logtag.mcp code { color: var(--teal); font-size: 11px; }
+.dhback { margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+.dhback a { color: var(--teal); font-weight: 700; }
+
+.lineage { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+.lin-node {
+  border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; background: var(--surface-2);
+  display: grid; gap: 1px; min-width: 150px;
+}
+.lin-node b { font-size: 13px; }
+.lin-node small { font-size: 11px; color: var(--muted); }
+.lin-node.src { border-color: var(--teal); background: var(--teal-dim); }
+.lin-node.t1 { border-left: 3px solid var(--coral); }
+.lin-node.t2 { border-left: 3px solid var(--amber); }
+.lin-arrow { color: var(--teal); font-size: 20px; }
+.lin-col { display: grid; gap: 8px; }
+@media (max-width: 640px) { .lin-arrow { transform: rotate(90deg); } }

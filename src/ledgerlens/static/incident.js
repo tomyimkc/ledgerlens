@@ -133,22 +133,48 @@
     return null;
   };
 
+  // ---- DataHub-forward extras (make DataHub's role visible) -----------------
+  const mcpBadge = (tool) => h("span", { class: "logtag mcp" }, "MCP · ", h("code", { text: tool }));
+
+  const lineageGraph = () => {
+    const c = (backend && backend.context) || {};
+    const e = c.entity || {};
+    const b = c.blast_radius || {};
+    const g = h("div", { class: "lineage" });
+    g.append(h("div", { class: "lin-node src" },
+      h("b", { text: current.entity || e.name || "entity" }),
+      h("small", { text: (e.tier || "Tier 1") + " · " + (e.owner || "Data Platform") })));
+    g.append(h("div", { class: "lin-arrow", "aria-hidden": "true", text: "⇢" }));
+    const col = h("div", { class: "lin-col" });
+    for (const a of (b.assets || []).slice(0, 4)) {
+      col.append(h("div", { class: "lin-node t" + (String(a.criticality || "").includes("1") ? "1" : "2") },
+        h("b", { text: a.name }), h("small", { text: a.relationship || "" })));
+    }
+    if (col.childElementCount) g.append(col);
+    return g;
+  };
+
   // ---- accumulating story log (append, never hide) -------------------------
   const appendStage = (i) => {
     if (cards[i]) return cards[i];
     const n = NODES[i];
+    const top = h("div", { class: "logtop" },
+      h("span", { class: "logicon", text: n.icon }),
+      h("strong", { text: n.label }),
+      h("code", { class: "logmod", text: n.mod }));
+    if (i === 1) top.append(mcpBadge("get_entities"));
+    if (i === 4) top.append(h("span", { class: "logtag", text: "AI can't authorize" }));
+    if (i === 6) top.append(mcpBadge("save_document"));
+    const bodyEl = h("div", { class: "logbody" }, top, h("p", { class: "logline", text: n.line(current) }));
+    if (i === 1 && backend && backend.context) bodyEl.append(lineageGraph());
+    if (i === 6) bodyEl.append(h("p", { class: "dhback" }, "↳ writes the incident receipt back to DataHub — ",
+      h("a", { href: "https://github.com/acryldata/mcp-server-datahub/pull/160", target: "_blank", rel: "noopener", text: "upstream PR #160" })));
+    const chips = receiptChips(i);
+    if (chips) bodyEl.append(chips);
+    else if (!current.featured && i >= 5) bodyEl.append(h("p", { class: "dnote", text: "Illustrative pattern — no receipts generated for this scenario." }));
     const row = h("div", { class: "logrow", "data-i": String(i) },
       h("div", { class: "logmark" }, h("span", { class: "lognum", text: (i + 1).toString().padStart(2, "0") })),
-      h("div", { class: "logbody" },
-        h("div", { class: "logtop" },
-          h("span", { class: "logicon", text: n.icon }),
-          h("strong", { text: n.label }),
-          h("code", { class: "logmod", text: n.mod }),
-          i === 4 ? h("span", { class: "logtag", text: "AI can't authorize" }) : null),
-        h("p", { class: "logline", text: n.line(current) })));
-    const chips = receiptChips(i);
-    if (chips) row.querySelector(".logbody").append(chips);
-    else if (!current.featured && i >= 5) row.querySelector(".logbody").append(h("p", { class: "dnote", text: "Illustrative pattern — no receipts generated for this scenario." }));
+      bodyEl);
     logEl.append(row);
     cards[i] = row;
     requestAnimationFrame(() => row.classList.add("in"));
