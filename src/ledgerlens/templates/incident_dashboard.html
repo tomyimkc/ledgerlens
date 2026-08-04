@@ -75,26 +75,19 @@
 
     <main id="command-center">
       {% if state.incident %}
-        <section class="flow-root" data-flow-root aria-label="Guided incident replay">
+        <section class="flow-root" data-flow-root aria-label="Incident pipeline">
           <div class="flow-hero">
             <div>
-              <p class="eyebrow">GUIDED REPLAY · FIXTURE / REPLAY</p>
-              <h1>{{ state.incident.title }}</h1>
-              <p class="flow-lede">
-                Watch the incident-command loop run once, then click any step to inspect the
-                real artifact — DataHub context, the deterministic gate, and the
-                <code>fixture://</code> receipts.
-              </p>
+              <p class="eyebrow">INCIDENT PIPELINE · FIXTURE / REPLAY</p>
+              <h1>One pipeline, any data incident.</h1>
             </div>
-            <div class="flow-controls">
-              <button type="button" class="button button-signal" data-flow-replay data-trigger-incident>
-                <span aria-hidden="true">▶</span> Replay incident
-              </button>
-              <span class="flow-hint">← / → to step</span>
-            </div>
+            <button type="button" class="button button-signal" data-flow-replay data-trigger-incident>
+              <span aria-hidden="true">▶</span> Play
+            </button>
           </div>
-          <nav class="flow-rail" data-flow-rail aria-label="Incident response stages"></nav>
-          <div class="flow-view" data-flow-view aria-live="polite"></div>
+          <div class="timeline" data-timeline aria-label="Incident events"></div>
+          <div class="pipe" data-pipe aria-label="Pipeline flow"></div>
+          <div class="detail" data-detail aria-live="polite"></div>
         </section>
 
         <div class="legacy-content">
