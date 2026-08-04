@@ -39,7 +39,7 @@
 
   const NODES = [
     { icon: "◎", label: "Trigger", mod: "incident_dashboard", line: (s) => s.trigger },
-    { icon: "◇", label: "DataHub context", mod: "mcp_client", line: () => "Owner · schema · lineage read over MCP" },
+    { icon: "◇", label: "DataHub context", mod: "mcp_client", line: (s) => (s.ctx ? s.ctx.change + " — read via MCP get_entities" : "Owner · schema · lineage read over MCP") },
     { icon: "▤", label: "Plan", mod: "agent", line: () => "Bounded, reversible actions proposed" },
     { icon: "◈", label: "Verify", mod: "VerifierPanel", line: () => "AI advisory review — cannot authorize" },
     { icon: "⛨", label: "Policy gate", mod: "PolicyGate", line: () => "Deterministic authorization of the exact plan" },
@@ -49,12 +49,37 @@
   ];
 
   const SCENARIOS = [
-    { id: "freshness", day: "MON", sev: 1, type: "Freshness SLO breach", entity: "analytics.payments_daily", trigger: "Freshness 23m over a 15m SLO", featured: true },
-    { id: "schema", day: "TUE", sev: 2, type: "Schema drift", entity: "core.orders_v2", trigger: "Breaking column type change detected" },
-    { id: "volume", day: "WED", sev: 2, type: "Volume anomaly", entity: "events.clickstream", trigger: "Row count −62% vs baseline" },
-    { id: "access", day: "THU", sev: 1, type: "Access / ACL change", entity: "pii.customers", trigger: "Ownership and ACL changed on PII" },
-    { id: "deploy", day: "FRI", sev: 1, type: "Upstream deploy break", entity: "finance.revenue_dashboard", trigger: "dbt deploy invalidated the model" },
-    { id: "ingest", day: "SAT", sev: 3, type: "Ingestion failure", entity: "vendor.billing_feed", trigger: "Connector run failed; lineage stale" },
+    { id: "freshness", day: "MON", sev: 1, type: "Freshness SLO breach", entity: "analytics.payments_daily", trigger: "Freshness 23m over a 15m SLO", featured: true,
+      ctx: { owner: "Data Platform", tier: "Tier 1", change: "Freshness assertion breached (observed 23m > 15m SLO)",
+        assets: [
+          { name: "finance.revenue_executive", criticality: "Tier 1", relationship: "1 hop downstream" },
+          { name: "risk.payment_anomaly_features", criticality: "Tier 1", relationship: "2 hops downstream" },
+          { name: "growth.checkout_health", criticality: "Tier 1", relationship: "2 hops downstream" }] } },
+    { id: "schema", day: "TUE", sev: 2, type: "Schema drift", entity: "core.orders_v2", trigger: "Breaking column type change detected",
+      ctx: { owner: "Commerce", tier: "Tier 1", change: "order_total INT → DECIMAL (breaking) in schemaMetadata",
+        assets: [
+          { name: "analytics.orders_daily", criticality: "Tier 1", relationship: "1 hop downstream" },
+          { name: "ml.churn_features", criticality: "Tier 1", relationship: "2 hops downstream" },
+          { name: "finance.rev_recognition", criticality: "Tier 2", relationship: "2 hops downstream" }] } },
+    { id: "volume", day: "WED", sev: 2, type: "Volume anomaly", entity: "events.clickstream", trigger: "Row count −62% vs baseline",
+      ctx: { owner: "Growth", tier: "Tier 2", change: "Row-count assertion: −62% vs 7-day baseline",
+        assets: [
+          { name: "growth.session_metrics", criticality: "Tier 1", relationship: "1 hop downstream" },
+          { name: "ml.recommender_train", criticality: "Tier 2", relationship: "2 hops downstream" }] } },
+    { id: "access", day: "THU", sev: 1, type: "Access / ACL change", entity: "pii.customers", trigger: "Ownership and ACL changed on PII",
+      ctx: { owner: "Trust & Safety", tier: "Tier 1", change: "Ownership + ACL widened on a PII dataset",
+        assets: [
+          { name: "support.customer_360", criticality: "Tier 1", relationship: "1 hop downstream" },
+          { name: "marketing.audiences", criticality: "Tier 2", relationship: "2 hops downstream" }] } },
+    { id: "deploy", day: "FRI", sev: 1, type: "Upstream deploy break", entity: "finance.revenue_dashboard", trigger: "dbt deploy invalidated the model",
+      ctx: { owner: "Finance", tier: "Tier 1", change: "Upstream dbt model deploy (rev_model) marked stale",
+        assets: [
+          { name: "exec.board_pack", criticality: "Tier 1", relationship: "1 hop downstream" },
+          { name: "finance.daily_close", criticality: "Tier 2", relationship: "2 hops downstream" }] } },
+    { id: "ingest", day: "SAT", sev: 3, type: "Ingestion failure", entity: "vendor.billing_feed", trigger: "Connector run failed; lineage stale",
+      ctx: { owner: "Vendor Ops", tier: "Tier 3", change: "Ingestion run failed; systemMetadata.lastObserved stale",
+        assets: [
+          { name: "finance.ar_ledger", criticality: "Tier 2", relationship: "1 hop downstream" }] } },
   ];
 
   let backend = null;
@@ -123,16 +148,18 @@
   const mcpBadge = (tool) => h("span", { class: "logtag mcp" }, "MCP · ", h("code", { text: tool }));
 
   const lineageGraph = () => {
-    const c = (backend && backend.context) || {};
-    const e = c.entity || {};
-    const b = c.blast_radius || {};
+    const be = (backend && backend.context) || {};
+    const ctx = current.ctx || {};
+    const owner = ctx.owner || be.entity?.owner || "Data Platform";
+    const tier = ctx.tier || be.entity?.tier || "Tier 1";
+    const assets = (ctx.assets && ctx.assets.length) ? ctx.assets : arr(be.blast_radius && be.blast_radius.assets);
     const g = h("div", { class: "lineage" });
     g.append(h("div", { class: "lin-node src" },
-      h("b", { text: current.entity || e.name || "entity" }),
-      h("small", { text: (e.tier || "Tier 1") + " · " + (e.owner || "Data Platform") })));
+      h("b", { text: current.entity || be.entity?.name || "entity" }),
+      h("small", { text: tier + " · " + owner })));
     g.append(h("div", { class: "lin-arrow", "aria-hidden": "true", text: "⇢" }));
     const col = h("div", { class: "lin-col" });
-    for (const a of arr(b.assets).slice(0, 4)) {
+    for (const a of assets.slice(0, 4)) {
       col.append(h("div", { class: "lin-node t" + (String(a.criticality || "").includes("1") ? "1" : "2") },
         h("b", { text: a.name }), h("small", { text: a.relationship || "" })));
     }
@@ -257,12 +284,24 @@
       h("p", { class: "proof-point", text: d.point || "" }));
   };
 
+  const comparisonCard = () =>
+    h("article", { class: "proof compare" },
+      h("div", { class: "proof-head" },
+        h("span", { class: "proof-icon", text: "⧉" }),
+        h("h3", { text: "Beyond DataHub's built-ins" }),
+        h("span", { class: "proof-tag", text: "originality" })),
+      h("div", { class: "cmp" },
+        h("div", { class: "cmp-row" }, h("span", { class: "cmp-who", text: "DataHub Actions Framework" }), h("span", { class: "cmp-what", text: "rule → one fixed integration (e.g. open a PagerDuty incident)" })),
+        h("div", { class: "cmp-row" }, h("span", { class: "cmp-who", text: "Generic LLM agent" }), h("span", { class: "cmp-what", text: "the model decides and acts — it authorizes itself" })),
+        h("div", { class: "cmp-row us" }, h("span", { class: "cmp-who", text: "LedgerLens" }), h("span", { class: "cmp-what", text: "AI proposes + reviews → deterministic policy authorizes the exact plan → receipted actions + DataHub write-back" }))));
+
   const buildProofs = async () => {
     const el = document.querySelector("[data-proofs]");
     if (!el) return;
     el.replaceChildren(
       h("p", { class: "proofs-eyebrow", text: "TWO PROOFS THE GATE IS REAL" }),
-      h("h2", { class: "proofs-title", text: "What makes this different from the other DataHub agents" }));
+      h("h2", { class: "proofs-title", text: "What makes this different from the other DataHub agents" }),
+      comparisonCard());
     try {
       const [g, q] = await Promise.all([
         fetch(`${apiBase}/gate-demo`, { credentials: "same-origin" }).then((r) => r.json()),
