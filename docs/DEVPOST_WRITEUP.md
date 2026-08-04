@@ -85,7 +85,7 @@ and fresh MCP retrieval of the created document.
 
 ### AI verification without AI self-authorization
 
-The planner and verifier roles use typed JSON contracts. A live 020s rehearsal ran one planner and
+The planner and verifier roles use typed JSON contracts. A live OpenAI GPT-5.6 rehearsal ran one planner and
 two verifier variants over a bounded incident context. Their output satisfied quorum, but the
 authorization receipt was issued by deterministic policy. No external action was executed by that
 AI rehearsal.
@@ -227,7 +227,7 @@ change.
 - pytest
 - Ruff
 - strict mypy
-- optional 020s OpenAI-compatible API
+- optional OpenAI GPT-5.6 API (OpenAI-compatible)
 - GitHub Actions
 - Hugging Face Docker Spaces
 

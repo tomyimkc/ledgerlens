@@ -46,7 +46,7 @@ externalValidation: false
 
 ## 3. Produced live artifacts (bounded rehearsal, 2026-08-03)
 
-One authorized run drove real 020s planner → two verifiers (quorum) → deterministic gate →
+One authorized run drove real OpenAI GPT-5.6 planner → two verifiers (quorum) → deterministic gate →
 four adapters. Each is **one bounded rehearsal action** — not sustained reliability, production
 operation, incident causality, or recovery.
 
