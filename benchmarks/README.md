@@ -20,8 +20,9 @@ uv run python benchmarks/live_mcp_benchmark.py \
   --output benchmarks/results/live-mcp.json
 ```
 
-Run the optional bounded 020s transport check only when a key is explicitly
-available:
+Run the optional bounded model transport check only when a key is explicitly
+available. (`020s` / `SOPHIA_020S_KEY` is the internal codename for the
+OpenAI GPT-5.6-compatible transport; the model-attribution docs name it OpenAI GPT-5.6.)
 
 ```bash
 SOPHIA_020S_KEY=... uv run python benchmarks/020s_smoke.py \

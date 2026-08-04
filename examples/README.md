@@ -13,7 +13,7 @@ written back to DataHub for the next responder.
 
 ---
 
-## 1. One incident, end to end (real 020s rehearsal)
+## 1. One incident, end to end (real OpenAI GPT-5.6 rehearsal)
 
 Source: [`benchmarks/incident_commander/ai-verification-receipt.json`](../benchmarks/incident_commander/ai-verification-receipt.json)
 · evidence [E-08](../docs/EVIDENCE_INDEX.md)
@@ -21,7 +21,8 @@ Source: [`benchmarks/incident_commander/ai-verification-receipt.json`](../benchm
 **Incident** `inc-analytics-downstream_availability-01` — *"Product Analytics: Critical data
 product unavailable"*, grounded in the synthetic DataHub-shaped catalog.
 
-**Planner** (`gpt-5.6-sol`) proposed a four-action bounded response:
+**Planner** — OpenAI GPT-5.6, served through an OpenAI GPT-5.6 API key (receipt model id
+`gpt-5.6-sol`) — proposed a four-action bounded response:
 
 | # | Action type | What it does |
 |---|---|---|
@@ -30,9 +31,10 @@ product unavailable"*, grounded in the synthetic DataHub-shaped catalog.
 | 3 | `pagerduty.event.trigger` | Page the on-call responder |
 | 4 | `jira.issue.create` | Open a recovery-validation task |
 
-**Two independent verifiers** (`gpt-5.6-terra`, `gpt-5.5`) reviewed the plan and both
-approved — `participating_families: ["gpt-5.6-terra", "gpt-5.5"]`. Distinct model
-identifiers do **not** establish provider-family independence, and the receipt says so.
+**Two verifiers** — OpenAI GPT-5.6 and GPT-5.5 (receipt model ids `gpt-5.6-terra`,
+`gpt-5.5`) — reviewed the plan and both approved. Because all three roles run on the same
+OpenAI model family, this does **not** establish provider-family independence, and the
+receipt says so.
 
 **The deterministic gate** then authorized the exact reviewed plan:
 
@@ -114,7 +116,7 @@ Local OSS evidence — it does not prove recovery, causality, or a hosted public
 ```bash
 make setup
 make incident-benchmark-real-pipeline   # regenerates the §2 receipt deterministically
-make ai-rehearsal                       # regenerates the §1 receipt (needs a 020s key)
+make ai-rehearsal                       # regenerates the §1 receipt (needs an OpenAI GPT-5.6 API key)
 make judge-check                        # the full evidence gate
 ```
 

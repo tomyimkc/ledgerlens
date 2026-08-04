@@ -5,7 +5,7 @@ live rehearsal ([`scripts/run_live_incident_rehearsal.py`](../scripts/run_live_i
 needs, exactly how to obtain each, and how to supply them without any secret touching the
 repository, chat, logs, or a receipt.
 
-The rehearsal runs the real pipeline — 020s planner + two verifiers + the deterministic
+The rehearsal runs the real pipeline — OpenAI GPT-5.6 planner + two verifiers + the deterministic
 policy gate — and then executes one bounded action against each of GitHub, Slack, PagerDuty,
 and Jira, emitting **one linked receipt**. It refuses to do anything unless `--confirm-live`
 is passed **and** every credential below is present. The adapters sanitize their own

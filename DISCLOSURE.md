@@ -19,8 +19,11 @@ The following existed before LedgerLens:
 
 1. **The failure-ledger concept.** Sophia-AGI maintains a structured record of failures, null
    results, unresolved defects, evidence receipts, and required responses.
-2. **The original Sophia-AGI corpus.** The source ledger and related provenance discipline are
-   pre-existing research/project material.
+2. **The original Sophia-AGI corpus.** LedgerLens incorporates ideas and selected sanitized source
+   material from the author's separate open-source research project,
+   [Sophia-AGI](https://github.com/tomyimkc/sophia-agi) (a candidate-only project;
+   `canClaimAGI: false`). The source ledger and related provenance discipline are pre-existing
+   research/project material used as **input**, not imported implementation code.
 3. **General no-overclaim methodology.** Concepts such as candidate-only status, explicit claim
    ceilings, preserved negative results, and evidence-receipt references predate this contest.
 4. **Historical infrastructure observations.** Earlier exploratory work reported that a DataHub

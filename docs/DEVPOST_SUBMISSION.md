@@ -68,7 +68,7 @@ as live provider execution.
 
 Separate evidence receipts establish narrower live facts:
 
-- **one authorized run executed a bounded action against all four providers** — a real 020s
+- **one authorized run executed a bounded action against all four providers** — a real OpenAI GPT-5.6
   planner and two verifier variants reached quorum, the deterministic gate authorized the exact
   plan, and the adapters created GitHub issue `#29`, posted a Slack message, sent a PagerDuty
   Events API v2 event, and created Jira issue `KAN-2` (evidence E-16);
