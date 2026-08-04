@@ -75,6 +75,29 @@
 
     <main id="command-center">
       {% if state.incident %}
+        <section class="flow-root" data-flow-root aria-label="Guided incident replay">
+          <div class="flow-hero">
+            <div>
+              <p class="eyebrow">GUIDED REPLAY · FIXTURE / REPLAY</p>
+              <h1>{{ state.incident.title }}</h1>
+              <p class="flow-lede">
+                Watch the incident-command loop run once, then click any step to inspect the
+                real artifact — DataHub context, the deterministic gate, and the
+                <code>fixture://</code> receipts.
+              </p>
+            </div>
+            <div class="flow-controls">
+              <button type="button" class="button button-signal" data-flow-replay data-trigger-incident>
+                <span aria-hidden="true">▶</span> Replay incident
+              </button>
+              <span class="flow-hint">← / → to step</span>
+            </div>
+          </div>
+          <nav class="flow-rail" data-flow-rail aria-label="Incident response stages"></nav>
+          <div class="flow-view" data-flow-view aria-live="polite"></div>
+        </section>
+
+        <div class="legacy-content">
         <section class="incident-hero">
           <div class="incident-identity">
             <div class="signal-label">
@@ -106,7 +129,7 @@
             <button
               class="button button-signal"
               type="button"
-              data-trigger-incident
+              data-legacy-trigger
               {% if not state.capabilities.trigger %}disabled{% endif %}
             >
               <span aria-hidden="true">↻</span>
@@ -542,6 +565,7 @@
             </article>
           </aside>
         </section>
+        </div>
       {% else %}
         <section class="unconfigured-state">
           <div class="unconfigured-visual" aria-hidden="true">
