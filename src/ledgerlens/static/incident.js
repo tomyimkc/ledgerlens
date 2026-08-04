@@ -1,13 +1,13 @@
 (() => {
   "use strict";
 
-  // Animated incident-pipeline diagram + an accumulating story log. A timeline of
-  // DataHub-observed incidents feeds one visible pipeline: data flows node -> node
-  // along animated arrows, and each stage APPENDS a card into a growing vertical
-  // story below (never hiding the earlier stages) so the whole progress stays on
-  // screen. Each node maps to the repo module that handles it. The server still
-  // renders the full panels as a no-JS fallback (see `.legacy-content`), hidden
-  // only once the diagram is ready.
+  // Scroll-driven incident pipeline. The flowchart pins ("freezes") at the top;
+  // as the reader scrolls, each phase reveals below and the pinned flowchart
+  // animates a data packet to the next node. No auto-play, no auto-scroll — the
+  // scroll position is the only driver. A timeline of DataHub-observed incidents
+  // feeds one pipeline, each node mapped to the repo module that handles it. The
+  // server still renders the full panels as a no-JS fallback (`.legacy-content`),
+  // hidden only once the diagram is ready.
   //
   // Authorization is deterministic: "Evaluating deterministic gate" is shown while
   // the executed fixture state loads — AI cannot open the gate.
@@ -19,8 +19,8 @@
   const pipeEl = document.querySelector("[data-pipe]");
   const logEl = document.querySelector("[data-detail]");
   const replayBtn = document.querySelector("[data-flow-replay]");
+  const hintEl = document.querySelector("[data-scrollhint]");
   const GATE = "Evaluating deterministic gate…";
-  const STEP_MS = 950;
 
   if (!root || !timelineEl || !pipeEl || !logEl) return; // keep server fallback
 
@@ -35,8 +35,8 @@
     for (const kid of kids) if (kid != null) node.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
     return node;
   };
+  const arr = (v) => (Array.isArray(v) ? v : []);
 
-  // ---- pipeline nodes (mapped to real repo modules) ------------------------
   const NODES = [
     { icon: "◎", label: "Trigger", mod: "incident_dashboard", line: (s) => s.trigger },
     { icon: "◇", label: "DataHub context", mod: "mcp_client", line: () => "Owner · schema · lineage read over MCP" },
@@ -48,7 +48,6 @@
     { icon: "⇉", label: "Handoff", mod: "memory", line: () => "Next agent inherits facts + unknowns" },
   ];
 
-  // ---- incident timeline (illustrative scenarios; ★ carries real receipts) -
   const SCENARIOS = [
     { id: "freshness", day: "MON", sev: 1, type: "Freshness SLO breach", entity: "analytics.payments_daily", trigger: "Freshness 23m over a 15m SLO", featured: true },
     { id: "schema", day: "TUE", sev: 2, type: "Schema drift", entity: "core.orders_v2", trigger: "Breaking column type change detected" },
@@ -58,13 +57,13 @@
     { id: "ingest", day: "SAT", sev: 3, type: "Ingestion failure", entity: "vendor.billing_feed", trigger: "Connector run failed; lineage stale" },
   ];
 
-  let backend = null;   // executed fixture state (for the featured receipts)
+  let backend = null;
   let current = SCENARIOS[0];
   let nodes = [];
   let arrows = [];
-  let cards = {};       // stage index -> appended log row
-  let revealed = -1;    // highest stage index revealed in the log
-  let timer = null;
+  let cards = {};
+  let active = -1;
+  let ticking = false;
 
   // ---- timeline ------------------------------------------------------------
   const buildTimeline = () => {
@@ -76,7 +75,7 @@
         h("span", { class: "tent", text: s.entity }),
         h("span", { class: "tsev sev" + s.sev, text: "SEV-" + s.sev }),
         s.featured ? h("span", { class: "tstar", text: "★ real receipts" }) : null);
-      card.addEventListener("click", () => { current = s; paintTimeline(); play(); });
+      card.addEventListener("click", () => { current = s; paintTimeline(); buildStory(); scrollToStep(0); });
       timelineEl.append(card);
     }
   };
@@ -84,7 +83,7 @@
     timelineEl.querySelectorAll(".tevent").forEach((c, i) => c.classList.toggle("on", SCENARIOS[i].id === current.id));
   };
 
-  // ---- pipeline diagram ----------------------------------------------------
+  // ---- pinned flowchart ----------------------------------------------------
   const buildPipe = () => {
     pipeEl.replaceChildren();
     nodes = []; arrows = [];
@@ -93,7 +92,7 @@
         h("span", { class: "pnode-icon", text: n.icon }),
         h("span", { class: "pnode-label", text: n.label }),
         h("code", { class: "pnode-mod", text: n.mod }));
-      node.addEventListener("click", () => { stop(); revealUpTo(i); });
+      node.addEventListener("click", () => scrollToStep(i));
       pipeEl.append(node);
       nodes.push(node);
       if (i < NODES.length - 1) {
@@ -105,12 +104,11 @@
   };
 
   const flowArrow = (i) => {
-    const arrow = arrows[i];
-    if (!arrow) return;
-    arrow.classList.remove("flowing");
-    void arrow.offsetWidth; // restart the packet animation
-    arrow.classList.add("flowing");
-    setTimeout(() => arrow.classList.add("filled"), STEP_MS - 150);
+    const a = arrows[i];
+    if (!a) return;
+    a.classList.remove("flowing");
+    void a.offsetWidth; // restart the packet animation
+    a.classList.add("flowing");
   };
 
   const paintDiagram = (i) => {
@@ -118,22 +116,10 @@
       node.classList.toggle("active", k === i);
       node.classList.toggle("done", k < i);
     });
-    arrows.forEach((a, k) => { if (k < i) a.classList.add("filled"); });
+    arrows.forEach((a, k) => a.classList.toggle("filled", k < i));
   };
 
-  const receiptChips = (i) => {
-    if (!current.featured || !backend) return null;
-    if (i === 5) {
-      const wrap = h("div", { class: "chips" });
-      for (const a of (backend.actions || [])) if (a.receipt) wrap.append(h("code", { class: "chip", text: a.receipt }));
-      return wrap.childElementCount ? wrap : null;
-    }
-    if (i === 6 && backend.writeback?.receipt) return h("div", { class: "chips" }, h("code", { class: "chip", text: backend.writeback.receipt }));
-    if (i === 7 && backend.memory?.memory_id) return h("div", { class: "chips" }, h("code", { class: "chip", text: backend.memory.memory_id }));
-    return null;
-  };
-
-  // ---- DataHub-forward extras (make DataHub's role visible) -----------------
+  // ---- DataHub-forward extras ----------------------------------------------
   const mcpBadge = (tool) => h("span", { class: "logtag mcp" }, "MCP · ", h("code", { text: tool }));
 
   const lineageGraph = () => {
@@ -146,7 +132,7 @@
       h("small", { text: (e.tier || "Tier 1") + " · " + (e.owner || "Data Platform") })));
     g.append(h("div", { class: "lin-arrow", "aria-hidden": "true", text: "⇢" }));
     const col = h("div", { class: "lin-col" });
-    for (const a of (b.assets || []).slice(0, 4)) {
+    for (const a of arr(b.assets).slice(0, 4)) {
       col.append(h("div", { class: "lin-node t" + (String(a.criticality || "").includes("1") ? "1" : "2") },
         h("b", { text: a.name }), h("small", { text: a.relationship || "" })));
     }
@@ -154,9 +140,20 @@
     return g;
   };
 
-  // ---- accumulating story log (append, never hide) -------------------------
-  const appendStage = (i) => {
-    if (cards[i]) return cards[i];
+  const receiptChips = (i) => {
+    if (!current.featured || !backend) return null;
+    if (i === 5) {
+      const wrap = h("div", { class: "chips" });
+      for (const a of arr(backend.actions)) if (a.receipt) wrap.append(h("code", { class: "chip", text: a.receipt }));
+      return wrap.childElementCount ? wrap : null;
+    }
+    if (i === 6 && backend.writeback?.receipt) return h("div", { class: "chips" }, h("code", { class: "chip", text: backend.writeback.receipt }));
+    if (i === 7 && backend.memory?.memory_id) return h("div", { class: "chips" }, h("code", { class: "chip", text: backend.memory.memory_id }));
+    return null;
+  };
+
+  // ---- story steps (all present; revealed + highlighted by scroll) ---------
+  const buildStep = (i) => {
     const n = NODES[i];
     const top = h("div", { class: "logtop" },
       h("span", { class: "logicon", text: n.icon }),
@@ -175,47 +172,54 @@
     const row = h("div", { class: "logrow", "data-i": String(i) },
       h("div", { class: "logmark" }, h("span", { class: "lognum", text: (i + 1).toString().padStart(2, "0") })),
       bodyEl);
-    logEl.append(row);
-    cards[i] = row;
-    requestAnimationFrame(() => row.classList.add("in"));
     return row;
   };
 
-  const markActive = (i) => {
-    logEl.querySelectorAll(".logrow.active").forEach((r) => r.classList.remove("active"));
-    cards[i]?.classList.add("active");
-  };
-
-  const revealUpTo = (i, scrollBlock) => {
-    i = Math.max(0, Math.min(NODES.length - 1, i));
-    for (let k = revealed + 1; k <= i; k++) appendStage(k);
-    revealed = Math.max(revealed, i);
-    paintDiagram(i);
-    markActive(i);
-    cards[i]?.scrollIntoView({ behavior: "smooth", block: scrollBlock || "nearest" });
-  };
-
-  const resetLog = () => {
+  const buildStory = () => {
     logEl.replaceChildren();
     cards = {};
-    revealed = -1;
-    arrows.forEach((a) => a.classList.remove("flowing", "filled"));
+    active = -1;
+    for (let i = 0; i < NODES.length; i++) {
+      const row = buildStep(i);
+      logEl.append(row);
+      cards[i] = row;
+    }
+    requestAnimationFrame(measure);
   };
 
-  const stop = () => { if (timer) { clearTimeout(timer); timer = null; } root.classList.remove("playing"); };
+  const setActive = (i) => {
+    i = Math.max(0, Math.min(NODES.length - 1, i));
+    if (i === active) return;
+    const advancing = i > active;
+    for (let k = 0; k <= i; k++) cards[k]?.classList.add("in");
+    paintDiagram(i);
+    logEl.querySelectorAll(".logrow.active").forEach((r) => r.classList.remove("active"));
+    cards[i]?.classList.add("active");
+    if (advancing && i > 0) flowArrow(i - 1); // "goes to next phase" animation, on scroll
+    active = i;
+  };
 
-  const play = () => {
-    stop();
-    resetLog();
-    root.classList.add("playing");
-    revealUpTo(0);
-    let i = 0;
-    const tick = () => {
-      if (i >= NODES.length - 1) { stop(); return; }
-      flowArrow(i);
-      timer = setTimeout(() => { i += 1; revealUpTo(i); tick(); }, STEP_MS);
-    };
-    tick();
+  // ---- scroll driver -------------------------------------------------------
+  const measure = () => {
+    const line = window.innerHeight * 0.42;
+    let idx = 0;
+    for (let k = 0; k < NODES.length; k++) {
+      const r = cards[k]?.getBoundingClientRect();
+      if (r && r.top <= line) idx = k;
+    }
+    setActive(idx);
+  };
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { ticking = false; measure(); });
+  };
+
+  const scrollToStep = (i) => {
+    const el = cards[i];
+    if (!el) return;
+    const y = el.getBoundingClientRect().top + window.pageYOffset - window.innerHeight * 0.28;
+    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
   };
 
   const start = async () => {
@@ -230,19 +234,22 @@
       const data = await res.json();
       if (!res.ok || !data.ok || !data.state) throw new Error(data.detail || "Trigger failed.");
       backend = data.state;
-      buildTimeline(); paintTimeline(); buildPipe(); play();
+      buildTimeline(); paintTimeline(); buildPipe(); buildStory();
     } catch (error) {
-      body.classList.remove("js"); // reveal the server-rendered fallback
+      body.classList.remove("js");
       logEl.replaceChildren();
     } finally {
       if (replayBtn) replayBtn.disabled = false;
     }
   };
 
-  replayBtn?.addEventListener("click", () => play());
+  replayBtn?.addEventListener("click", () => scrollToStep(0));
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll, { passive: true });
+  window.addEventListener("scroll", () => hintEl?.classList.add("gone"), { once: true, passive: true });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowRight") { stop(); revealUpTo(revealed + 1); }
-    else if (e.key === "ArrowLeft" && cards[revealed - 1]) { stop(); paintDiagram(revealed - 1); markActive(revealed - 1); cards[revealed - 1].scrollIntoView({ behavior: "smooth", block: "center" }); revealed -= 1; }
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") scrollToStep(Math.min(active + 1, NODES.length - 1));
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") scrollToStep(Math.max(active - 1, 0));
   });
 
   start();
