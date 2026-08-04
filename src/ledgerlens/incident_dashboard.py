@@ -40,6 +40,13 @@ CLAIM_BOUNDARY: JsonObject = {
         "LedgerLens separates source assertions, DataHub metadata, deterministic policy "
         "decisions, AI advisory output, executed action receipts, and unknowns."
     ),
+    # Machine-readable epistemic humility: refusals encoded as fields, not prose.
+    "asserts": {
+        "causality": False,
+        "userImpact": False,
+        "recovery": False,
+        "validation": False,
+    },
 }
 
 ALLOWED_ACTIONS = frozenset(
@@ -930,6 +937,120 @@ def _autonomous_authorization_payload(state: Mapping[str, Any]) -> JsonObject:
     }
 
 
+def plan_exact_authorization_demo(state: Mapping[str, Any]) -> JsonObject:
+    """Prove authorization is bound to the EXACT reviewed plan, not catalog state.
+
+    Runs the real deterministic gate twice on the SAME (unchanged) DataHub context:
+    once against the reviewed plan (authorized), once after silently appending one
+    action to the plan (denied on plan-fingerprint mismatch). This is what separates
+    plan-exact authorization from tools that fingerprint context or a risk verdict.
+    """
+
+    reviewed = copy.deepcopy(dict(state))
+    reviewed_fp = plan_fingerprint(reviewed)
+    incident = reviewed.get("incident")
+    incident_id = incident.get("id") if isinstance(incident, Mapping) else None
+    payload = {
+        "actor": "authorization-demo",
+        "plan_hash": reviewed_fp,
+        "confirmation": f"AUTHORIZE {incident_id} {reviewed_fp}",
+        "acknowledge_claim_boundary": True,
+    }
+    approved = evaluate_authorization(reviewed, payload)
+
+    tampered = copy.deepcopy(reviewed)
+    steps = tampered.get("planner", {}).get("steps")
+    if isinstance(steps, list):
+        steps.append(
+            {
+                "order": len(steps) + 1,
+                "action": "slack.message.post",
+                "title": "Extra broadcast appended AFTER review (not reviewed)",
+                "target": "#all-company",
+                "reversible": True,
+                "reason": "Injected post-review to demonstrate plan-exact authorization.",
+            }
+        )
+    # The operator still presents the grant for the ORIGINAL reviewed plan hash.
+    tampered["planner"]["plan_hash"] = reviewed_fp
+    tampered_fp = plan_fingerprint(tampered)
+    denied = evaluate_authorization(tampered, payload)
+
+    return {
+        "kind": "plan-exact-authorization",
+        "dataHubContextChanged": False,
+        "reviewedPlanFingerprint": reviewed_fp,
+        "executedPlanFingerprint": tampered_fp,
+        "tamper": "One Slack broadcast was appended to the plan after review.",
+        "approved": {"decision": approved["decision"]},
+        "denied": {
+            "decision": denied["decision"],
+            "failedConditions": denied["failures"],
+            "authority": denied["authority"],
+            "ai_can_authorize": denied["ai_can_authorize"],
+        },
+        "point": (
+            "Same DataHub context, different plan -> the deterministic gate refuses on "
+            "fingerprint mismatch. Authorization is bound to the exact reviewed plan."
+        ),
+        "candidateOnly": True,
+        "canClaimAGI": False,
+    }
+
+
+def verifier_quorum_demo(state: Mapping[str, Any]) -> JsonObject:
+    """Prove the deterministic gate blocks on a split verifier quorum.
+
+    Flips one of two independent AI verifiers to OBJECT and runs the real gate,
+    which requires every structured verifier check to pass before it will act.
+    """
+
+    unanimous = copy.deepcopy(dict(state))
+    reviewed_fp = plan_fingerprint(unanimous)
+    incident = unanimous.get("incident")
+    incident_id = incident.get("id") if isinstance(incident, Mapping) else None
+    payload = {
+        "actor": "quorum-demo",
+        "plan_hash": reviewed_fp,
+        "confirmation": f"AUTHORIZE {incident_id} {reviewed_fp}",
+        "acknowledge_claim_boundary": True,
+    }
+    approved = evaluate_authorization(unanimous, payload)
+
+    split = copy.deepcopy(unanimous)
+    checks = split.get("verifier", {}).get("policy_checks")
+    objected_name = "verifier objection"
+    if isinstance(checks, list) and checks:
+        objected_name = str(checks[-1].get("name", objected_name))
+        checks[-1] = {
+            **checks[-1],
+            "status": "fail",
+            "detail": "Verifier B objected: causality is not sufficiently bounded.",
+        }
+        split["verifier"]["verdict"] = "SPLIT — 1 of 2 objected"
+    blocked = evaluate_authorization(split, payload)
+
+    return {
+        "kind": "verifier-quorum",
+        "verifiers": [
+            {"id": "verifier-A", "verdict": "pass"},
+            {"id": "verifier-B", "verdict": "objected", "on": objected_name},
+        ],
+        "unanimous": {"decision": approved["decision"]},
+        "split": {
+            "decision": blocked["decision"],
+            "failedConditions": blocked["failures"],
+            "authority": blocked["authority"],
+        },
+        "point": (
+            "One verifier objecting is enough: the deterministic gate does not act on a "
+            "split quorum. AI review is advisory; unanimous structured approval is required."
+        ),
+        "candidateOnly": True,
+        "canClaimAGI": False,
+    }
+
+
 def _content_security_headers() -> dict[str, str]:
     return {
         "Cache-Control": "no-store",
@@ -1056,6 +1177,28 @@ def create_incident_router(
             state = await commander.snapshot()
             return JSONResponse(
                 {"ok": True, "state": state},
+                headers=_content_security_headers(),
+            )
+        except Exception as exc:
+            return error_response(exc)
+
+    @router.get("/api/gate-demo", name="incident_gate_demo")
+    async def api_gate_demo() -> Any:
+        try:
+            state = await commander.snapshot()
+            return JSONResponse(
+                {"ok": True, "demo": plan_exact_authorization_demo(state)},
+                headers=_content_security_headers(),
+            )
+        except Exception as exc:
+            return error_response(exc)
+
+    @router.get("/api/quorum-demo", name="incident_quorum_demo")
+    async def api_quorum_demo() -> Any:
+        try:
+            state = await commander.snapshot()
+            return JSONResponse(
+                {"ok": True, "demo": verifier_quorum_demo(state)},
                 headers=_content_security_headers(),
             )
         except Exception as exc:

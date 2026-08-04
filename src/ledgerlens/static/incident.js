@@ -222,6 +222,57 @@
     window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
   };
 
+  // ---- differentiator proofs (real gate rejections) ------------------------
+  const short = (fp) => (fp ? String(fp).slice(0, 8) + "…" : "—");
+
+  const gateCard = (d) =>
+    h("article", { class: "proof" },
+      h("div", { class: "proof-head" },
+        h("span", { class: "proof-icon", text: "⛨" }),
+        h("h3", { text: "Plan-exact authorization" }),
+        h("span", { class: "proof-tag", text: "the differentiator" })),
+      h("p", { class: "proof-sub", text: "Same DataHub context — the executed plan differs from the reviewed plan by one appended action." }),
+      h("div", { class: "proof-fps" },
+        h("div", { class: "fp ok" }, h("small", { text: "REVIEWED PLAN" }), h("code", { text: short(d.reviewedPlanFingerprint) }), h("span", { class: "fpv ok", text: "✓ authorized" })),
+        h("div", { class: "proof-vs", text: "+1 action ⇒" }),
+        h("div", { class: "fp bad" }, h("small", { text: "EXECUTED PLAN" }), h("code", { text: short(d.executedPlanFingerprint) }), h("span", { class: "fpv bad", text: "✕ DENIED" }))),
+      h("p", { class: "proof-fail" }, h("b", { text: "Gate refused: " }), (d.denied?.failedConditions || []).join(" · ")),
+      h("p", { class: "proof-point", text: d.point || "" }));
+
+  const quorumCard = (d) => {
+    const chips = h("div", { class: "proof-verifiers" });
+    for (const v of (d.verifiers || [])) {
+      chips.append(h("span", { class: "vchip " + (v.verdict === "pass" ? "ok" : "bad"), text: v.id + (v.verdict === "pass" ? " ✓" : " ✕ objected") }));
+    }
+    return h("article", { class: "proof" },
+      h("div", { class: "proof-head" },
+        h("span", { class: "proof-icon", text: "◈" }),
+        h("h3", { text: "Independent verifier quorum" }),
+        h("span", { class: "proof-tag", text: "2-of-2 required" })),
+      h("p", { class: "proof-sub", text: "AI review is advisory. One of two independent verifiers objecting is enough to hold the gate." }),
+      chips,
+      h("p", { class: "proof-line" }, "Unanimous → ", h("b", { class: "ok", text: (d.unanimous?.decision || "") }),
+        "   ·   Split → ", h("b", { class: "bad", text: (d.split?.decision || "").toUpperCase() }),
+        " (" + (d.split?.failedConditions || []).join(", ") + ")"),
+      h("p", { class: "proof-point", text: d.point || "" }));
+  };
+
+  const buildProofs = async () => {
+    const el = document.querySelector("[data-proofs]");
+    if (!el) return;
+    el.replaceChildren(
+      h("p", { class: "proofs-eyebrow", text: "TWO PROOFS THE GATE IS REAL" }),
+      h("h2", { class: "proofs-title", text: "What makes this different from the other DataHub agents" }));
+    try {
+      const [g, q] = await Promise.all([
+        fetch(`${apiBase}/gate-demo`, { credentials: "same-origin" }).then((r) => r.json()),
+        fetch(`${apiBase}/quorum-demo`, { credentials: "same-origin" }).then((r) => r.json()),
+      ]);
+      if (g && g.demo) el.append(gateCard(g.demo));
+      if (q && q.demo) el.append(quorumCard(q.demo));
+    } catch (error) { /* leave the heading; proofs are best-effort */ }
+  };
+
   const start = async () => {
     if (replayBtn) replayBtn.disabled = true;
     body.classList.add("js");
@@ -234,7 +285,7 @@
       const data = await res.json();
       if (!res.ok || !data.ok || !data.state) throw new Error(data.detail || "Trigger failed.");
       backend = data.state;
-      buildTimeline(); paintTimeline(); buildPipe(); buildStory();
+      buildTimeline(); paintTimeline(); buildPipe(); buildStory(); buildProofs();
     } catch (error) {
       body.classList.remove("js");
       logEl.replaceChildren();
