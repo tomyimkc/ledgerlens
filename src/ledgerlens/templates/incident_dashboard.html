@@ -82,7 +82,7 @@
               <h1>One pipeline, any data incident.</h1>
             </div>
             <button type="button" class="button button-signal" data-flow-replay data-trigger-incident>
-              <span aria-hidden="true">▶</span> Play
+              <span aria-hidden="true">↑</span> Restart
             </button>
           </div>
           <div class="orient">
@@ -98,7 +98,10 @@
             </nav>
           </div>
           <div class="timeline" data-timeline aria-label="Incident events"></div>
-          <div class="pipe" data-pipe aria-label="Pipeline flow"></div>
+          <div class="pipe-sticky">
+            <div class="pipe" data-pipe aria-label="Pipeline flow"></div>
+            <p class="scrollhint" data-scrollhint><span aria-hidden="true">↓</span> scroll to walk the pipeline</p>
+          </div>
           <div class="detail" data-detail aria-live="polite"></div>
         </section>
 

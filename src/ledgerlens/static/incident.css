@@ -2247,17 +2247,21 @@ footer {
 .playing .parrow:not(.flowing):not(.filled) { background: linear-gradient(90deg, var(--line), var(--line-strong), var(--line)); background-size: 200% 100%; animation: idleShimmer 2.4s linear infinite; }
 @keyframes idleShimmer { to { background-position: -200% 0; } }
 
-/* --- accumulating story log (append below, never hide) --- */
-.detail { display: block; min-height: 80px; padding-top: 6px; }
+/* --- scroll-driven story steps (flowchart pinned; scroll reveals phases) --- */
+.pipe-sticky { position: sticky; top: 76px; z-index: 30; background: var(--void); padding: 12px 0 10px; box-shadow: 0 14px 20px -14px var(--void); }
+.scrollhint { text-align: center; color: var(--muted-2); font-size: 12px; letter-spacing: 0.08em; margin: 4px 0 0; transition: opacity 0.4s; animation: hintBob 1.9s ease-in-out infinite; }
+.scrollhint.gone { opacity: 0; }
+@keyframes hintBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+
+.detail { display: block; padding-top: 8px; }
 .logloading { display: flex; gap: 12px; align-items: center; color: var(--muted); padding: 18px 4px; font-size: 15px; }
 .logrow {
-  display: grid; grid-template-columns: 40px 1fr; gap: 16px; padding-bottom: 18px; position: relative;
-  opacity: 0; transform: translateY(10px); transition: opacity 0.4s ease, transform 0.4s ease;
+  display: grid; grid-template-columns: 40px 1fr; gap: 16px; position: relative;
+  min-height: 50vh; align-content: center; padding: 3vh 0;
+  opacity: 0.4; transition: opacity 0.45s ease;
 }
-.logrow.in { opacity: 1; transform: none; }
+.logrow.in { opacity: 1; }
 .logmark { position: relative; }
-.logmark::before { content: ""; position: absolute; left: 19px; top: 40px; bottom: -6px; width: 2px; background: var(--line); }
-.logrow:last-child .logmark::before { display: none; }
 .lognum {
   width: 38px; height: 38px; border-radius: 999px; display: grid; place-items: center;
   font-size: 12px; font-weight: 800; background: var(--teal-dim); color: var(--teal);
