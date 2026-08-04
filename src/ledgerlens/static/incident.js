@@ -1,11 +1,13 @@
 (() => {
   "use strict";
 
-  // Animated incident-pipeline diagram. A timeline of DataHub-observed incidents
-  // feeds one visible pipeline: data flows node -> node along animated arrows,
-  // each node tied to the repo module that handles it. Minimal text; click a node
-  // for the short detail. The server still renders the full panels as a no-JS
-  // fallback (see `.legacy-content`), only hidden once the diagram is ready.
+  // Animated incident-pipeline diagram + an accumulating story log. A timeline of
+  // DataHub-observed incidents feeds one visible pipeline: data flows node -> node
+  // along animated arrows, and each stage APPENDS a card into a growing vertical
+  // story below (never hiding the earlier stages) so the whole progress stays on
+  // screen. Each node maps to the repo module that handles it. The server still
+  // renders the full panels as a no-JS fallback (see `.legacy-content`), hidden
+  // only once the diagram is ready.
   //
   // Authorization is deterministic: "Evaluating deterministic gate" is shown while
   // the executed fixture state loads — AI cannot open the gate.
@@ -15,12 +17,12 @@
   const root = document.querySelector("[data-flow-root]");
   const timelineEl = document.querySelector("[data-timeline]");
   const pipeEl = document.querySelector("[data-pipe]");
-  const detailEl = document.querySelector("[data-detail]");
+  const logEl = document.querySelector("[data-detail]");
   const replayBtn = document.querySelector("[data-flow-replay]");
   const GATE = "Evaluating deterministic gate…";
-  const STEP_MS = 900;
+  const STEP_MS = 950;
 
-  if (!root || !timelineEl || !pipeEl || !detailEl) return; // keep server fallback
+  if (!root || !timelineEl || !pipeEl || !logEl) return; // keep server fallback
 
   const h = (tag, attrs, ...kids) => {
     const node = document.createElement(tag);
@@ -60,8 +62,9 @@
   let current = SCENARIOS[0];
   let nodes = [];
   let arrows = [];
+  let cards = {};       // stage index -> appended log row
+  let revealed = -1;    // highest stage index revealed in the log
   let timer = null;
-  let active = 0;
 
   // ---- timeline ------------------------------------------------------------
   const buildTimeline = () => {
@@ -90,7 +93,7 @@
         h("span", { class: "pnode-icon", text: n.icon }),
         h("span", { class: "pnode-label", text: n.label }),
         h("code", { class: "pnode-mod", text: n.mod }));
-      node.addEventListener("click", () => { stop(); activate(i); });
+      node.addEventListener("click", () => { stop(); revealUpTo(i); });
       pipeEl.append(node);
       nodes.push(node);
       if (i < NODES.length - 1) {
@@ -107,16 +110,15 @@
     arrow.classList.remove("flowing");
     void arrow.offsetWidth; // restart the packet animation
     arrow.classList.add("flowing");
-    setTimeout(() => arrow.classList.add("filled"), STEP_MS - 120);
+    setTimeout(() => arrow.classList.add("filled"), STEP_MS - 150);
   };
 
-  const activate = (i) => {
-    active = Math.max(0, Math.min(NODES.length - 1, i));
+  const paintDiagram = (i) => {
     nodes.forEach((node, k) => {
-      node.classList.toggle("active", k === active);
-      node.classList.toggle("done", k < active);
+      node.classList.toggle("active", k === i);
+      node.classList.toggle("done", k < i);
     });
-    renderDetail(active);
+    arrows.forEach((a, k) => { if (k < i) a.classList.add("filled"); });
   };
 
   const receiptChips = (i) => {
@@ -131,35 +133,61 @@
     return null;
   };
 
-  const renderDetail = (i) => {
+  // ---- accumulating story log (append, never hide) -------------------------
+  const appendStage = (i) => {
+    if (cards[i]) return cards[i];
     const n = NODES[i];
-    const card = h("div", { class: "dcard" },
-      h("div", { class: "dhead" },
-        h("span", { class: "dicon", text: n.icon }),
-        h("div", null, h("strong", { text: (i + 1).toString().padStart(2, "0") + " · " + n.label }),
-          h("code", { class: "dmod", text: n.mod })),
-        i === 4 ? h("span", { class: "dtag ok", text: "AI can't authorize" }) : null),
-      h("p", { class: "dline", text: n.line(current) }));
+    const row = h("div", { class: "logrow", "data-i": String(i) },
+      h("div", { class: "logmark" }, h("span", { class: "lognum", text: (i + 1).toString().padStart(2, "0") })),
+      h("div", { class: "logbody" },
+        h("div", { class: "logtop" },
+          h("span", { class: "logicon", text: n.icon }),
+          h("strong", { text: n.label }),
+          h("code", { class: "logmod", text: n.mod }),
+          i === 4 ? h("span", { class: "logtag", text: "AI can't authorize" }) : null),
+        h("p", { class: "logline", text: n.line(current) })));
     const chips = receiptChips(i);
-    if (chips) card.append(chips);
-    else if (!current.featured && i >= 5) card.append(h("p", { class: "dnote", text: "Illustrative pattern — no receipts generated for this scenario." }));
-    card.classList.add("in-detail");
-    detailEl.replaceChildren(card);
-    requestAnimationFrame(() => card.classList.add("shown"));
+    if (chips) row.querySelector(".logbody").append(chips);
+    else if (!current.featured && i >= 5) row.querySelector(".logbody").append(h("p", { class: "dnote", text: "Illustrative pattern — no receipts generated for this scenario." }));
+    logEl.append(row);
+    cards[i] = row;
+    requestAnimationFrame(() => row.classList.add("in"));
+    return row;
+  };
+
+  const markActive = (i) => {
+    logEl.querySelectorAll(".logrow.active").forEach((r) => r.classList.remove("active"));
+    cards[i]?.classList.add("active");
+  };
+
+  const revealUpTo = (i, scrollBlock) => {
+    i = Math.max(0, Math.min(NODES.length - 1, i));
+    for (let k = revealed + 1; k <= i; k++) appendStage(k);
+    revealed = Math.max(revealed, i);
+    paintDiagram(i);
+    markActive(i);
+    cards[i]?.scrollIntoView({ behavior: "smooth", block: scrollBlock || "nearest" });
+  };
+
+  const resetLog = () => {
+    logEl.replaceChildren();
+    cards = {};
+    revealed = -1;
+    arrows.forEach((a) => a.classList.remove("flowing", "filled"));
   };
 
   const stop = () => { if (timer) { clearTimeout(timer); timer = null; } root.classList.remove("playing"); };
 
   const play = () => {
     stop();
-    arrows.forEach((a) => a.classList.remove("flowing", "filled"));
+    resetLog();
     root.classList.add("playing");
-    activate(0);
+    revealUpTo(0);
     let i = 0;
     const tick = () => {
       if (i >= NODES.length - 1) { stop(); return; }
       flowArrow(i);
-      timer = setTimeout(() => { i += 1; activate(i); tick(); }, STEP_MS);
+      timer = setTimeout(() => { i += 1; revealUpTo(i); tick(); }, STEP_MS);
     };
     tick();
   };
@@ -167,7 +195,7 @@
   const start = async () => {
     if (replayBtn) replayBtn.disabled = true;
     body.classList.add("js");
-    detailEl.replaceChildren(h("div", { class: "dcard" }, h("p", { class: "dline", text: GATE })));
+    logEl.replaceChildren(h("div", { class: "logloading" }, h("span", { class: "sv-spinner", "aria-hidden": "true" }), GATE));
     try {
       const res = await fetch(`${apiBase}/trigger`, {
         method: "POST", credentials: "same-origin",
@@ -179,7 +207,7 @@
       buildTimeline(); paintTimeline(); buildPipe(); play();
     } catch (error) {
       body.classList.remove("js"); // reveal the server-rendered fallback
-      detailEl.replaceChildren();
+      logEl.replaceChildren();
     } finally {
       if (replayBtn) replayBtn.disabled = false;
     }
@@ -187,8 +215,8 @@
 
   replayBtn?.addEventListener("click", () => play());
   document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowRight") { stop(); activate(active + 1); }
-    else if (e.key === "ArrowLeft") { stop(); activate(active - 1); }
+    if (e.key === "ArrowRight") { stop(); revealUpTo(revealed + 1); }
+    else if (e.key === "ArrowLeft" && cards[revealed - 1]) { stop(); paintDiagram(revealed - 1); markActive(revealed - 1); cards[revealed - 1].scrollIntoView({ behavior: "smooth", block: "center" }); revealed -= 1; }
   });
 
   start();

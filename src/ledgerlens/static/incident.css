@@ -2247,23 +2247,33 @@ footer {
 .playing .parrow:not(.flowing):not(.filled) { background: linear-gradient(90deg, var(--line), var(--line-strong), var(--line)); background-size: 200% 100%; animation: idleShimmer 2.4s linear infinite; }
 @keyframes idleShimmer { to { background-position: -200% 0; } }
 
-/* --- minimal node detail --- */
-.detail { min-height: 132px; }
-.dcard {
-  border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
-  box-shadow: var(--shadow); padding: 18px 20px; opacity: 0; transform: translateY(8px);
-  transition: opacity 0.35s ease, transform 0.35s ease;
+/* --- accumulating story log (append below, never hide) --- */
+.detail { display: block; min-height: 80px; padding-top: 6px; }
+.logloading { display: flex; gap: 12px; align-items: center; color: var(--muted); padding: 18px 4px; font-size: 15px; }
+.logrow {
+  display: grid; grid-template-columns: 40px 1fr; gap: 16px; padding-bottom: 18px; position: relative;
+  opacity: 0; transform: translateY(10px); transition: opacity 0.4s ease, transform 0.4s ease;
 }
-.dcard.shown { opacity: 1; transform: none; }
-.dhead { display: flex; align-items: center; gap: 14px; }
-.dicon { width: 40px; height: 40px; display: grid; place-items: center; font-size: 19px; border-radius: 11px; background: var(--teal-dim); color: var(--teal); }
-.dhead strong { display: block; font-size: 16px; }
-.dmod { font-size: 12px; color: var(--muted); }
-.dtag { margin-left: auto; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; }
-.dtag.ok { color: var(--teal); background: var(--teal-dim); border: 1px solid var(--teal); }
-.dline { margin-top: 10px; color: var(--ink); font-size: 15px; }
-.dnote { margin-top: 8px; color: var(--muted-2); font-size: 12.5px; }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.logrow.in { opacity: 1; transform: none; }
+.logmark { position: relative; }
+.logmark::before { content: ""; position: absolute; left: 19px; top: 40px; bottom: -6px; width: 2px; background: var(--line); }
+.logrow:last-child .logmark::before { display: none; }
+.lognum {
+  width: 38px; height: 38px; border-radius: 999px; display: grid; place-items: center;
+  font-size: 12px; font-weight: 800; background: var(--teal-dim); color: var(--teal);
+  border: 1px solid var(--teal); transition: box-shadow 0.3s;
+}
+.logrow.active .lognum { box-shadow: 0 0 0 3px var(--teal-dim), 0 0 22px rgba(53, 213, 186, 0.45); }
+.logbody { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 14px 16px; transition: border-color 0.3s, box-shadow 0.3s; }
+.logrow.active .logbody { border-color: var(--teal); box-shadow: 0 12px 34px rgba(53, 213, 186, 0.16); }
+.logtop { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.logicon { color: var(--teal); font-size: 16px; }
+.logtop strong { font-size: 15px; }
+.logmod { font-size: 11px; color: var(--muted); }
+.logtag { margin-left: auto; font-size: 11px; font-weight: 800; color: var(--teal); background: var(--teal-dim); border: 1px solid var(--teal); padding: 3px 9px; border-radius: 999px; }
+.logline { margin-top: 6px; color: var(--ink); font-size: 14px; }
+.dnote { margin-top: 6px; color: var(--muted-2); font-size: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .chip { font-size: 12px; color: var(--teal); background: var(--teal-dim); border: 1px solid var(--teal-dim); padding: 4px 9px; border-radius: 8px; word-break: break-all; }
 
 @media (max-width: 720px) {
