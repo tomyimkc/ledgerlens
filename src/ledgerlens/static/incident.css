@@ -2348,3 +2348,11 @@ footer {
 .proof-line { margin-top: 12px; font-size: 14px; color: var(--muted); }
 .proof-line b.ok { color: var(--teal); }
 .proof-line b.bad { color: var(--coral); }
+
+.compare .cmp { display: grid; gap: 8px; margin-top: 14px; }
+.cmp-row { display: grid; grid-template-columns: 200px 1fr; gap: 14px; align-items: center; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); }
+.cmp-who { font-weight: 800; font-size: 13px; color: var(--muted); }
+.cmp-what { font-size: 13.5px; color: var(--ink); }
+.cmp-row.us { border-color: var(--teal); background: var(--teal-dim); }
+.cmp-row.us .cmp-who { color: var(--teal); }
+@media (max-width: 640px) { .cmp-row { grid-template-columns: 1fr; gap: 4px; } }
