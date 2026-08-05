@@ -2531,3 +2531,17 @@ body.js .pnode.done .pnode-icon { color: var(--teal); }
 .gw-arrow { color: var(--muted-2); font-size: 12px; }
 .gate-where-cap { margin: 10px 0 0; font-size: 13.5px; line-height: 1.55; color: var(--muted); }
 .gate-where-cap b.ok { color: var(--teal); }
+
+/* adoption: real MCP input/output cards */
+.io-sub { margin: 30px 0 4px; font-size: 17px; letter-spacing: -0.01em; }
+.io-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 12px; margin-top: 12px; }
+.io-card { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; }
+.io-hd { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.io-tag { font-size: 10px; letter-spacing: 0.08em; font-weight: 800; padding: 3px 9px; border-radius: 999px; }
+.io-tag.read { color: var(--blue); background: rgba(37, 99, 235, 0.1); }
+.io-tag.write { color: var(--teal); background: var(--teal-dim); }
+.io-tool { font-size: 11px; color: var(--muted); }
+.io-code { margin: 0; border-radius: 0; }
+.io-note { margin: 0; padding: 10px 14px; font-size: 12.5px; line-height: 1.5; color: var(--muted); border-top: 1px solid var(--line); }
+.io-note a { color: var(--teal); }
+.io-note b { color: var(--ink); }
