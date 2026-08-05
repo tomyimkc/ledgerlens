@@ -50,33 +50,86 @@
 
   const SCENARIOS = [
     { id: "freshness", day: "MON", sev: 1, type: "Freshness SLO breach", entity: "analytics.payments_daily", trigger: "Freshness 23m over a 15m SLO", featured: true,
+      plain: "A payments table that is supposed to refresh every 15 minutes hasn't updated in 23. Every dashboard and risk model built on it is now quietly showing stale numbers.",
+      signal: [
+        "ASSERTION  freshness.payments_daily        FAILED",
+        "  last_loaded_at   2026-07-31T02:51:07Z   (23m ago)",
+        "  sla_max_lag      15m",
+        "  observed_lag     23m     ✗  +8m over SLO",
+        "  downstream       finance.revenue_executive (T1) +2",
+      ],
+      fix: "Open a tracked incident, page the recorded on-call owner, and post the blast radius to Slack — every action grounded in the DataHub owner + lineage, bounded and reversible.",
       ctx: { owner: "Data Platform", tier: "Tier 1", change: "Freshness assertion breached (observed 23m > 15m SLO)",
         assets: [
           { name: "finance.revenue_executive", criticality: "Tier 1", relationship: "1 hop downstream" },
           { name: "risk.payment_anomaly_features", criticality: "Tier 1", relationship: "2 hops downstream" },
           { name: "growth.checkout_health", criticality: "Tier 1", relationship: "2 hops downstream" }] } },
     { id: "schema", day: "TUE", sev: 2, type: "Schema drift", entity: "core.orders_v2", trigger: "Breaking column type change detected",
+      plain: "Someone changed the order-total column from a whole number to a decimal. Any table or model that still reads it as a whole number can now break or silently round money.",
+      signal: [
+        "schemaMetadata  core.orders_v2       BREAKING CHANGE",
+        "  - order_total   INT",
+        "  + order_total   DECIMAL(12,2)",
+        "  affected  analytics.orders_daily (T1)",
+        "            ml.churn_features (T1)",
+      ],
+      fix: "File a schema-change record on the owning team, flag the two downstream models that read the column, and hold any risky action behind the deterministic policy gate.",
       ctx: { owner: "Commerce", tier: "Tier 1", change: "order_total INT → DECIMAL (breaking) in schemaMetadata",
         assets: [
           { name: "analytics.orders_daily", criticality: "Tier 1", relationship: "1 hop downstream" },
           { name: "ml.churn_features", criticality: "Tier 1", relationship: "2 hops downstream" },
           { name: "finance.rev_recognition", criticality: "Tier 2", relationship: "2 hops downstream" }] } },
     { id: "volume", day: "WED", sev: 2, type: "Volume anomaly", entity: "events.clickstream", trigger: "Row count −62% vs baseline",
+      plain: "The stream of website click events suddenly dropped to a third of its normal size. Something upstream is dropping data, and every metric built on it will read low.",
+      signal: [
+        "ASSERTION  volume.clickstream             FAILED",
+        "  rows_last_1h     48,210",
+        "  baseline_7d_avg  126,900",
+        "  delta            −62%    ✗  below −40% floor",
+      ],
+      fix: "Record the drop, notify the Growth owner, and warn the downstream metrics + ML-training tables. Nothing is 'fixed' automatically — humans decide; receipts are kept.",
       ctx: { owner: "Growth", tier: "Tier 2", change: "Row-count assertion: −62% vs 7-day baseline",
         assets: [
           { name: "growth.session_metrics", criticality: "Tier 1", relationship: "1 hop downstream" },
           { name: "ml.recommender_train", criticality: "Tier 2", relationship: "2 hops downstream" }] } },
     { id: "access", day: "THU", sev: 1, type: "Access / ACL change", entity: "pii.customers", trigger: "Ownership and ACL changed on PII",
+      plain: "The permissions on a table full of customer personal data were just widened to everyone, and its owner was cleared. That is a potential privacy and security exposure.",
+      signal: [
+        "ownership + policy  pii.customers    ⚠ SENSITIVE",
+        "  - grant  role:trust-safety    SELECT",
+        "  + grant  role:all-employees   SELECT",
+        "  - owner  trust-safety@team",
+        "  + owner  (unset)",
+      ],
+      fix: "Raise a SEV-1, page Trust & Safety, and file an access-review ticket. It never edits the ACL itself — widening or narrowing access is out of its allowlist by design.",
       ctx: { owner: "Trust & Safety", tier: "Tier 1", change: "Ownership + ACL widened on a PII dataset",
         assets: [
           { name: "support.customer_360", criticality: "Tier 1", relationship: "1 hop downstream" },
           { name: "marketing.audiences", criticality: "Tier 2", relationship: "2 hops downstream" }] } },
     { id: "deploy", day: "FRI", sev: 1, type: "Upstream deploy break", entity: "finance.revenue_dashboard", trigger: "dbt deploy invalidated the model",
+      plain: "A code change upstream (a dbt model deploy) removed a filter, so the finance revenue dashboard is now built on the wrong rows — and the board pack reads straight from it.",
+      signal: [
+        "deploy  dbt:rev_model @ a1f9c2      INVALIDATED",
+        "  revenue_recognized AS (",
+        "  -   WHERE status = 'recognized'",
+        "  +   -- filter removed in this deploy",
+        "  )",
+        "  stale → finance.revenue_dashboard → exec.board_pack (T1)",
+      ],
+      fix: "Link the incident to the exact deploy commit, page Finance, and open a rollback/repair ticket. The fix stays with the owning engineer, with a full receipt trail.",
       ctx: { owner: "Finance", tier: "Tier 1", change: "Upstream dbt model deploy (rev_model) marked stale",
         assets: [
           { name: "exec.board_pack", criticality: "Tier 1", relationship: "1 hop downstream" },
           { name: "finance.daily_close", criticality: "Tier 2", relationship: "2 hops downstream" }] } },
     { id: "ingest", day: "SAT", sev: 3, type: "Ingestion failure", entity: "vendor.billing_feed", trigger: "Connector run failed; lineage stale",
+      plain: "The nightly job that pulls a vendor's billing data failed, so the feed is stale. Anything that reconciles money against it — the accounts-receivable ledger — is now out of date.",
+      signal: [
+        "ingestion  vendor-billing-cdc            FAILED",
+        "  connector     billing_feed",
+        "  error         ConnectorError: source 402 auth expired",
+        "  lastObserved  2026-07-30T23:10Z   (28h stale)",
+      ],
+      fix: "Record the failed run, notify Vendor Ops, and flag the AR ledger as running on stale data — so no one closes the books on numbers that never actually arrived.",
       ctx: { owner: "Vendor Ops", tier: "Tier 3", change: "Ingestion run failed; systemMetadata.lastObserved stale",
         assets: [
           { name: "finance.ar_ledger", criticality: "Tier 2", relationship: "1 hop downstream" }] } },
@@ -167,6 +220,21 @@
     return g;
   };
 
+  // Plain-language situation + a concrete "what went wrong" data/code block + the fix,
+  // shown at the Trigger step so an outsider grasps each incident before the flow runs.
+  const situationCard = () => {
+    const s = current;
+    const card = h("div", { class: "situation" });
+    if (s.plain) card.append(h("p", { class: "sit-plain" }, h("b", { text: "In plain terms — " }), s.plain));
+    if (s.signal && s.signal.length) {
+      card.append(h("div", { class: "sit-signal" },
+        h("div", { class: "sit-cap", text: "WHAT DATAHUB SAW · fixture" }),
+        h("pre", { class: "sit-code", text: s.signal.join("\n") })));
+    }
+    if (s.fix) card.append(h("p", { class: "sit-fix" }, h("b", { text: "How LedgerLens responds — " }), s.fix));
+    return card;
+  };
+
   const receiptChips = (i) => {
     if (!current.featured || !backend) return null;
     if (i === 5) {
@@ -190,6 +258,7 @@
     if (i === 4) top.append(h("span", { class: "logtag", text: "AI can't authorize" }));
     if (i === 6) top.append(mcpBadge("save_document"));
     const bodyEl = h("div", { class: "logbody" }, top, h("p", { class: "logline", text: n.line(current) }));
+    if (i === 0) bodyEl.append(situationCard());
     if (i === 1 && backend && backend.context) bodyEl.append(lineageGraph());
     if (i === 6) {
       const wb = h("p", { class: "dhback" }, "↳ writes the incident receipt back to DataHub via save_document (MCP mutation).");
