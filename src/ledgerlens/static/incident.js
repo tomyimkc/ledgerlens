@@ -196,6 +196,11 @@
     const chips = receiptChips(i);
     if (chips) bodyEl.append(chips);
     else if (!current.featured && i >= 5) bodyEl.append(h("p", { class: "dnote", text: "Illustrative pattern — no receipts generated for this scenario." }));
+    if (i === 5 && current.featured) bodyEl.append(h("p", { class: "dhback" },
+      "↳ fixture receipts above. One real four-provider run was recorded 2026-08-03 — GitHub ",
+      h("a", { href: "https://github.com/tomyimkc/ledgerlens/issues/29", target: "_blank", rel: "noopener", text: "#29" }),
+      " · Slack · PagerDuty · Jira KAN-2, one bounded rehearsal action each — ",
+      h("a", { href: "https://github.com/tomyimkc/ledgerlens/blob/main/docs/EVIDENCE_INDEX.md", target: "_blank", rel: "noopener", text: "evidence (E-16)" })));
     const row = h("div", { class: "logrow", "data-i": String(i) },
       h("div", { class: "logmark" }, h("span", { class: "lognum", text: (i + 1).toString().padStart(2, "0") })),
       bodyEl);
@@ -295,11 +300,27 @@
         h("div", { class: "cmp-row" }, h("span", { class: "cmp-who", text: "Generic LLM agent" }), h("span", { class: "cmp-what", text: "the model decides and acts — it authorizes itself" })),
         h("div", { class: "cmp-row us" }, h("span", { class: "cmp-who", text: "LedgerLens" }), h("span", { class: "cmp-what", text: "AI proposes + reviews → deterministic policy authorizes the exact plan → receipted actions + DataHub write-back" }))));
 
+  const contributeBackCard = () =>
+    h("article", { class: "proof compare" },
+      h("div", { class: "proof-head" },
+        h("span", { class: "proof-icon", text: "↥" }),
+        h("h3", { text: "We contributed back to DataHub" }),
+        h("span", { class: "proof-tag", text: "open-source · proposed" })),
+      h("p", { class: "proof-sub", text: "Building this surfaced a real gap in the official DataHub MCP server — so we filed a fix upstream." }),
+      h("div", { class: "cmp" },
+        h("div", { class: "cmp-row" }, h("span", { class: "cmp-who", text: "The gap" }), h("span", { class: "cmp-what", text: "get_entities returns cleaned metadata but not per-aspect systemMetadata (lastObserved, runId) — an agent can't tell DataHub ingestion time from a business event without a second, non-MCP API call." })),
+        h("div", { class: "cmp-row us" }, h("span", { class: "cmp-who", text: "Our proposal" }), h("span", { class: "cmp-what", text: "an opt-in provenance_aspects parameter that attaches a compact, allow-listed aspectProvenance object — default output unchanged." }))),
+      h("p", { class: "proof-point" },
+        h("a", { href: "https://github.com/acryldata/mcp-server-datahub/issues/159", target: "_blank", rel: "noopener", text: "Issue #159" }),
+        " · ",
+        h("a", { href: "https://github.com/acryldata/mcp-server-datahub/pull/160", target: "_blank", rel: "noopener", text: "PR #160" }),
+        " — open, not merged."));
+
   const buildProofs = async () => {
     const el = document.querySelector("[data-proofs]");
     if (!el) return;
     el.replaceChildren(
-      h("p", { class: "proofs-eyebrow", text: "TWO PROOFS THE GATE IS REAL" }),
+      h("p", { class: "proofs-eyebrow", text: "DIFFERENT — AND EVERY CLAIM IS CHECKABLE" }),
       h("h2", { class: "proofs-title", text: "What makes this different from the other DataHub agents" }),
       comparisonCard());
     try {
@@ -310,6 +331,7 @@
       if (g && g.demo) el.append(gateCard(g.demo));
       if (q && q.demo) el.append(quorumCard(q.demo));
     } catch (error) { /* leave the heading; proofs are best-effort */ }
+    el.append(contributeBackCard());
   };
 
   const start = async () => {
