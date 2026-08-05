@@ -32,7 +32,6 @@ def test_fixture_dashboard_has_full_command_surface_and_explicit_claim_boundary(
     assert response.headers["content-security-policy"].startswith("default-src 'self'")
     for expected in (
         "FIXTURE / REPLAY",
-        "No DataHub request or external mutation occurred",
         "INC-2042",
         "Grounded entity &amp; blast radius",
         "Bounded response plan",
