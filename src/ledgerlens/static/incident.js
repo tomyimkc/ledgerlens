@@ -159,7 +159,7 @@
         h("span", { class: "tent", text: s.entity }),
         h("span", { class: "tsev sev" + s.sev, text: "SEV-" + s.sev }),
         hasRealRun(s) ? h("span", { class: "tstar", text: "★ backed by a real run" }) : null);
-      card.addEventListener("click", () => { current = s; paintTimeline(); stopRun(); setModeWalk(); buildStory(); active = -1; setActive(0); });
+      card.addEventListener("click", () => { current = s; paintTimeline(); stopRun(); setMode("walk"); buildStory(); active = -1; setActive(0); });
       timelineEl.append(card);
     }
   };
@@ -176,7 +176,7 @@
         h("span", { class: "pnode-icon", text: n.icon }),
         h("span", { class: "pnode-label", text: n.label }),
         h("code", { class: "pnode-mod", text: n.mod }));
-      node.addEventListener("click", () => { stopRun(); setModeWalk(); setActive(i); });
+      node.addEventListener("click", () => { stopRun(); setMode("walk"); setActive(i); });
       pipeEl.append(node);
       nodes.push(node);
       if (i < NODES.length - 1) {
@@ -361,28 +361,139 @@
     setActive(active + 1);
     runTimer = setTimeout(stepRun, 1050);
   };
-  const runFlow = () => { setModeWalk(); stopRun(); active = -1; setActive(0); root.classList.add("running"); runTimer = setTimeout(stepRun, 700); };
-  const resetFlow = () => { stopRun(); setModeWalk(); active = -1; setActive(0); };
-  function setModeWalk() { mode = "walk"; root.classList.remove("show-proofs"); tabWalk?.classList.add("on"); tabProof?.classList.remove("on"); }
-  const setModeProofs = () => { stopRun(); mode = "proofs"; root.classList.add("show-proofs"); tabProof?.classList.add("on"); tabWalk?.classList.remove("on"); };
+  const runFlow = () => { setMode("walk"); stopRun(); active = -1; setActive(0); root.classList.add("running"); runTimer = setTimeout(stepRun, 700); };
+  const resetFlow = () => { stopRun(); setMode("walk"); active = -1; setActive(0); };
 
-  let tabWalk = null;
-  let tabProof = null;
+  const MODES = [
+    { key: "walk", label: "Walkthrough" },
+    { key: "proofs", label: "Why it wins" },
+    { key: "compare", label: "With vs without" },
+    { key: "code", label: "How it works" },
+  ];
+  const tabButtons = {};
+  function setMode(m) {
+    if (m !== "walk") stopRun();
+    mode = m;
+    root.dataset.mode = m;
+    for (const key of Object.keys(tabButtons)) tabButtons[key].classList.toggle("on", key === m);
+    if (m === "walk") setActive(active < 0 ? 0 : active);
+  }
+
   const buildControls = () => {
     if (!hintEl) return;
     const runB = h("button", { class: "ctl ctl-run", type: "button" }, h("span", { "aria-hidden": "true", text: "▶" }), " Run");
     const resetB = h("button", { class: "ctl", type: "button" }, h("span", { "aria-hidden": "true", text: "↺" }), " Restart");
-    tabWalk = h("button", { class: "ctl tab on", type: "button", text: "Walkthrough" });
-    tabProof = h("button", { class: "ctl tab", type: "button", text: "Why it wins" });
     runB.addEventListener("click", runFlow);
     resetB.addEventListener("click", resetFlow);
-    tabWalk.addEventListener("click", () => { setModeWalk(); setActive(active < 0 ? 0 : active); });
-    tabProof.addEventListener("click", setModeProofs);
-    hintEl.replaceChildren(
-      h("div", { class: "ctl-grp" }, runB, resetB),
-      h("div", { class: "ctl-grp tabs" }, tabWalk, tabProof));
+    const tabs = h("div", { class: "ctl-grp tabs" });
+    for (const m of MODES) {
+      const btn = h("button", { class: "ctl tab" + (m.key === "walk" ? " on" : ""), type: "button", text: m.label });
+      btn.addEventListener("click", () => setMode(m.key));
+      tabButtons[m.key] = btn;
+      tabs.append(btn);
+    }
+    hintEl.replaceChildren(h("div", { class: "ctl-grp" }, runB, resetB), tabs);
     hintEl.classList.add("controls");
     hintEl.classList.remove("gone");
+    buildCompare();
+    buildCode();
+  };
+
+  // ---- "With vs without" comparison table ----------------------------------
+  const CMP_ROWS = [
+    ["Incident context", "Just the alert payload", "DataHub owner, tier, schema + downstream lineage (get_entities + get_lineage)"],
+    ["Who authorizes actions", "The LLM decides and acts — it authorizes itself", "A deterministic PolicyGate authorizes the exact reviewed plan"],
+    ["Tampered / drifted plan", "Executes whatever the model emits", "Fingerprint-bound: any change to the plan is refused"],
+    ["Action targets", "The model can pick any target", "Allowlisted only; an off-allowlist target is refused"],
+    ["Provider work", "Ad-hoc or manual toil", "Receipted GitHub / Slack / PagerDuty / Jira fanout, reversible"],
+    ["Audit trail", "Chat logs", "Signed receipts + DataHub write-back + next-agent memory"],
+    ["Cause & recovery", "The model may overclaim a fix", "Explicit unknowns — a receipt is not proof of recovery"],
+  ];
+  const buildCompare = () => {
+    let el = root.querySelector("[data-compare]");
+    if (!el) { el = h("section", { class: "compare-view", "data-compare": "" }); root.append(el); }
+    const tbody = h("tbody");
+    for (const [dim, without, wit] of CMP_ROWS) {
+      tbody.append(h("tr", {},
+        h("th", { scope: "row", text: dim }),
+        h("td", { class: "without" }, h("span", { class: "x", text: "✕ " }), without),
+        h("td", { class: "with" }, h("span", { class: "ok", text: "✓ " }), wit)));
+    }
+    const table = h("table", { class: "cmp-table" },
+      h("thead", {}, h("tr", {},
+        h("th", { text: "" }),
+        h("th", { text: "Without LedgerLens" }),
+        h("th", { class: "us", text: "With LedgerLens" }))),
+      tbody);
+    el.replaceChildren(
+      h("p", { class: "proofs-eyebrow", text: "THE DIFFERENCE, ROW BY ROW" }),
+      h("h2", { class: "proofs-title", text: "With vs without LedgerLens integration" }),
+      table);
+  };
+
+  // ---- "How it works" — real code that engineers the data flow -------------
+  const CODE = [
+    {
+      title: "The data flow, engineered as one graph",
+      file: "src/ledgerlens/orchestrator.py · IncidentOrchestrator.run",
+      code: [
+        "# trigger → context → plan → verify → authorize → execute → writeback",
+        "context = IncidentContext.model_validate(self.context_provider(incident))   # DataHub read",
+        "plan = ActionPlan.model_validate(self.planner.plan(context))                # AI proposes",
+        "verification = self.verifier_panel.verify(context, plan)                    # AI reviews",
+        "authorization = self.policy_gate.authorize(context, plan, verification)     # deterministic gate",
+        "if not authorization.authorized:",
+        "    return self._blocked(...)          # fail closed — nothing runs",
+        "for action in plan.actions:",
+        "    receipts.append(self._execute_action(..., action=action))              # allowlisted fanout",
+        "writeback_outcome = self.writeback(snapshot)                               # DataHub write-back",
+      ],
+    },
+    {
+      title: "Read the DataHub lineage graph over MCP",
+      file: "src/ledgerlens/datahub_context.py · DataHubMCPContextProvider",
+      code: [
+        "entities = self.client.get_entities([root_urn])           # MCP: read the entity",
+        "lineage  = self.client.get_lineage(root_urn, direction=\"downstream\",",
+        "                                   max_hops=self.max_hops, count=self.max_results)",
+        "downstream_urns = tuple(dict.fromkeys(",
+        "    str(item[\"urn\"]) for item in lineage if item[\"urn\"] != root_urn))",
+        "facts = (",
+        "    _fact(\"root-asset\",    f\"The triggering DataHub entity is {root_urn}.\", root_urn),",
+        "    _fact(\"primary-owner\", f\"The recorded owner is {owner}.\", f\"{root_urn}#ownership\"),",
+        "    _fact(\"blast-radius\",  f\"{len(downstream_urns)} downstream entities.\", ...),",
+        ")",
+      ],
+    },
+    {
+      title: "The deterministic gate on the flow",
+      file: "src/ledgerlens/verification.py · PolicyGate.authorize",
+      code: [
+        "for action in plan.actions:",
+        "    allowance = self._allowances.get(action.action_type)",
+        "    if allowance is None:",
+        "        reasons.append(f\"action_not_allowlisted:{action.action_id}\")",
+        "    if action.target not in allowance.targets:",
+        "        reasons.append(f\"target_not_allowlisted:{action.action_id}\")    # off-graph target",
+        "    if not frozenset(action.evidence_fact_ids) <= context.fact_ids:",
+        "        reasons.append(f\"action_references_unknown_fact:{...}\")          # ungrounded action",
+        "authorized = not reasons     # any failed check blocks the whole plan",
+      ],
+    },
+  ];
+  const buildCode = () => {
+    let el = root.querySelector("[data-code]");
+    if (!el) { el = h("section", { class: "code-view", "data-code": "" }); root.append(el); }
+    const grid = h("div", { class: "code-grid" });
+    for (const c of CODE) {
+      grid.append(h("article", { class: "code-card" },
+        h("div", { class: "code-hd" }, h("h3", { text: c.title }), h("code", { class: "code-file", text: c.file })),
+        h("pre", { class: "code-block", text: c.code.join("\n") })));
+    }
+    el.replaceChildren(
+      h("p", { class: "proofs-eyebrow", text: "GRAPH-ENGINEERING THE FLOW OF DATA" }),
+      h("h2", { class: "proofs-title", text: "How the flow is built — real repo code (condensed)" }),
+      grid);
   };
 
   // ---- differentiator proofs (real gate rejections) ------------------------
