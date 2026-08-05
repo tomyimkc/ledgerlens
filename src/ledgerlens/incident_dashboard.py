@@ -1051,6 +1051,143 @@ def verifier_quorum_demo(state: Mapping[str, Any]) -> JsonObject:
     }
 
 
+def allowlist_scope_demo() -> JsonObject:
+    """Prove the REAL PolicyGate refuses an off-allowlist target.
+
+    Unlike the plan-exact and quorum demos (which run the dashboard's JSON gate on the
+    live snapshot), this exercises the *production* ``ledgerlens.verification.PolicyGate``
+    — the same class the orchestrator calls for the real multi-provider fanout (E-16) — on
+    a minimal, self-contained plan. One grounded Slack action is authorized against its
+    allowlisted channel, then denied when only its target is changed to an off-allowlist
+    channel. AI review passes in both runs; the allowlist is enforced by deterministic
+    policy, not the model. This backs the README claim that AI "cannot expand target
+    allowlists".
+    """
+
+    from datetime import UTC, datetime
+
+    from ledgerlens.incident_models import (
+        ActionPlan,
+        ActionRisk,
+        EvidenceKind,
+        EvidencePointer,
+        Incident,
+        IncidentContext,
+        IncidentFact,
+        IncidentSeverity,
+        IncidentTrigger,
+        PlannedAction,
+    )
+    from ledgerlens.runtime_factory import build_policy_gate
+    from ledgerlens.verification import VerifierAssessment, VerifierPanel
+
+    clock = datetime(2026, 7, 31, 3, 14, tzinfo=UTC)
+    allowlisted = "#inc-data-platform"
+    off_allowlist = "#all-company"
+    root_urn = "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.orders,PROD)"
+
+    incident = Incident(
+        incident_id="INC-ALLOWLIST-DEMO",
+        title="Orders freshness threshold exceeded",
+        severity=IncidentSeverity.HIGH,
+        detected_at=clock,
+        trigger=IncidentTrigger(
+            trigger_id="allowlist-demo:trigger",
+            source="datahub",
+            kind="freshness_slo",
+            occurred_at=clock,
+            idempotency_key="allowlist-demo:trigger",
+        ),
+        affected_entities=(root_urn,),
+    )
+    context = IncidentContext(
+        context_id="allowlist-demo:context",
+        incident=incident,
+        collected_at=clock,
+        facts=(
+            IncidentFact(
+                fact_id="root-asset",
+                statement="The triggering DataHub entity is analytics.orders.",
+                evidence=(EvidencePointer(reference=root_urn, kind=EvidenceKind.DATAHUB_ENTITY),),
+            ),
+        ),
+    )
+
+    def _plan(target: str) -> ActionPlan:
+        return ActionPlan(
+            plan_id="allowlist-demo:plan",
+            incident_id=incident.incident_id,
+            planner_id="demo:planner",
+            planner_family="demo-planner",
+            created_at=clock,
+            confidence=0.97,
+            summary="Post one bounded status update to the incident channel.",
+            actions=(
+                PlannedAction(
+                    action_id="post-status",
+                    action_type="slack.message.post",
+                    target=target,
+                    parameters={
+                        "text": "INC-ALLOWLIST-DEMO acknowledged; cause and recovery unverified.",
+                    },
+                    rationale="Communicate a bounded status update to the incident channel.",
+                    evidence_fact_ids=("root-asset",),
+                    idempotency_key="allowlist-demo:post-status",
+                    risk=ActionRisk.LOW,
+                ),
+            ),
+        )
+
+    class _ApprovingVerifier:
+        def __init__(self, verifier_id: str, family: str) -> None:
+            self.verifier_id = verifier_id
+            self.family = family
+
+        def verify(self, context: IncidentContext, plan: ActionPlan) -> VerifierAssessment:
+            del context, plan
+            return VerifierAssessment(
+                approved=True,
+                confidence=0.96,
+                reasons=("The action is reversible, allowlisted, and grounded.",),
+            )
+
+    panel = VerifierPanel(
+        (
+            _ApprovingVerifier("demo:verifier-a", "reviewer-a"),
+            _ApprovingVerifier("demo:verifier-b", "reviewer-b"),
+        )
+    )
+    gate = build_policy_gate(
+        {"slack.message.post": (allowlisted,)},
+        minimum_plan_confidence=0.8,
+        minimum_verifier_confidence=0.85,
+        quorum=2,
+    )
+
+    ok_plan = _plan(allowlisted)
+    ok_decision = gate.authorize(context, ok_plan, panel.verify(context, ok_plan))
+    bad_plan = _plan(off_allowlist)
+    bad_decision = gate.authorize(context, bad_plan, panel.verify(context, bad_plan))
+
+    return {
+        "kind": "policy-allowlist-scope",
+        "allowlistedTarget": allowlisted,
+        "offAllowlistTarget": off_allowlist,
+        "approved": {"decision": "authorized" if ok_decision.authorized else "denied"},
+        "denied": {
+            "decision": "authorized" if bad_decision.authorized else "denied",
+            "failedConditions": list(bad_decision.reason_codes),
+        },
+        "point": (
+            "Same grounded action, same passing AI review — only the destination changed. "
+            "The production PolicyGate that authorizes the real fanout (E-16) refuses an "
+            "off-allowlist target. The model cannot widen the allowlist."
+        ),
+        "candidateOnly": True,
+        "canClaimAGI": False,
+    }
+
+
 def _content_security_headers() -> dict[str, str]:
     return {
         "Cache-Control": "no-store",
@@ -1199,6 +1336,16 @@ def create_incident_router(
             state = await commander.snapshot()
             return JSONResponse(
                 {"ok": True, "demo": verifier_quorum_demo(state)},
+                headers=_content_security_headers(),
+            )
+        except Exception as exc:
+            return error_response(exc)
+
+    @router.get("/api/allowlist-demo", name="incident_allowlist_demo")
+    async def api_allowlist_demo() -> Any:
+        try:
+            return JSONResponse(
+                {"ok": True, "demo": allowlist_scope_demo()},
                 headers=_content_security_headers(),
             )
         except Exception as exc:
