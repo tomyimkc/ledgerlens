@@ -89,10 +89,15 @@ Not a provider credential — the HMAC key the executor uses to sign each action
 export LEDGERLENS_ACTION_AUTHORIZATION_SECRET="$(python -c 'import secrets;print(secrets.token_urlsafe(32))')"
 ```
 
-### 6. Planner/verifier key
+### 6. Planner/verifier key (bring your own LLM)
+
+Any OpenAI-compatible endpoint works. Set the key, and optionally the base URL and model:
 
 ```bash
-export SOPHIA_020S_KEY="..."
+export LEDGERLENS_LLM_API_KEY="..."
+export LEDGERLENS_LLM_BASE_URL="https://api.openai.com/v1"   # optional; your endpoint
+export LEDGERLENS_LLM_MODEL="gpt-4o"                          # optional; your model
+# the legacy SOPHIA_020S_KEY name is still accepted
 ```
 
 ## Run it

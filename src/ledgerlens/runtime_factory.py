@@ -37,11 +37,11 @@ def build_020s_ai_roles(
     *,
     transports: Mapping[str, httpx.BaseTransport] | None = None,
 ) -> AIRoleBundle:
-    """Create one planner and a distinct-model verifier panel using 020s first."""
+    """Create one planner and a distinct-model verifier panel from the configured LLM."""
 
     if not settings.ai_verification_enabled:
         raise ValueError("LEDGERLENS_AI_VERIFICATION_ENABLED must be true")
-    key = settings.require_020s_key()
+    key = settings.require_llm_api_key()
     model_ids = settings.verifier_model_ids
     if settings.planner_model in model_ids:
         raise ValueError("planner model must not also be a verifier model")

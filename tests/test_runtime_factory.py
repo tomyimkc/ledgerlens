@@ -25,7 +25,7 @@ def test_020s_roles_use_distinct_configured_models() -> None:
     settings = Settings(
         _env_file=None,
         ai_verification_enabled=True,
-        sophia_020s_key="safe-test-key",
+        llm_api_key="safe-test-key",
         planner_model="gpt-5.6-sol",
         verifier_models="gpt-5.6-terra,gpt-5.5",
         verifier_quorum=2,
@@ -50,7 +50,7 @@ def test_planner_cannot_overlap_verifier_models() -> None:
     settings = Settings(
         _env_file=None,
         ai_verification_enabled=True,
-        sophia_020s_key="safe-test-key",
+        llm_api_key="safe-test-key",
         planner_model="gpt-5.6-sol",
         verifier_models="gpt-5.6-sol,gpt-5.5",
         verifier_quorum=2,

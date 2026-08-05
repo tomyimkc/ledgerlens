@@ -228,7 +228,7 @@ def test_020s_client_is_network_mocked_and_does_not_expose_key() -> None:
     settings = Settings(
         _env_file=None,
         llm_enabled=True,
-        sophia_020s_key="secret-020s-key",
+        llm_api_key="secret-020s-key",
     )
     model = OpenAICompatible020s(settings, transport=httpx.MockTransport(handler))
     assert model.phrase({"urn": URN_A, "candidateOnly": True}) == "Safe grounded summary."

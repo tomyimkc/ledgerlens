@@ -45,7 +45,7 @@ class PhraseModel(Protocol):
 
 
 class OpenAICompatible020s:
-    """Minimal OpenAI-compatible client fixed to the 020s API."""
+    """Minimal client for any OpenAI-compatible LLM at the configured base URL."""
 
     def __init__(
         self,
@@ -54,9 +54,7 @@ class OpenAICompatible020s:
         transport: httpx.BaseTransport | None = None,
         client: httpx.Client | None = None,
     ) -> None:
-        key = settings.require_020s_key()
-        if settings.llm_base_url != "https://api.020s.com/v1":
-            raise ValueError("020s credentials may only be sent to https://api.020s.com/v1")
+        key = settings.require_llm_api_key()
         self.model = settings.llm_model
         self._owns_client = client is None
         self._client = client or httpx.Client(

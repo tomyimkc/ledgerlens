@@ -242,7 +242,7 @@ catalog instead, copy `.env.example` to `.env` and set:
 | `DATAHUB_GMS_URL` | Your DataHub GMS endpoint |
 | `DATAHUB_GMS_TOKEN` | A DataHub personal access token (read-only is enough to start) |
 | `DATAHUB_MCP_URL` or `DATAHUB_MCP_COMMAND` | The official DataHub MCP server, for the read path |
-| `LEDGERLENS_LLM_ENABLED=true` + `SOPHIA_020S_KEY` | Enable the planner/verifier models (off by default) |
+| `LEDGERLENS_LLM_ENABLED=true` + `LEDGERLENS_LLM_API_KEY` | Enable the planner/verifier models — bring any OpenAI-compatible LLM via `LEDGERLENS_LLM_BASE_URL`/`LEDGERLENS_LLM_MODEL` (off by default; legacy `SOPHIA_020S_KEY` still accepted) |
 
 Write-back stays off until you deliberately set `LEDGERLENS_MUTATIONS_ENABLED=true`, and any action
 execution additionally requires `LEDGERLENS_ACTION_AUTHORIZATION_SECRET`. Start with
