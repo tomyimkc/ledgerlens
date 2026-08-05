@@ -58,11 +58,16 @@
     </header>
 
     {% if state.fixture %}
-      <aside class="fixture-banner" role="status" data-testid="fixture-label">
-        <strong>{{ state.fixture.label }}</strong>
-        <span>{{ state.fixture.note }}</span>
-        <code>{{ state.fixture.replay_id }}</code>
-      </aside>
+      <div class="topbar" data-testid="fixture-label">
+        <nav class="topnav" aria-label="Project links">
+          <a class="tnav-btn primary" href="https://youtu.be/D0SVpDWOrUw" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Watch the 3-min demo</a>
+          <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens" target="_blank" rel="noopener">GitHub repo</a>
+          <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens/blob/main/docs/EVIDENCE_INDEX.md" target="_blank" rel="noopener">Evidence index</a>
+          <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens#readme" target="_blank" rel="noopener">README</a>
+          <a class="tnav-btn" href="https://github.com/acryldata/mcp-server-datahub/pull/160" target="_blank" rel="noopener">Upstream PR</a>
+        </nav>
+        <span class="topbar-note">Public fixture replay · receipts are <code>fixture://</code> · no live calls</span>
+      </div>
     {% elif state.availability != "ready" %}
       <aside class="live-warning" role="alert" data-testid="live-unconfigured">
         <strong>LIVE BACKEND UNCONFIGURED</strong>
@@ -90,12 +95,6 @@
               Built on <strong>DataHub</strong> — MCP <code>get_entities</code> (read) +
               <code>save_document</code> (write-back).
             </span>
-            <nav class="orient-links">
-              <a href="https://github.com/tomyimkc/ledgerlens" target="_blank" rel="noopener">Code</a>
-              <a href="https://github.com/tomyimkc/ledgerlens/blob/main/docs/EVIDENCE_INDEX.md" target="_blank" rel="noopener">Live evidence</a>
-              <a href="https://github.com/tomyimkc/ledgerlens#readme" target="_blank" rel="noopener">README</a>
-              <a href="https://github.com/acryldata/mcp-server-datahub/pull/160" target="_blank" rel="noopener">Upstream PR</a>
-            </nav>
           </div>
           <div class="timeline" data-timeline aria-label="Incident events"></div>
           <div class="pipe-sticky">

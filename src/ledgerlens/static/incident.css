@@ -2545,3 +2545,15 @@ body.js .pnode.done .pnode-icon { color: var(--teal); }
 .io-note { margin: 0; padding: 10px 14px; font-size: 12.5px; line-height: 1.5; color: var(--muted); border-top: 1px solid var(--line); }
 .io-note a { color: var(--teal); }
 .io-note b { color: var(--ink); }
+
+/* top judge-navigation bar (replaces the fixture banner) */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; padding: 9px 22px; background: var(--surface); border-bottom: 1px solid var(--line); }
+body.js .topbar { flex: 0 0 auto; }
+.topnav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tnav-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 13px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; transition: border-color 0.15s, background 0.15s, color 0.15s; }
+.tnav-btn:hover { border-color: var(--teal); }
+.tnav-btn.primary { background: var(--teal); color: #fff; border-color: var(--teal); }
+.tnav-btn.primary:hover { background: var(--signal); border-color: var(--signal); }
+.topbar-note { font-size: 11.5px; color: var(--muted); }
+.topbar-note code { font-size: 11px; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
+@media (max-width: 720px) { .topbar { padding: 8px 16px; } .topbar-note { display: none; } }
