@@ -155,8 +155,9 @@ def main() -> int:
     if args.output.exists() and not args.force:
         print(f"refusing to overwrite existing receipt: {args.output}", file=sys.stderr)
         return 2
-    if not os.getenv("SOPHIA_020S_KEY"):
-        print("SOPHIA_020S_KEY is required", file=sys.stderr)
+    llm_key = os.getenv("LEDGERLENS_LLM_API_KEY") or os.getenv("SOPHIA_020S_KEY")
+    if not llm_key:
+        print("LEDGERLENS_LLM_API_KEY is required", file=sys.stderr)
         return 2
 
     catalog = load_incident_catalog()
@@ -165,8 +166,10 @@ def main() -> int:
     settings = Settings.model_validate(
         {
             "ai_verification_enabled": True,
-            "sophia_020s_key": os.environ["SOPHIA_020S_KEY"],
-            "planner_model": "gpt-5.6-sol",
+            "llm_api_key": llm_key,
+            "llm_base_url": os.getenv("LEDGERLENS_LLM_BASE_URL", "https://api.020s.com/v1"),
+            "llm_model": os.getenv("LEDGERLENS_LLM_MODEL", "gpt-5.6-sol"),
+            "planner_model": os.getenv("LEDGERLENS_PLANNER_MODEL", "gpt-5.6-sol"),
             "verifier_models": "gpt-5.6-terra,gpt-5.5",
             "verifier_quorum": 2,
             "verifier_min_confidence": 0.85,

@@ -12,9 +12,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Runtime settings.
 
-    The 020s credential deliberately has exactly one environment alias:
-    ``SOPHIA_020S_KEY``.  ``SecretStr`` prevents accidental disclosure through
-    repr/serialization, and callers must explicitly request the secret value.
+    Bring your own LLM: the planner/verifier key is ``LEDGERLENS_LLM_API_KEY`` (the legacy
+    ``SOPHIA_020S_KEY`` name is still accepted), and the endpoint is any OpenAI-compatible
+    ``LEDGERLENS_LLM_BASE_URL`` + ``LEDGERLENS_LLM_MODEL``. ``SecretStr`` prevents accidental
+    disclosure through repr/serialization; callers must explicitly request the secret value,
+    and the key is only ever sent to the configured (https) base URL.
     """
 
     model_config = SettingsConfigDict(
@@ -69,9 +71,9 @@ class Settings(BaseSettings):
         le=120,
         validation_alias="LEDGERLENS_LLM_TIMEOUT_SECONDS",
     )
-    sophia_020s_key: SecretStr | None = Field(
+    llm_api_key: SecretStr | None = Field(
         default=None,
-        validation_alias="SOPHIA_020S_KEY",
+        validation_alias=AliasChoices("LEDGERLENS_LLM_API_KEY", "SOPHIA_020S_KEY"),
         repr=False,
     )
 
@@ -156,10 +158,16 @@ class Settings(BaseSettings):
             raise ValueError("autonomous execution requires an action authorization secret")
         if self.ai_verification_enabled and self.verifier_quorum > len(self.verifier_model_ids):
             raise ValueError("verifier quorum exceeds configured verifier models")
-        if self.llm_enabled and self.sophia_020s_key is None:
-            raise ValueError("LEDGERLENS_LLM_ENABLED requires SOPHIA_020S_KEY")
-        if self.llm_base_url != "https://api.020s.com/v1":
-            raise ValueError("LedgerLens only sends SOPHIA_020S_KEY to https://api.020s.com/v1")
+        if self.llm_enabled and self.llm_api_key is None:
+            raise ValueError("LEDGERLENS_LLM_ENABLED requires LEDGERLENS_LLM_API_KEY")
+        if self.llm_api_key is not None and not (
+            self.llm_base_url.startswith("https://")
+            or self.llm_base_url.startswith("http://localhost")
+            or self.llm_base_url.startswith("http://127.0.0.1")
+        ):
+            raise ValueError(
+                "the LLM API key may only be sent over https:// (or a localhost endpoint)"
+            )
         return self
 
     @property
@@ -176,10 +184,10 @@ class Settings(BaseSettings):
     def datahub_token_value(self) -> str | None:
         return self.datahub_token.get_secret_value() if self.datahub_token else None
 
-    def require_020s_key(self) -> str:
-        if self.sophia_020s_key is None:
-            raise ValueError("SOPHIA_020S_KEY is required for 020s mode")
-        return self.sophia_020s_key.get_secret_value()
+    def require_llm_api_key(self) -> str:
+        if self.llm_api_key is None:
+            raise ValueError("LEDGERLENS_LLM_API_KEY is required to enable the LLM")
+        return self.llm_api_key.get_secret_value()
 
     @property
     def verifier_model_ids(self) -> tuple[str, ...]:
