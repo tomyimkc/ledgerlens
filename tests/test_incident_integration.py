@@ -18,7 +18,7 @@ from ledgerlens.actions import (
 from ledgerlens.actions import (
     ActionReceipt as ProviderReceipt,
 )
-from ledgerlens.incident_dashboard import create_incident_app
+from ledgerlens.incident_dashboard import CLAIM_BOUNDARY, create_incident_app
 from ledgerlens.incident_integration import (
     ActionRegistryExecutor,
     OrchestratorIncidentBackend,
@@ -243,17 +243,9 @@ def test_autonomous_dashboard_executes_the_frozen_orchestrator_plan_once() -> No
     assert state["actions"][0]["receipt"].endswith("/999")
     assert state["writeback"]["status"] == "recorded"
     assert state["memory"]["status"] == "ready"
-    assert state["claim_boundary"] == {
-        "candidateOnly": True,
-        "canClaimAGI": False,
-        "label": (
-            "Operational metadata, planner proposals, and receipts are not proof of causality."
-        ),
-        "detail": (
-            "LedgerLens separates source assertions, DataHub metadata, deterministic policy "
-            "decisions, AI advisory output, executed action receipts, and unknowns."
-        ),
-    }
+    # Assert against the production constant, not a copy of its literal: this is exactly
+    # the drift that silently broke CI when CLAIM_BOUNDARY gained its "asserts" field.
+    assert state["claim_boundary"] == CLAIM_BOUNDARY
     assert calls == {"execute": 1, "writeback": 1}
 
     replay = client.post("/incident/api/execute")
