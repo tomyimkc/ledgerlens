@@ -253,15 +253,53 @@
       h("p", { class: "proof-fail" }, h("b", { text: "Gate refused: " }), (d.denied?.failedConditions || []).join(" · ")),
       h("p", { class: "proof-point", text: d.point || "" }));
 
-  const buildProof = async () => {
-    if (!proofsEl) return;
+  const buildProofSection = async () => {
     try {
       const g = await fetch(`${apiBase}/gate-demo`, { credentials: "same-origin" }).then((r) => r.json());
-      if (g && g.demo) proofsEl.replaceChildren(
+      if (g && g.demo) return h("section", { class: "sec" },
         h("p", { class: "sec-eyebrow", text: "PROVEN, NOT CLAIMED" }),
         h("h2", { class: "sec-title", text: "The real gate refuses a plan that drifted after review" }),
         gateCard(g.demo));
-    } catch (error) { /* best-effort; the section simply stays empty */ }
+    } catch (error) { /* best-effort */ }
+    return null;
+  };
+
+  // ---- get started: a simple setup guide -----------------------------------
+  const SETUP = [
+    { n: "1", t: "Try it offline — no credentials",
+      code: [
+        "git clone https://github.com/tomyimkc/ledgerlens.git",
+        "cd ledgerlens",
+        "make setup          # provision the toolchain with uv",
+        "make incident-demo  # opens http://127.0.0.1:8000/incident",
+      ],
+      note: "A labelled deterministic replay: no DataHub call, no provider API, no paid model — every receipt is fixture://." },
+    { n: "2", t: "Point it at your DataHub + tools (live)",
+      code: [
+        "# read your catalog over the official DataHub MCP",
+        "export DATAHUB_GMS_URL=https://your-datahub  DATAHUB_TOKEN=…",
+        "# scoped credentials for the tools you allow",
+        "export GITHUB_TOKEN=…  LEDGERLENS_SLACK_WEBHOOK_URL=…",
+        "export LEDGERLENS_PAGERDUTY_ROUTING_KEY=…  LEDGERLENS_JIRA_SITE_URL=…",
+        "export SOPHIA_020S_KEY=…   # your LLM planner key",
+        "make run-all-incidents-live   # fires real, allowlisted actions",
+      ],
+      note: "You define the action allowlist once; LedgerLens only ever plans within it. Full env + allowlist setup is in the README." },
+  ];
+  const buildSetup = () => {
+    const grid = h("div", { class: "setup-grid" });
+    for (const s of SETUP) {
+      grid.append(h("article", { class: "setup-card" },
+        h("div", { class: "setup-hd" }, h("span", { class: "setup-n", text: s.n }), h("h3", { text: s.t })),
+        h("pre", { class: "code-block setup-code", text: s.code.join("\n") }),
+        h("p", { class: "setup-note", text: s.note })));
+    }
+    return h("section", { class: "sec" },
+      h("p", { class: "sec-eyebrow", text: "GET STARTED" }),
+      h("h2", { class: "sec-title", text: "Set up LedgerLens in a few commands" }),
+      grid,
+      h("p", { class: "sec-foot" }, "Full guide → ",
+        h("a", { href: "https://github.com/tomyimkc/ledgerlens#readme", target: "_blank", rel: "noopener", text: "README" })));
   };
 
   // ---- assemble the page ---------------------------------------------------
@@ -280,9 +318,12 @@
     timelineEl?.replaceChildren();
     hintEl?.replaceChildren();
     pipeEl.closest(".pipe-sticky")?.remove(); // the pipeline now lives inside the sections
+    proofsEl?.remove();
     detailEl.replaceChildren(h("div", { class: "logloading" }, h("span", { class: "sv-spinner", "aria-hidden": "true" }), GATE));
-    detailEl.replaceChildren(buildWhat(), buildPipe(), buildComparison(), buildDanger(), buildCode(), buildAdoption());
-    buildProof();
+    const proof = await buildProofSection();
+    detailEl.replaceChildren(
+      buildWhat(), buildPipe(), buildComparison(), buildDanger(), buildCode(),
+      ...(proof ? [proof] : []), buildAdoption(), buildSetup());
   };
 
   start();
