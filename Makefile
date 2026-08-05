@@ -96,6 +96,10 @@ non-video-readiness: ## Fail closed on missing non-video evidence, CI, or submis
 submission-consistency: ## Fail closed when judge-facing values drift from the artifacts.
 	uv run python scripts/check_submission_consistency.py
 
+reproduce-upstream-mcp-pr: ## Reproduce upstream DataHub MCP PR #160's own checks (clones an external repo; not in CI).
+	uv run python scripts/reproduce_upstream_mcp_pr.py \
+		--output benchmarks/upstream_mcp_contribution/pr-160-reproduction-receipt.json
+
 judge-check: lint format-check typecheck test secret-scan public-check incident-benchmark \
 	incident-benchmark-real-pipeline non-video-readiness submission-consistency ## Run judge-facing quality and evidence gates.
 

@@ -14,3 +14,6 @@ coverage.xml
 htmlcov/
 triage-report.json
 triage-report.md
+
+# Upstream MCP PR reproduction receipt (generated on demand; clones external code)
+benchmarks/upstream_mcp_contribution/pr-160-reproduction-receipt.json
