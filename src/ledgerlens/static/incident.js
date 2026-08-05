@@ -367,7 +367,7 @@
   const MODES = [
     { key: "walk", label: "Walkthrough" },
     { key: "proofs", label: "Why it wins" },
-    { key: "compare", label: "With vs without" },
+    { key: "compare", label: "How it compares" },
     { key: "code", label: "How it works" },
   ];
   const tabButtons = {};
@@ -399,35 +399,42 @@
     buildCode();
   };
 
-  // ---- "With vs without" comparison table ----------------------------------
+  // ---- honest three-way comparison (matches README §"not the Actions Framework") ----
+  // DataHub already detects (assertions), holds context (lineage/owner/tier), and fires
+  // pre-wired automations (Actions Framework). This does NOT claim DataHub can't act — it
+  // positions LedgerLens as the middle path between fixed rules and a self-authorizing agent.
   const CMP_ROWS = [
-    ["Incident context", "Just the alert payload", "DataHub owner, tier, schema + downstream lineage (get_entities + get_lineage)"],
-    ["Who authorizes actions", "The LLM decides and acts — it authorizes itself", "A deterministic PolicyGate authorizes the exact reviewed plan"],
-    ["Tampered / drifted plan", "Executes whatever the model emits", "Fingerprint-bound: any change to the plan is refused"],
-    ["Action targets", "The model can pick any target", "Allowlisted only; an off-allowlist target is refused"],
-    ["Provider work", "Ad-hoc or manual toil", "Receipted GitHub / Slack / PagerDuty / Jira fanout, reversible"],
-    ["Audit trail", "Chat logs", "Signed receipts + DataHub write-back + next-agent memory"],
-    ["Cause & recovery", "The model may overclaim a fix", "Explicit unknowns — a receipt is not proof of recovery"],
+    ["Chooses the response", "Human, at config time", "Model, at run time", "Model proposes, at run time"],
+    ["Approves execution", "Human, at config time (fixed rule)", "Model approves itself", "Deterministic policy — not the model"],
+    ["Handles a novel incident", "No — only pre-wired rules", "Yes", "Yes"],
+    ["Binds approval to the exact plan", "n/a", "No", "Yes — exact plan fingerprint"],
+    ["Rejects off-allowlist / ungrounded actions", "n/a", "Best-effort in the prompt", "Fail-closed, with reason codes"],
+    ["Record of what happened", "Action logs", "Chat logs", "Receipts + DataHub write-back + handoff"],
   ];
   const buildCompare = () => {
     let el = root.querySelector("[data-compare]");
     if (!el) { el = h("section", { class: "compare-view", "data-compare": "" }); root.append(el); }
     const tbody = h("tbody");
-    for (const [dim, without, wit] of CMP_ROWS) {
+    for (const [dim, af, agent, us] of CMP_ROWS) {
       tbody.append(h("tr", {},
         h("th", { scope: "row", text: dim }),
-        h("td", { class: "without" }, h("span", { class: "x", text: "✕ " }), without),
-        h("td", { class: "with" }, h("span", { class: "ok", text: "✓ " }), wit)));
+        h("td", { text: af }),
+        h("td", { text: agent }),
+        h("td", { class: "us", text: us })));
     }
-    const table = h("table", { class: "cmp-table" },
+    const table = h("table", { class: "cmp-table cmp3" },
       h("thead", {}, h("tr", {},
         h("th", { text: "" }),
-        h("th", { text: "Without LedgerLens" }),
-        h("th", { class: "us", text: "With LedgerLens" }))),
+        h("th", { text: "DataHub Actions Framework" }),
+        h("th", { text: "Generic LLM agent" }),
+        h("th", { class: "us", text: "LedgerLens" }))),
       tbody);
     el.replaceChildren(
-      h("p", { class: "proofs-eyebrow", text: "THE DIFFERENCE, ROW BY ROW" }),
-      h("h2", { class: "proofs-title", text: "With vs without LedgerLens integration" }),
+      h("p", { class: "proofs-eyebrow", text: "THE MIDDLE PATH — NOT ACTIONS FRAMEWORK, NOT A LOOSE AGENT" }),
+      h("h2", { class: "proofs-title", text: "How LedgerLens compares" }),
+      h("p", { class: "cmp-note" }, "DataHub already ", h("b", { text: "detects" }), " these incidents (assertions), ",
+        h("b", { text: "holds the context" }), " LedgerLens reads (lineage, owner, tier), and can ",
+        h("b", { text: "fire pre-wired automations" }), " (its Actions Framework). LedgerLens adds the missing middle: an AI plans a bounded response, and deterministic policy — not the model — authorizes the exact reviewed plan."),
       table);
   };
 
