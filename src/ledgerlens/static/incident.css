@@ -2499,3 +2499,22 @@ body.js .pnode.done .pnode-icon { color: var(--teal); }
 .setup-hd h3 { font-size: 14.5px; margin: 0; }
 .setup-code { margin: 0; border-radius: 0; }
 .setup-note { margin: 0; padding: 10px 14px; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+
+/* detailed gate proof: per-condition checklist (why authorized / why denied) */
+.gate-detail .proof-fps { margin-bottom: 2px; }
+.gate-checks { margin: 12px 0 4px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.gate-check { display: grid; grid-template-columns: 1fr 76px 76px; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--line); }
+.gate-check:first-child { border-top: none; }
+.gate-check.hd { background: var(--surface-2); }
+.gate-check.hd .gc-name, .gate-check.hd .gc-col { font-size: 10.5px; letter-spacing: 0.05em; color: var(--muted); font-weight: 800; text-transform: uppercase; }
+.gate-check.hd .gc-col { text-align: center; }
+.gate-check.flip { background: var(--coral-dim); }
+.gc-name strong { font-size: 13px; color: var(--ink); font-weight: 600; display: block; }
+.gc-name small { font-size: 11.5px; color: var(--coral); display: block; margin-top: 2px; }
+.gc-col { text-align: center; font-weight: 800; font-size: 14px; }
+.gc-col.ok { color: var(--teal); }
+.gc-col.bad { color: var(--coral); }
+.gate-why { margin: 8px 0 0; font-size: 13.5px; line-height: 1.55; color: var(--muted); }
+.gate-why b.ok { color: var(--teal); }
+.gate-why b.bad { color: var(--coral); }
+@media (max-width: 560px) { .gate-check { grid-template-columns: 1fr 48px 48px; } }
