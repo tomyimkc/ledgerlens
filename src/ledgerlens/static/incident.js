@@ -45,14 +45,60 @@
     ["⇉", "Handoff", "next agent inherits facts"],
   ];
   const buildPipe = () => {
-    pipeEl.replaceChildren();
+    const pipe = h("div", { class: "pipe" });
     NODES.forEach(([icon, label, sub], i) => {
-      pipeEl.append(h("div", { class: "pnode done" },
+      pipe.append(h("div", { class: "pnode done" },
         h("span", { class: "pnode-icon", text: icon }),
         h("span", { class: "pnode-label", text: label }),
         h("small", { class: "pnode-sub", text: sub })));
-      if (i < NODES.length - 1) pipeEl.append(h("span", { class: "parrow filled" }, h("span", { class: "packet", "aria-hidden": "true" })));
+      if (i < NODES.length - 1) pipe.append(h("span", { class: "parrow filled" }, h("span", { class: "packet", "aria-hidden": "true" })));
     });
+    return h("section", { class: "sec" },
+      h("p", { class: "sec-eyebrow", text: "HOW IT WORKS" }),
+      h("h2", { class: "sec-title", text: "One pipeline, any incident" }),
+      h("div", { class: "pipe-wrap" }, pipe));
+  };
+
+  // ---- what is LedgerLens? -------------------------------------------------
+  const buildWhat = () => {
+    const box = (t, s, cls) => h("div", { class: "sysbox" + (cls ? " " + cls : "") }, h("strong", { text: t }), h("small", { text: s }));
+    const arrow = (label, sub) => h("div", { class: "sysarrow" },
+      h("span", { class: "sysarrow-l", text: label }), sub ? h("small", { text: sub }) : null,
+      h("span", { class: "sysarrow-h", "aria-hidden": "true", text: "→" }));
+    return h("section", { class: "sec" },
+      h("p", { class: "sec-eyebrow", text: "WHAT IS IT" }),
+      h("h2", { class: "sec-title", text: "LedgerLens is a deployable incident-response agent" }),
+      h("p", { class: "sec-note" }, "Not a dashboard, and not a DataHub plugin. It is a service you run next to DataHub: it ",
+        h("b", { text: "calls the official DataHub MCP server as a client" }), " to read context (get_entities, get_lineage), turns the incident into a bounded LLM-planned response, gates it, acts across your tools, and writes an incident receipt back (save_document)."),
+      h("div", { class: "sysmap" },
+        box("Your DataHub", "owners · lineage · assertions"),
+        arrow("get_entities / get_lineage", "MCP read"),
+        box("LedgerLens agent", "plan → verify → gate → act", "us"),
+        arrow("allowlisted · receipted", "your tools"),
+        box("Your incident tools", "GitHub · Slack · PagerDuty · Jira")),
+      h("p", { class: "syswrite" }, "↩ save_document (MCP write-back) — the incident receipt returns to DataHub for the next agent."));
+  };
+
+  // ---- the danger a self-authorizing agent creates -------------------------
+  const DANGERS = [
+    ["Auto-migrates the schema", "rewrites production order_total — every order silently rounds money.", "a data-mutation action isn't on the allowlist → refused. It files a change record instead."],
+    ["Reverts the PII ACL itself", "grants or strips access with no review — a security and privacy incident.", "ACL edits are off-allowlist by design → refused. It files an access review instead."],
+    ["Runs a plan that drifted after review", "a human approved plan A; the model executes plan B, so an unreviewed action runs.", "authorization is bound to the exact plan fingerprint → refused."],
+    ["Pages the wrong service / posts to #all-company", "hallucinated or injected targets create noise, false alarms, or a leak.", "only allowlisted targets execute → refused."],
+  ];
+  const buildDanger = () => {
+    const grid = h("div", { class: "danger-grid" });
+    for (const [act, consequence, refuse] of DANGERS) {
+      grid.append(h("article", { class: "danger-card" },
+        h("div", { class: "danger-act" }, h("span", { class: "danger-tag", text: "SELF-AUTHORIZING AGENT" }), h("strong", { text: "“" + act + "”" })),
+        h("p", { class: "danger-conseq" }, h("span", { class: "danger-arrow", text: "→ " }), consequence),
+        h("p", { class: "danger-fix" }, h("b", { text: "LedgerLens: " }), refuse)));
+    }
+    return h("section", { class: "sec" },
+      h("p", { class: "sec-eyebrow danger-eyebrow", text: "THE RISK — WHY THE GATE MATTERS" }),
+      h("h2", { class: "sec-title", text: "What a self-authorizing agent can do to an incident" }),
+      h("p", { class: "sec-note" }, "A generic LLM agent decides for itself whether its own response is safe — so a bad plan, a hallucinated target, or a prompt-injected incident payload can run unchecked. Each of these is exactly what the deterministic gate stops."),
+      grid);
   };
 
   // ---- six incidents, three approaches -------------------------------------
@@ -224,7 +270,7 @@
     const heroCopy = root.querySelector(".flow-hero > div");
     if (heroCopy && !heroCopy.querySelector(".hero-sub")) {
       heroCopy.append(h("p", { class: "hero-sub", text:
-        "The autonomous incident commander for teams already on DataHub. It reads your catalog, plans a bounded response, and lets deterministic policy — not the model — authorize the exact plan." }));
+        "LedgerLens is a deployable incident-response agent for teams already on DataHub. It reads your catalog over MCP, plans a bounded response, and lets deterministic policy — not the model — authorize the exact plan before anything runs." }));
     }
   };
 
@@ -233,9 +279,9 @@
     decorateHero();
     timelineEl?.replaceChildren();
     hintEl?.replaceChildren();
+    pipeEl.closest(".pipe-sticky")?.remove(); // the pipeline now lives inside the sections
     detailEl.replaceChildren(h("div", { class: "logloading" }, h("span", { class: "sv-spinner", "aria-hidden": "true" }), GATE));
-    buildPipe();
-    detailEl.replaceChildren(buildComparison(), buildCode(), buildAdoption());
+    detailEl.replaceChildren(buildWhat(), buildPipe(), buildComparison(), buildDanger(), buildCode(), buildAdoption());
     buildProof();
   };
 

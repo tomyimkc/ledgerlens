@@ -2426,3 +2426,31 @@ body.js .pnode.done .pnode-icon { color: var(--teal); }
   .cmp-table { font-size: 12px; }
   .cmp-table tbody th { width: auto; }
 }
+
+/* "What is it" system map */
+.sysmap { display: flex; align-items: stretch; gap: 8px; flex-wrap: wrap; margin: 8px 0 8px; }
+.sysbox { flex: 1 1 180px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 14px; display: grid; gap: 4px; align-content: start; }
+.sysbox strong { font-size: 14.5px; }
+.sysbox small { font-size: 12px; color: var(--muted); }
+.sysbox.us { border-color: var(--teal); background: var(--teal-dim); }
+.sysbox.us strong { color: var(--teal); }
+.sysarrow { display: grid; align-content: center; justify-items: center; gap: 1px; min-width: 116px; text-align: center; color: var(--muted); }
+.sysarrow-l { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; color: var(--ink); }
+.sysarrow small { font-size: 10px; letter-spacing: 0.08em; }
+.sysarrow-h { color: var(--teal); font-size: 18px; line-height: 1; }
+.syswrite { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); }
+
+/* "The risk" danger cards */
+.danger-eyebrow { color: var(--coral); }
+.danger-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.danger-card { border: 1px solid var(--line); border-left: 3px solid var(--coral); border-radius: 12px; background: var(--surface); padding: 14px; }
+.danger-tag { display: inline-block; font-size: 9.5px; letter-spacing: 0.1em; font-weight: 800; color: var(--coral); background: var(--coral-dim); padding: 2px 7px; border-radius: 999px; margin-bottom: 7px; }
+.danger-act strong { display: block; font-size: 14px; color: var(--ink); }
+.danger-conseq { margin: 8px 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.danger-arrow { color: var(--coral); font-weight: 800; }
+.danger-fix { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink); border-top: 1px solid var(--line); padding-top: 8px; }
+.danger-fix b { color: var(--teal); }
+
+/* pipeline now rendered as a section */
+.pipe-wrap { overflow-x: auto; }
+@media (max-width: 720px) { .sysarrow-h { transform: rotate(90deg); } }
