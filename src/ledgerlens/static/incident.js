@@ -263,12 +263,34 @@
       h("p", { class: "proof-point" }, h("b", { text: "AI review is advisory — it cannot open this gate. " }), d.point || ""));
   };
 
+  // Anchors the gate to the pipeline: where (phase 5) and when (after plan+verify).
+  const gateWhere = () => {
+    const strip = h("div", { class: "gate-where-strip" });
+    NODES.forEach(([, label], i) => {
+      const cls = i === 4 ? " active" : (i < 4 ? " done" : "");
+      strip.append(h("div", { class: "gw-node" + cls },
+        h("span", { class: "gw-n", text: String(i + 1) }),
+        h("span", { class: "gw-label", text: label })));
+      if (i < NODES.length - 1) strip.append(h("span", { class: "gw-arrow", "aria-hidden": "true", text: "→" }));
+    });
+    return h("div", { class: "gate-where" },
+      strip,
+      h("p", { class: "gate-where-cap" },
+        h("b", { text: "Where & when — " }),
+        "plan-exact authorization is phase 5 of the pipeline: the ",
+        h("b", { class: "ok", text: "Policy gate" }),
+        ". It runs after the AI proposes a plan (phase 3) and two verifiers review it (phase 4, advisory), and ",
+        h("b", { text: "before any action executes" }),
+        " (phase 6). For every incident above, the LedgerLens response only happens because this gate authorized the exact reviewed plan — change one action after review and it fails closed here, so nothing runs."));
+  };
+
   const buildProofSection = async () => {
     try {
       const g = await fetch(`${apiBase}/gate-demo`, { credentials: "same-origin" }).then((r) => r.json());
       if (g && g.demo) return h("section", { class: "sec" },
         h("p", { class: "sec-eyebrow", text: "PROVEN, NOT CLAIMED" }),
-        h("h2", { class: "sec-title", text: "The real gate refuses a plan that drifted after review" }),
+        h("h2", { class: "sec-title", text: "Plan-exact authorization — where it happens, and that it's real" }),
+        gateWhere(),
         gateCard(g.demo));
     } catch (error) { /* best-effort */ }
     return null;
