@@ -322,3 +322,15 @@ def test_plan_exact_and_quorum_demos_reject_via_the_real_gate() -> None:
     assert quorum["unanimous"]["decision"] == "authorized"
     assert quorum["split"]["decision"] == "denied"
     assert "Verifier policy checks are complete" in quorum["split"]["failedConditions"]
+
+
+def test_allowlist_scope_demo_rejects_off_allowlist_target_via_the_real_gate() -> None:
+    client = _fixture_client()
+
+    demo = client.get("/incident/api/allowlist-demo").json()["demo"]
+
+    # Only the target differs between the two runs; AI review passes in both.
+    assert demo["allowlistedTarget"] != demo["offAllowlistTarget"]
+    assert demo["approved"]["decision"] == "authorized"
+    assert demo["denied"]["decision"] == "denied"
+    assert any("target_not_allowlisted" in code for code in demo["denied"]["failedConditions"])

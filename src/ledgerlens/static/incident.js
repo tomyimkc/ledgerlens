@@ -293,6 +293,20 @@
       h("p", { class: "proof-point", text: d.point || "" }));
   };
 
+  const allowlistCard = (d) =>
+    h("article", { class: "proof" },
+      h("div", { class: "proof-head" },
+        h("span", { class: "proof-icon", text: "⛔" }),
+        h("h3", { text: "AI cannot widen the allowlist" }),
+        h("span", { class: "proof-tag", text: "deterministic policy" })),
+      h("p", { class: "proof-sub", text: "Same grounded action, same passing AI review — only the destination changed. The production PolicyGate that runs the real fanout refuses an off-allowlist target." }),
+      h("div", { class: "proof-fps" },
+        h("div", { class: "fp ok" }, h("small", { text: "ALLOWLISTED TARGET" }), h("code", { text: d.allowlistedTarget }), h("span", { class: "fpv ok", text: "✓ authorized" })),
+        h("div", { class: "proof-vs", text: "change target ⇒" }),
+        h("div", { class: "fp bad" }, h("small", { text: "OFF-ALLOWLIST TARGET" }), h("code", { text: d.offAllowlistTarget }), h("span", { class: "fpv bad", text: "✕ DENIED" }))),
+      h("p", { class: "proof-fail" }, h("b", { text: "Gate refused: " }), (d.denied?.failedConditions || []).join(" · ")),
+      h("p", { class: "proof-point", text: d.point || "" }));
+
   const comparisonCard = () =>
     h("article", { class: "proof compare" },
       h("div", { class: "proof-head" },
@@ -328,12 +342,14 @@
       h("h2", { class: "proofs-title", text: "What makes this different from the other DataHub agents" }),
       comparisonCard());
     try {
-      const [g, q] = await Promise.all([
+      const [g, q, a] = await Promise.all([
         fetch(`${apiBase}/gate-demo`, { credentials: "same-origin" }).then((r) => r.json()),
         fetch(`${apiBase}/quorum-demo`, { credentials: "same-origin" }).then((r) => r.json()),
+        fetch(`${apiBase}/allowlist-demo`, { credentials: "same-origin" }).then((r) => r.json()),
       ]);
       if (g && g.demo) el.append(gateCard(g.demo));
       if (q && q.demo) el.append(quorumCard(q.demo));
+      if (a && a.demo) el.append(allowlistCard(a.demo));
     } catch (error) { /* leave the heading; proofs are best-effort */ }
     el.append(contributeBackCard());
   };
