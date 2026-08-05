@@ -282,7 +282,7 @@ def test_router_mounts_under_custom_prefix_with_its_own_assets() -> None:
     assert 'href="/ops/commander/assets/incident.css"' in page.text
     assert 'data-api-base="/ops/commander/api"' in page.text
     assert css.status_code == 200
-    assert "--signal: #d8f66f" in css.text
+    assert "--signal: #0f766e" in css.text
     assert script.status_code == 200
     assert "Evaluating deterministic gate" in script.text
 
