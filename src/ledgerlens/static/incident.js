@@ -191,8 +191,12 @@
     if (i === 6) top.append(mcpBadge("save_document"));
     const bodyEl = h("div", { class: "logbody" }, top, h("p", { class: "logline", text: n.line(current) }));
     if (i === 1 && backend && backend.context) bodyEl.append(lineageGraph());
-    if (i === 6) bodyEl.append(h("p", { class: "dhback" }, "↳ writes the incident receipt back to DataHub — ",
-      h("a", { href: "https://github.com/acryldata/mcp-server-datahub/pull/160", target: "_blank", rel: "noopener", text: "upstream PR #160" })));
+    if (i === 6) {
+      const wb = h("p", { class: "dhback" }, "↳ writes the incident receipt back to DataHub via save_document (MCP mutation).");
+      if (current.featured) wb.append(" Fixture receipt below; a real DataHub OSS write + official-MCP read-back was recorded 2026-07-31 — ",
+        h("a", { href: "https://github.com/tomyimkc/ledgerlens/blob/main/docs/EVIDENCE_INDEX.md", target: "_blank", rel: "noopener", text: "evidence (E-07)" }));
+      bodyEl.append(wb);
+    }
     const chips = receiptChips(i);
     if (chips) bodyEl.append(chips);
     else if (!current.featured && i >= 5) bodyEl.append(h("p", { class: "dnote", text: "Illustrative pattern — no receipts generated for this scenario." }));
