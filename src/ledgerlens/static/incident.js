@@ -144,9 +144,9 @@
   let current = SCENARIOS[0];
   let nodes = [];
   let arrows = [];
-  let cards = {};
   let active = -1;
-  let ticking = false;
+  let runTimer = null;
+  let mode = "walk";
 
   // ---- timeline ------------------------------------------------------------
   const buildTimeline = () => {
@@ -158,7 +158,7 @@
         h("span", { class: "tent", text: s.entity }),
         h("span", { class: "tsev sev" + s.sev, text: "SEV-" + s.sev }),
         s.featured ? h("span", { class: "tstar", text: "★ backed by a real run" }) : null);
-      card.addEventListener("click", () => { current = s; paintTimeline(); buildStory(); scrollToStep(0); });
+      card.addEventListener("click", () => { current = s; paintTimeline(); stopRun(); setModeWalk(); buildStory(); active = -1; setActive(0); });
       timelineEl.append(card);
     }
   };
@@ -175,7 +175,7 @@
         h("span", { class: "pnode-icon", text: n.icon }),
         h("span", { class: "pnode-label", text: n.label }),
         h("code", { class: "pnode-mod", text: n.mod }));
-      node.addEventListener("click", () => scrollToStep(i));
+      node.addEventListener("click", () => { stopRun(); setModeWalk(); setActive(i); });
       pipeEl.append(node);
       nodes.push(node);
       if (i < NODES.length - 1) {
@@ -263,7 +263,24 @@
     return null;
   };
 
-  // ---- story steps (all present; revealed + highlighted by scroll) ---------
+  // Persistent per-incident facts shown beside every stage (no scrolling to find them).
+  const factsRail = () => {
+    const s = current;
+    const be = (backend && backend.context) || {};
+    const ctx = s.ctx || {};
+    const assets = (ctx.assets && ctx.assets.length) ? ctx.assets : arr(be.blast_radius && be.blast_radius.assets);
+    const rail = h("aside", { class: "facts-rail" });
+    rail.append(h("div", { class: "fact-hd" }, h("span", { class: "fact-sev sev" + s.sev, text: "SEV-" + s.sev }), h("strong", { text: s.type })));
+    rail.append(h("div", { class: "fact-row" }, h("small", { text: "ENTITY" }), h("code", { text: s.entity })));
+    rail.append(h("div", { class: "fact-row" }, h("small", { text: "OWNER" }), h("span", { text: (ctx.owner || be.entity?.owner || "—") + " · " + (ctx.tier || be.entity?.tier || "—") })));
+    rail.append(h("div", { class: "fact-row" }, h("small", { text: "BLAST RADIUS" }), h("span", { text: assets.length + " downstream asset" + (assets.length === 1 ? "" : "s") })));
+    rail.append(h("div", { class: "fact-run " + (s.featured ? "real" : "sim") },
+      h("small", { text: s.featured ? "★ BACKED BY A REAL RUN" : "SIMULATED FIXTURE" }),
+      h("span", { text: s.featured ? "Real four-provider receipts (E-16)" : "Illustrative — real run pending" })));
+    return rail;
+  };
+
+  // ---- one compact stage panel (Run / click drives progress; no page scroll) ----
   const buildStep = (i) => {
     const n = NODES[i];
     const top = h("div", { class: "logtop" },
@@ -292,55 +309,56 @@
       h("a", { href: "https://github.com/tomyimkc/ledgerlens/blob/main/docs/EVIDENCE_INDEX.md", target: "_blank", rel: "noopener", text: "evidence (E-16)" })));
     const row = h("div", { class: "logrow", "data-i": String(i) },
       h("div", { class: "logmark" }, h("span", { class: "lognum", text: (i + 1).toString().padStart(2, "0") })),
-      bodyEl);
+      bodyEl,
+      factsRail());
     return row;
   };
 
+  // All eight stages are built once; only the active one is shown (CSS), so the
+  // whole flow lives on one page. Run / click / arrows move the active stage.
   const buildStory = () => {
     logEl.replaceChildren();
-    cards = {};
-    active = -1;
-    for (let i = 0; i < NODES.length; i++) {
-      const row = buildStep(i);
-      logEl.append(row);
-      cards[i] = row;
-    }
-    requestAnimationFrame(measure);
+    for (let i = 0; i < NODES.length; i++) logEl.append(buildStep(i));
   };
 
   const setActive = (i) => {
     i = Math.max(0, Math.min(NODES.length - 1, i));
-    if (i === active) return;
     const advancing = i > active;
-    for (let k = 0; k <= i; k++) cards[k]?.classList.add("in");
-    paintDiagram(i);
-    logEl.querySelectorAll(".logrow.active").forEach((r) => r.classList.remove("active"));
-    cards[i]?.classList.add("active");
-    if (advancing && i > 0) flowArrow(i - 1); // "goes to next phase" animation, on scroll
     active = i;
+    paintDiagram(i);
+    logEl.querySelectorAll(".logrow").forEach((r) => r.classList.toggle("active", Number(r.dataset.i) === i));
+    if (advancing && i > 0) flowArrow(i - 1);
   };
 
-  // ---- scroll driver -------------------------------------------------------
-  const measure = () => {
-    const line = window.innerHeight * 0.42;
-    let idx = 0;
-    for (let k = 0; k < NODES.length; k++) {
-      const r = cards[k]?.getBoundingClientRect();
-      if (r && r.top <= line) idx = k;
-    }
-    setActive(idx);
+  // ---- run controller + mode toggle (replaces the scroll driver) -----------
+  const stopRun = () => { if (runTimer) { clearTimeout(runTimer); runTimer = null; } root.classList.remove("running"); };
+  const stepRun = () => {
+    if (active >= NODES.length - 1) { stopRun(); return; }
+    setActive(active + 1);
+    runTimer = setTimeout(stepRun, 1050);
   };
-  const onScroll = () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => { ticking = false; measure(); });
-  };
+  const runFlow = () => { setModeWalk(); stopRun(); active = -1; setActive(0); root.classList.add("running"); runTimer = setTimeout(stepRun, 700); };
+  const resetFlow = () => { stopRun(); setModeWalk(); active = -1; setActive(0); };
+  function setModeWalk() { mode = "walk"; root.classList.remove("show-proofs"); tabWalk?.classList.add("on"); tabProof?.classList.remove("on"); }
+  const setModeProofs = () => { stopRun(); mode = "proofs"; root.classList.add("show-proofs"); tabProof?.classList.add("on"); tabWalk?.classList.remove("on"); };
 
-  const scrollToStep = (i) => {
-    const el = cards[i];
-    if (!el) return;
-    const y = el.getBoundingClientRect().top + window.pageYOffset - window.innerHeight * 0.28;
-    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+  let tabWalk = null;
+  let tabProof = null;
+  const buildControls = () => {
+    if (!hintEl) return;
+    const runB = h("button", { class: "ctl ctl-run", type: "button" }, h("span", { "aria-hidden": "true", text: "▶" }), " Run");
+    const resetB = h("button", { class: "ctl", type: "button" }, h("span", { "aria-hidden": "true", text: "↺" }), " Restart");
+    tabWalk = h("button", { class: "ctl tab on", type: "button", text: "Walkthrough" });
+    tabProof = h("button", { class: "ctl tab", type: "button", text: "Why it wins" });
+    runB.addEventListener("click", runFlow);
+    resetB.addEventListener("click", resetFlow);
+    tabWalk.addEventListener("click", () => { setModeWalk(); setActive(active < 0 ? 0 : active); });
+    tabProof.addEventListener("click", setModeProofs);
+    hintEl.replaceChildren(
+      h("div", { class: "ctl-grp" }, runB, resetB),
+      h("div", { class: "ctl-grp tabs" }, tabWalk, tabProof));
+    hintEl.classList.add("controls");
+    hintEl.classList.remove("gone");
   };
 
   // ---- differentiator proofs (real gate rejections) ------------------------
@@ -451,7 +469,8 @@
       const data = await res.json();
       if (!res.ok || !data.ok || !data.state) throw new Error(data.detail || "Trigger failed.");
       backend = data.state;
-      buildTimeline(); paintTimeline(); buildPipe(); buildStory(); buildProofs();
+      buildTimeline(); paintTimeline(); buildPipe(); buildControls(); buildStory(); buildProofs();
+      resetFlow();
     } catch (error) {
       body.classList.remove("js");
       logEl.replaceChildren();
@@ -460,13 +479,11 @@
     }
   };
 
-  replayBtn?.addEventListener("click", () => scrollToStep(0));
-  window.addEventListener("scroll", onScroll, { passive: true });
-  window.addEventListener("resize", onScroll, { passive: true });
-  window.addEventListener("scroll", () => hintEl?.classList.add("gone"), { once: true, passive: true });
+  replayBtn?.addEventListener("click", resetFlow);
   document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") scrollToStep(Math.min(active + 1, NODES.length - 1));
-    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") scrollToStep(Math.max(active - 1, 0));
+    if (mode !== "walk") return;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") { stopRun(); setActive(Math.min(active + 1, NODES.length - 1)); }
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { stopRun(); setActive(Math.max(active - 1, 0)); }
   });
 
   start();
