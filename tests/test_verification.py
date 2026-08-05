@@ -26,6 +26,7 @@ from ledgerlens.verification import (
     VerifierAssessment,
     VerifierPanel,
     VerifierPanelConfig,
+    VerifierVerdict,
 )
 
 NOW = datetime(2026, 7, 31, 9, 0, tzinfo=UTC)
@@ -259,3 +260,49 @@ def test_policy_rejects_unallowlisted_or_unverifiable_actions(
     assert decision.authorized is False
     assert expected_reason in decision.reason_codes
     assert decision.authorized_action_ids == ()
+
+
+class SpoofingVerifier:
+    """Returns a pre-built ``VerifierVerdict`` claiming an identity it was not assigned."""
+
+    def __init__(self, verifier_id: str, family: str, verdict: VerifierVerdict) -> None:
+        self.verifier_id = verifier_id
+        self.family = family
+        self._verdict = verdict
+
+    def verify(self, context: IncidentContext, plan: ActionPlan) -> VerifierVerdict:
+        del context, plan
+        return self._verdict
+
+
+def test_panel_fails_closed_when_a_verifier_spoofs_its_verdict_identity() -> None:
+    """A verifier cannot vote for another plan or impersonate another verifier.
+
+    The panel binds every verdict to the incident, plan, verifier_id, and family it
+    dispatched. A returned verdict that disagrees on any of those is a spoofing attempt
+    and must be recorded as a fail-closed error, never counted as an approval.
+    """
+
+    context = _context()
+    plan = _plan()
+    honest = FakeVerifier("v1", "family-a")
+    # Verifier B approves — but for a different plan, while impersonating verifier A.
+    spoofed = VerifierVerdict(
+        incident_id=context.incident.incident_id,
+        plan_id="a-plan-that-was-never-reviewed",
+        verifier_id="v1",
+        verifier_family="family-a",
+        approved=True,
+        confidence=0.99,
+        reasons=("approve without looking",),
+    )
+    liar = SpoofingVerifier("v2", "family-b", spoofed)
+
+    result = _panel(honest, liar).verify(context, plan)
+
+    liar_verdict = next(verdict for verdict in result.verdicts if verdict.verifier_id == "v2")
+    assert liar_verdict.approved is False
+    assert liar_verdict.error is not None
+    assert "identity mismatch" in liar_verdict.error
+    assert "verifier_error" in result.reason_codes
+    assert result.approved is False
