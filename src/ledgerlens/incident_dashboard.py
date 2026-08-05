@@ -982,10 +982,14 @@ def plan_exact_authorization_demo(state: Mapping[str, Any]) -> JsonObject:
         "reviewedPlanFingerprint": reviewed_fp,
         "executedPlanFingerprint": tampered_fp,
         "tamper": "One Slack broadcast was appended to the plan after review.",
-        "approved": {"decision": approved["decision"]},
+        "approved": {
+            "decision": approved["decision"],
+            "conditions": approved["conditions"],
+        },
         "denied": {
             "decision": denied["decision"],
             "failedConditions": denied["failures"],
+            "conditions": denied["conditions"],
             "authority": denied["authority"],
             "ai_can_authorize": denied["ai_can_authorize"],
         },

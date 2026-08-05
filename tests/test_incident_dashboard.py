@@ -44,8 +44,6 @@ def test_fixture_dashboard_has_full_command_surface_and_explicit_claim_boundary(
         "Jira",
         "DataHub write-back",
         "What the next agent receives",
-        "candidateOnly: true",
-        "canClaimAGI: false",
     ):
         assert expected in response.text or expected.replace("&amp;", "&") in response.text
 

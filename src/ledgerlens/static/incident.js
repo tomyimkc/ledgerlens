@@ -218,19 +218,50 @@
 
   // ---- live gate proof -----------------------------------------------------
   const short = (fp) => (fp ? String(fp).slice(0, 8) + "…" : "—");
-  const gateCard = (d) =>
-    h("article", { class: "proof" },
+  const list = (v) => (Array.isArray(v) ? v : []);
+  const mark = (status) => h("span", { class: "gc-col " + (status === "pass" ? "ok" : "bad"), text: status === "pass" ? "✓" : "✕" });
+
+  const gateChecks = (d) => {
+    const rev = list(d.approved && d.approved.conditions);
+    const exe = list(d.denied && d.denied.conditions);
+    const wrap = h("div", { class: "gate-checks" });
+    wrap.append(h("div", { class: "gate-check hd" },
+      h("span", { class: "gc-name", text: "Deterministic check" }),
+      h("span", { class: "gc-col", text: "Reviewed" }),
+      h("span", { class: "gc-col", text: "Executed" })));
+    for (let i = 0; i < exe.length; i += 1) {
+      const c = exe[i];
+      const r = rev[i] || {};
+      const flipped = c.status === "fail";
+      wrap.append(h("div", { class: "gate-check" + (flipped ? " flip" : "") },
+        h("span", { class: "gc-name" }, h("strong", { text: c.name }), flipped && c.detail ? h("small", { text: c.detail }) : null),
+        mark(r.status),
+        mark(c.status)));
+    }
+    return wrap;
+  };
+
+  const gateCard = (d) => {
+    const fails = list(d.denied && d.denied.failedConditions);
+    return h("article", { class: "proof gate-detail" },
       h("div", { class: "proof-head" },
         h("span", { class: "proof-icon", text: "⛨" }),
         h("h3", { text: "Plan-exact authorization" }),
         h("span", { class: "proof-tag", text: "the differentiator" })),
-      h("p", { class: "proof-sub", text: "Same DataHub context — the executed plan differs from the reviewed plan by one appended action." }),
+      h("p", { class: "proof-sub", text: "The reviewed plan was authorized. Then one Slack action was appended after review — same DataHub context, different plan. Here is exactly what the deterministic gate checks, and what flips." }),
       h("div", { class: "proof-fps" },
         h("div", { class: "fp ok" }, h("small", { text: "REVIEWED PLAN" }), h("code", { text: short(d.reviewedPlanFingerprint) }), h("span", { class: "fpv ok", text: "✓ authorized" })),
         h("div", { class: "proof-vs", text: "+1 action ⇒" }),
         h("div", { class: "fp bad" }, h("small", { text: "EXECUTED PLAN" }), h("code", { text: short(d.executedPlanFingerprint) }), h("span", { class: "fpv bad", text: "✕ DENIED" }))),
-      h("p", { class: "proof-fail" }, h("b", { text: "Gate refused: " }), (d.denied?.failedConditions || []).join(" · ")),
-      h("p", { class: "proof-point", text: d.point || "" }));
+      gateChecks(d),
+      h("p", { class: "gate-why" }, h("b", { class: "ok", text: "Why authorized — " }),
+        "the reviewed plan passed every check: grounded DataHub context, bounded blast radius, allowlisted + reversible actions, complete verifier checks, and an exact fingerprint + confirmation match."),
+      h("p", { class: "gate-why" }, h("b", { class: "bad", text: "Why denied — " }),
+        "appending one action changed the plan's computed fingerprint, so " + fails.length + " fingerprint-bound checks fail closed: ",
+        h("span", { class: "risk", text: fails.join(" · ") }),
+        ". The hash and confirmation phrase the operator supplied for the reviewed plan no longer match the executed plan."),
+      h("p", { class: "proof-point" }, h("b", { text: "AI review is advisory — it cannot open this gate. " }), d.point || ""));
+  };
 
   const buildProofSection = async () => {
     try {
