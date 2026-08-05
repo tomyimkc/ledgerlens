@@ -104,6 +104,13 @@ reproduce-clean-clone: ## Regenerate the clean-clone reproduction receipt (E-17)
 	uv run python scripts/reproduce_clean_clone.py \
 		--output benchmarks/results/clean-clone-latest.json
 
+run-all-incidents-live: ## OWNER-ONLY: back every demo incident with a real run (fires real provider actions; needs credentials).
+	uv run python scripts/run_all_incidents_live.py --confirm-live
+	uv run python scripts/build_live_receipts_index.py
+
+build-live-receipts-index: ## Publish committed real-run receipts into the demo (src/ledgerlens/static/live-receipts.json).
+	uv run python scripts/build_live_receipts_index.py
+
 judge-check: lint format-check typecheck test secret-scan public-check incident-benchmark \
 	incident-benchmark-real-pipeline non-video-readiness submission-consistency ## Run judge-facing quality and evidence gates.
 

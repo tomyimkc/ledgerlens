@@ -1,0 +1,34 @@
+{
+  "deploy": {
+    "actions": [
+      {
+        "provider": "GitHub",
+        "receipt": "https://github.com/tomyimkc/ledgerlens/issues/29",
+        "status": "succeeded",
+        "url": "https://github.com/tomyimkc/ledgerlens/issues/29"
+      },
+      {
+        "provider": "Slack",
+        "receipt": "slack://receipt/47d01223-6c75-59a3-a7a1-4610aae09af3",
+        "status": "succeeded",
+        "url": null
+      },
+      {
+        "provider": "PagerDuty",
+        "receipt": "pagerduty://receipt/e80e652b-bc04-5835-8597-62ce9fbb705d",
+        "status": "succeeded",
+        "url": null
+      },
+      {
+        "provider": "Jira",
+        "receipt": "https://tomyimkc.atlassian.net/browse/KAN-2",
+        "status": "succeeded",
+        "url": "https://tomyimkc.atlassian.net/browse/KAN-2"
+      }
+    ],
+    "incidentId": "inc-analytics-downstream_availability-01",
+    "memory": "ledgerlens://memory/run-80d26954-6856-4c4f-b415-df0a537debfd",
+    "status": "executed",
+    "writeback": null
+  }
+}

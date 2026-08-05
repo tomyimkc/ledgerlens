@@ -324,6 +324,23 @@ def test_plan_exact_and_quorum_demos_reject_via_the_real_gate() -> None:
     assert "Verifier policy checks are complete" in quorum["split"]["failedConditions"]
 
 
+def test_live_receipts_endpoint_returns_a_mapping() -> None:
+    client = _fixture_client()
+
+    payload = client.get("/incident/api/live-receipts").json()
+
+    # Absent or present, the endpoint must return a well-formed receipts mapping so the
+    # demo can upgrade any scenario that has a committed real run to real receipts.
+    assert payload["ok"] is True
+    assert isinstance(payload["receipts"], dict)
+    for entry in payload["receipts"].values():
+        assert isinstance(entry.get("actions"), list)
+        for action in entry["actions"]:
+            assert action.get("receipt")
+            if action.get("url"):
+                assert str(action["url"]).startswith("http")
+
+
 def test_allowlist_scope_demo_rejects_off_allowlist_target_via_the_real_gate() -> None:
     client = _fixture_client()
 
