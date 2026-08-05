@@ -100,6 +100,10 @@ reproduce-upstream-mcp-pr: ## Reproduce upstream DataHub MCP PR #160's own check
 	uv run python scripts/reproduce_upstream_mcp_pr.py \
 		--output benchmarks/upstream_mcp_contribution/pr-160-reproduction-receipt.json
 
+reproduce-clean-clone: ## Regenerate the clean-clone reproduction receipt (E-17) from a fresh clone; not in CI.
+	uv run python scripts/reproduce_clean_clone.py \
+		--output benchmarks/results/clean-clone-latest.json
+
 judge-check: lint format-check typecheck test secret-scan public-check incident-benchmark \
 	incident-benchmark-real-pipeline non-video-readiness submission-consistency ## Run judge-facing quality and evidence gates.
 
