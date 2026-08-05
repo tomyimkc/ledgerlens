@@ -49,7 +49,7 @@
   ];
 
   const SCENARIOS = [
-    { id: "freshness", day: "MON", sev: 1, type: "Freshness SLO breach", entity: "analytics.payments_daily", trigger: "Freshness 23m over a 15m SLO", featured: true,
+    { id: "freshness", day: "Issue 1", sev: 1, type: "Freshness SLO breach", entity: "analytics.payments_daily", trigger: "Freshness 23m over a 15m SLO", featured: true,
       plain: "A payments table that is supposed to refresh every 15 minutes hasn't updated in 23. Every dashboard and risk model built on it is now quietly showing stale numbers.",
       signal: [
         "ASSERTION  freshness.payments_daily        FAILED",
@@ -64,7 +64,7 @@
           { name: "finance.revenue_executive", criticality: "Tier 1", relationship: "1 hop downstream" },
           { name: "risk.payment_anomaly_features", criticality: "Tier 1", relationship: "2 hops downstream" },
           { name: "growth.checkout_health", criticality: "Tier 1", relationship: "2 hops downstream" }] } },
-    { id: "schema", day: "TUE", sev: 2, type: "Schema drift", entity: "core.orders_v2", trigger: "Breaking column type change detected",
+    { id: "schema", day: "Issue 2", sev: 2, type: "Schema drift", entity: "core.orders_v2", trigger: "Breaking column type change detected",
       plain: "Someone changed the order-total column from a whole number to a decimal. Any table or model that still reads it as a whole number can now break or silently round money.",
       signal: [
         "schemaMetadata  core.orders_v2       BREAKING CHANGE",
@@ -74,12 +74,13 @@
         "            ml.churn_features (T1)",
       ],
       fix: "File a schema-change record on the owning team, flag the two downstream models that read the column, and hold any risky action behind the deterministic policy gate.",
+      receipts: { act: ["fixture://github/issues/512", "fixture://slack/messages/1712.5521", "fixture://jira/issues/DATA-874"], writeback: "fixture://datahub/writeback/inc-schema-orders/receipt-8c21", memory: "mem-inc-schema-orders-v1" },
       ctx: { owner: "Commerce", tier: "Tier 1", change: "order_total INT → DECIMAL (breaking) in schemaMetadata",
         assets: [
           { name: "analytics.orders_daily", criticality: "Tier 1", relationship: "1 hop downstream" },
           { name: "ml.churn_features", criticality: "Tier 1", relationship: "2 hops downstream" },
           { name: "finance.rev_recognition", criticality: "Tier 2", relationship: "2 hops downstream" }] } },
-    { id: "volume", day: "WED", sev: 2, type: "Volume anomaly", entity: "events.clickstream", trigger: "Row count −62% vs baseline",
+    { id: "volume", day: "Issue 3", sev: 2, type: "Volume anomaly", entity: "events.clickstream", trigger: "Row count −62% vs baseline",
       plain: "The stream of website click events suddenly dropped to a third of its normal size. Something upstream is dropping data, and every metric built on it will read low.",
       signal: [
         "ASSERTION  volume.clickstream             FAILED",
@@ -88,11 +89,12 @@
         "  delta            −62%    ✗  below −40% floor",
       ],
       fix: "Record the drop, notify the Growth owner, and warn the downstream metrics + ML-training tables. Nothing is 'fixed' automatically — humans decide; receipts are kept.",
+      receipts: { act: ["fixture://github/issues/513", "fixture://slack/messages/1712.6033", "fixture://pagerduty/incidents/781"], writeback: "fixture://datahub/writeback/inc-volume-clickstream/receipt-4f90", memory: "mem-inc-volume-clickstream-v1" },
       ctx: { owner: "Growth", tier: "Tier 2", change: "Row-count assertion: −62% vs 7-day baseline",
         assets: [
           { name: "growth.session_metrics", criticality: "Tier 1", relationship: "1 hop downstream" },
           { name: "ml.recommender_train", criticality: "Tier 2", relationship: "2 hops downstream" }] } },
-    { id: "access", day: "THU", sev: 1, type: "Access / ACL change", entity: "pii.customers", trigger: "Ownership and ACL changed on PII",
+    { id: "access", day: "Issue 4", sev: 1, type: "Access / ACL change", entity: "pii.customers", trigger: "Ownership and ACL changed on PII",
       plain: "The permissions on a table full of customer personal data were just widened to everyone, and its owner was cleared. That is a potential privacy and security exposure.",
       signal: [
         "ownership + policy  pii.customers    ⚠ SENSITIVE",
@@ -102,11 +104,12 @@
         "  + owner  (unset)",
       ],
       fix: "Raise a SEV-1, page Trust & Safety, and file an access-review ticket. It never edits the ACL itself — widening or narrowing access is out of its allowlist by design.",
+      receipts: { act: ["fixture://pagerduty/incidents/782", "fixture://slack/messages/1712.6644", "fixture://jira/issues/SEC-231"], writeback: "fixture://datahub/writeback/inc-access-pii/receipt-a7d3", memory: "mem-inc-access-pii-v1" },
       ctx: { owner: "Trust & Safety", tier: "Tier 1", change: "Ownership + ACL widened on a PII dataset",
         assets: [
           { name: "support.customer_360", criticality: "Tier 1", relationship: "1 hop downstream" },
           { name: "marketing.audiences", criticality: "Tier 2", relationship: "2 hops downstream" }] } },
-    { id: "deploy", day: "FRI", sev: 1, type: "Upstream deploy break", entity: "finance.revenue_dashboard", trigger: "dbt deploy invalidated the model",
+    { id: "deploy", day: "Issue 5", sev: 1, type: "Upstream deploy break", entity: "finance.revenue_dashboard", trigger: "dbt deploy invalidated the model",
       plain: "A code change upstream (a dbt model deploy) removed a filter, so the finance revenue dashboard is now built on the wrong rows — and the board pack reads straight from it.",
       signal: [
         "deploy  dbt:rev_model @ a1f9c2      INVALIDATED",
@@ -117,11 +120,12 @@
         "  stale → finance.revenue_dashboard → exec.board_pack (T1)",
       ],
       fix: "Link the incident to the exact deploy commit, page Finance, and open a rollback/repair ticket. The fix stays with the owning engineer, with a full receipt trail.",
+      receipts: { act: ["fixture://github/issues/514", "fixture://slack/messages/1712.7120", "fixture://jira/issues/FIN-560"], writeback: "fixture://datahub/writeback/inc-deploy-rev/receipt-2b58", memory: "mem-inc-deploy-rev-v1" },
       ctx: { owner: "Finance", tier: "Tier 1", change: "Upstream dbt model deploy (rev_model) marked stale",
         assets: [
           { name: "exec.board_pack", criticality: "Tier 1", relationship: "1 hop downstream" },
           { name: "finance.daily_close", criticality: "Tier 2", relationship: "2 hops downstream" }] } },
-    { id: "ingest", day: "SAT", sev: 3, type: "Ingestion failure", entity: "vendor.billing_feed", trigger: "Connector run failed; lineage stale",
+    { id: "ingest", day: "Issue 6", sev: 3, type: "Ingestion failure", entity: "vendor.billing_feed", trigger: "Connector run failed; lineage stale",
       plain: "The nightly job that pulls a vendor's billing data failed, so the feed is stale. Anything that reconciles money against it — the accounts-receivable ledger — is now out of date.",
       signal: [
         "ingestion  vendor-billing-cdc            FAILED",
@@ -130,6 +134,7 @@
         "  lastObserved  2026-07-30T23:10Z   (28h stale)",
       ],
       fix: "Record the failed run, notify Vendor Ops, and flag the AR ledger as running on stale data — so no one closes the books on numbers that never actually arrived.",
+      receipts: { act: ["fixture://github/issues/515", "fixture://slack/messages/1712.7788", "fixture://jira/issues/OPS-419"], writeback: "fixture://datahub/writeback/inc-ingest-billing/receipt-9e42", memory: "mem-inc-ingest-billing-v1" },
       ctx: { owner: "Vendor Ops", tier: "Tier 3", change: "Ingestion run failed; systemMetadata.lastObserved stale",
         assets: [
           { name: "finance.ar_ledger", criticality: "Tier 2", relationship: "1 hop downstream" }] } },
@@ -152,7 +157,7 @@
         h("span", { class: "ttype", text: s.type }),
         h("span", { class: "tent", text: s.entity }),
         h("span", { class: "tsev sev" + s.sev, text: "SEV-" + s.sev }),
-        s.featured ? h("span", { class: "tstar", text: "★ real receipts" }) : null);
+        s.featured ? h("span", { class: "tstar", text: "★ backed by a real run" }) : null);
       card.addEventListener("click", () => { current = s; paintTimeline(); buildStory(); scrollToStep(0); });
       timelineEl.append(card);
     }
@@ -235,15 +240,26 @@
     return card;
   };
 
+  const chipRow = (values) => {
+    const wrap = h("div", { class: "chips" });
+    for (const v of arr(values)) if (v) wrap.append(h("code", { class: "chip", text: v }));
+    return wrap.childElementCount ? wrap : null;
+  };
+
   const receiptChips = (i) => {
-    if (!current.featured || !backend) return null;
-    if (i === 5) {
-      const wrap = h("div", { class: "chips" });
-      for (const a of arr(backend.actions)) if (a.receipt) wrap.append(h("code", { class: "chip", text: a.receipt }));
-      return wrap.childElementCount ? wrap : null;
+    // Featured scenario: the backend actually executed the fixture pipeline.
+    if (current.featured && backend) {
+      if (i === 5) return chipRow(arr(backend.actions).map((a) => a.receipt));
+      if (i === 6 && backend.writeback?.receipt) return chipRow([backend.writeback.receipt]);
+      if (i === 7 && backend.memory?.memory_id) return chipRow([backend.memory.memory_id]);
+      return null;
     }
-    if (i === 6 && backend.writeback?.receipt) return h("div", { class: "chips" }, h("code", { class: "chip", text: backend.writeback.receipt }));
-    if (i === 7 && backend.memory?.memory_id) return h("div", { class: "chips" }, h("code", { class: "chip", text: backend.memory.memory_id }));
+    // Other scenarios: deterministic simulated fixture receipts.
+    const r = current.receipts;
+    if (!r) return null;
+    if (i === 5) return chipRow(r.act);
+    if (i === 6 && r.writeback) return chipRow([r.writeback]);
+    if (i === 7 && r.memory) return chipRow([r.memory]);
     return null;
   };
 
@@ -268,7 +284,7 @@
     }
     const chips = receiptChips(i);
     if (chips) bodyEl.append(chips);
-    else if (!current.featured && i >= 5) bodyEl.append(h("p", { class: "dnote", text: "Illustrative pattern — no receipts generated for this scenario." }));
+    if (!current.featured && i === 5) bodyEl.append(h("p", { class: "dnote", text: "Simulated fixture receipts — this scenario is illustrative (the ★ incident is backed by a recorded real run)." }));
     if (i === 5 && current.featured) bodyEl.append(h("p", { class: "dhback" },
       "↳ fixture receipts above. One real four-provider run was recorded 2026-08-03 — GitHub ",
       h("a", { href: "https://github.com/tomyimkc/ledgerlens/issues/29", target: "_blank", rel: "noopener", text: "#29" }),
