@@ -79,54 +79,32 @@
       h("p", { class: "syswrite" }, "↩ save_document (MCP write-back) — the incident receipt returns to DataHub for the next agent."));
   };
 
-  // ---- the danger a self-authorizing agent creates -------------------------
-  const DANGERS = [
-    ["Auto-migrates the schema", "rewrites production order_total — every order silently rounds money.", "a data-mutation action isn't on the allowlist → refused. It files a change record instead."],
-    ["Reverts the PII ACL itself", "grants or strips access with no review — a security and privacy incident.", "ACL edits are off-allowlist by design → refused. It files an access review instead."],
-    ["Runs a plan that drifted after review", "a human approved plan A; the model executes plan B, so an unreviewed action runs.", "authorization is bound to the exact plan fingerprint → refused."],
-    ["Pages the wrong service / posts to #all-company", "hallucinated or injected targets create noise, false alarms, or a leak.", "only allowlisted targets execute → refused."],
-  ];
-  const buildDanger = () => {
-    const grid = h("div", { class: "danger-grid" });
-    for (const [act, consequence, refuse] of DANGERS) {
-      grid.append(h("article", { class: "danger-card" },
-        h("div", { class: "danger-act" }, h("span", { class: "danger-tag", text: "SELF-AUTHORIZING AGENT" }), h("strong", { text: "“" + act + "”" })),
-        h("p", { class: "danger-conseq" }, h("span", { class: "danger-arrow", text: "→ " }), consequence),
-        h("p", { class: "danger-fix" }, h("b", { text: "LedgerLens: " }), refuse)));
-    }
-    return h("section", { class: "sec" },
-      h("p", { class: "sec-eyebrow danger-eyebrow", text: "THE RISK — WHY THE GATE MATTERS" }),
-      h("h2", { class: "sec-title", text: "What a self-authorizing agent can do to an incident" }),
-      h("p", { class: "sec-note" }, "A generic LLM agent decides for itself whether its own response is safe — so a bad plan, a hallucinated target, or a prompt-injected incident payload can run unchecked. Each of these is exactly what the deterministic gate stops."),
-      grid);
-  };
-
-  // ---- six incidents, three approaches -------------------------------------
+  // ---- master table: six incidents × three approaches, with the risk inline --
   const COMPARISON = [
     { s: "Freshness SLO breach", d: "payments_daily is 23m stale (15m SLO)",
-      af: "Fires one pre-wired rule — a Slack ping, if you configured it for this assertion.",
-      ag: "Improvises a response and runs it; decides for itself that it is safe.",
-      us: "Reads owner + lineage, pages the on-call owner, posts the blast radius, opens a tracked issue — only the reviewed, allowlisted plan runs, with receipts." },
+      af: "Fires one pre-wired rule — a Slack ping, if you configured it.",
+      ag: "Improvises a response and self-approves it;", agRisk: "may page, post, or 'fix' with no human review.",
+      us: "Pages the recorded owner, posts the blast radius, opens a tracked issue.", usGate: "only the reviewed, allowlisted plan runs — with receipts." },
     { s: "Schema drift", d: "order_total INT → DECIMAL (breaking)",
-      af: "Notifies only if a schema-change rule exists; it doesn't reason about which models break.",
-      ag: "May flag downstream — or 'auto-migrate' the column. Unbounded, self-approved.",
-      us: "Grounds on lineage, files a schema-change record, flags the two downstream models; a risky auto-migrate is off-allowlist → refused." },
+      af: "Notifies only if a schema-change rule exists; can't tell which models break.",
+      ag: "May auto-migrate the column", agRisk: "→ rewrites production order_total, silently rounding money on every order.",
+      us: "Flags the two downstream models, files a change record.", usGate: "a data-mutation is off-allowlist → refused." },
     { s: "Volume anomaly", d: "clickstream rows −62% vs baseline",
       af: "Sends a notification if a volume rule fired; no downstream awareness.",
-      ag: "Improvises — may rerun jobs or edit data to 'fix' it.",
-      us: "Records the drop, notifies the Growth owner, warns downstream metrics + ML training — nothing is fixed automatically; receipts kept." },
+      ag: "May rerun jobs or edit data to 'fix' it", agRisk: "→ can double-write or corrupt, unbounded.",
+      us: "Records the drop, notifies Growth, warns downstream metrics + ML.", usGate: "nothing is fixed automatically; receipts kept." },
     { s: "Access / ACL change on PII", d: "customers ACL widened to all-employees",
       af: "Can notify on a policy-change event, if wired.",
-      ag: "Might try to revert the ACL itself — dangerous and self-authorized.",
-      us: "Raises a SEV-1, pages Trust & Safety, files an access-review ticket. Editing the ACL is out of its allowlist by design — refused." },
+      ag: "Might revert the ACL itself", agRisk: "→ grants or strips access with no review — a security & privacy incident.",
+      us: "Raises a SEV-1, pages Trust & Safety, files an access review.", usGate: "ACL edits are off-allowlist by design → refused." },
     { s: "Upstream deploy break", d: "a dbt deploy removed a revenue filter",
-      af: "Not triggered by a dbt deploy unless wired into CI — no incident is opened.",
-      ag: "Improvises a rollback or data edit; approves its own change.",
-      us: "Links the incident to the exact deploy commit, pages Finance, opens a rollback ticket — the fix stays with the engineer, full receipt trail." },
+      af: "Not triggered by a dbt deploy unless wired into CI — no incident opens.",
+      ag: "Improvises a rollback or data edit and self-approves it", agRisk: "→ an unreviewed change hits production.",
+      us: "Links the incident to the exact deploy commit, pages Finance, opens a rollback ticket.", usGate: "the fix stays with the engineer; full receipt trail." },
     { s: "Ingestion failure", d: "billing connector auth expired; feed stale",
       af: "Notifies if an ingestion-failure rule exists.",
-      ag: "May retry or 'repair' the connector, unbounded.",
-      us: "Records the failed run, notifies Vendor Ops, flags the AR ledger as running on stale data — no closing the books on data that never arrived." },
+      ag: "May retry or 'repair' the connector", agRisk: "→ unbounded retries against a flaky source.",
+      us: "Records the failed run, notifies Vendor Ops, flags the AR ledger as stale.", usGate: "no closing the books on data that never arrived." },
   ];
 
   const buildComparison = () => {
@@ -135,23 +113,28 @@
       tbody.append(h("tr", {},
         h("th", { scope: "row" }, h("strong", { text: r.s }), h("small", { text: r.d })),
         h("td", { text: r.af }),
-        h("td", { text: r.ag }),
-        h("td", { class: "us", text: r.us })));
+        h("td", { class: "ag" }, r.ag + " ", r.agRisk ? h("span", { class: "risk", text: r.agRisk }) : null),
+        h("td", { class: "us" }, r.us + " ", r.usGate ? h("span", { class: "gate", text: r.usGate }) : null)));
     }
     return h("section", { class: "sec" },
-      h("p", { class: "sec-eyebrow", text: "SIX INCIDENTS · THREE APPROACHES" }),
-      h("h2", { class: "sec-title", text: "How each real incident is handled" }),
+      h("p", { class: "sec-eyebrow", text: "SIX INCIDENTS · THREE APPROACHES · THE RISK, INLINE" }),
+      h("h2", { class: "sec-title", text: "How each real incident is handled — and what a loose agent risks" }),
       h("p", { class: "sec-note" }, "DataHub already ", h("b", { text: "detects" }), " these (assertions) and can ",
-        h("b", { text: "fire pre-wired automations" }), " (its Actions Framework). The difference is what happens next — and who is allowed to authorize it."),
+        h("b", { text: "fire pre-wired automations" }), " (its Actions Framework). The difference is what happens next — a self-authorizing agent decides for itself that its action is safe (the ",
+        h("span", { class: "risk", text: "red" }), " is what can go wrong); LedgerLens lets deterministic policy authorize the exact plan."),
       h("div", { class: "cmp-wrap" }, h("table", { class: "cmp-table cmp3 cmp6" },
         h("thead", {}, h("tr", {},
           h("th", { text: "Incident" }),
           h("th", { text: "DataHub Actions Framework" }),
-          h("th", { text: "Generic LLM agent" }),
-          h("th", { class: "us", text: "LedgerLens" }))),
+          h("th", { text: "Generic LLM agent (self-authorizing)" }),
+          h("th", { class: "us", text: "LedgerLens (policy-authorized)" }))),
         tbody)),
+      h("p", { class: "sec-foot" },
+        "Across all of these a self-authorizing agent can also ", h("span", { class: "risk", text: "run a plan that drifted after review" }),
+        ", or hit a ", h("span", { class: "risk", text: "hallucinated / prompt-injected target" }),
+        ". LedgerLens binds authorization to the exact plan fingerprint and executes only allowlisted targets — both are refused."),
       h("p", { class: "sec-foot", "data-realrun": "" },
-        "The LedgerLens column isn't hypothetical — the whole pipeline was executed for real once: GitHub ",
+        "And the LedgerLens column isn't hypothetical — the whole pipeline was executed for real once: GitHub ",
         h("a", { href: "https://github.com/tomyimkc/ledgerlens/issues/29", target: "_blank", rel: "noopener", text: "#29" }),
         " · Slack · PagerDuty · Jira KAN-2 — ",
         h("a", { href: EVIDENCE, target: "_blank", rel: "noopener", text: "evidence (E-16)" }),
@@ -174,67 +157,63 @@
       grid);
   };
 
-  // ---- real code that engineers the flow -----------------------------------
-  const CODE = [
-    {
-      title: "The data flow, engineered as one graph",
-      file: "src/ledgerlens/orchestrator.py · IncidentOrchestrator.run",
-      code: [
-        "# trigger → context → plan → verify → authorize → execute → writeback",
-        "context = IncidentContext.model_validate(self.context_provider(incident))   # DataHub read",
-        "plan = ActionPlan.model_validate(self.planner.plan(context))                # AI proposes",
-        "verification = self.verifier_panel.verify(context, plan)                    # AI reviews",
-        "authorization = self.policy_gate.authorize(context, plan, verification)     # deterministic gate",
-        "if not authorization.authorized:",
-        "    return self._blocked(...)          # fail closed — nothing runs",
-        "for action in plan.actions:",
-        "    receipts.append(self._execute_action(..., action=action))              # allowlisted fanout",
-        "writeback_outcome = self.writeback(snapshot)                               # DataHub write-back",
-      ],
-    },
-    {
-      title: "Read the DataHub lineage graph over MCP",
-      file: "src/ledgerlens/datahub_context.py · DataHubMCPContextProvider",
-      code: [
-        "entities = self.client.get_entities([root_urn])           # MCP: read the entity",
-        "lineage  = self.client.get_lineage(root_urn, direction=\"downstream\",",
-        "                                   max_hops=self.max_hops, count=self.max_results)",
-        "downstream_urns = tuple(dict.fromkeys(",
-        "    str(item[\"urn\"]) for item in lineage if item[\"urn\"] != root_urn))",
-        "facts = (",
-        "    _fact(\"root-asset\",    f\"The triggering DataHub entity is {root_urn}.\", root_urn),",
-        "    _fact(\"primary-owner\", f\"The recorded owner is {owner}.\", f\"{root_urn}#ownership\"),",
-        "    _fact(\"blast-radius\",  f\"{len(downstream_urns)} downstream entities.\", ...),",
-        ")",
-      ],
-    },
-    {
-      title: "The deterministic gate on the flow",
-      file: "src/ledgerlens/verification.py · PolicyGate.authorize",
-      code: [
-        "for action in plan.actions:",
-        "    allowance = self._allowances.get(action.action_type)",
-        "    if allowance is None:",
-        "        reasons.append(f\"action_not_allowlisted:{action.action_id}\")",
-        "    if action.target not in allowance.targets:",
-        "        reasons.append(f\"target_not_allowlisted:{action.action_id}\")    # off-graph target",
-        "    if not frozenset(action.evidence_fact_ids) <= context.fact_ids:",
-        "        reasons.append(f\"action_references_unknown_fact:{...}\")          # ungrounded action",
-        "authorized = not reasons     # any failed check blocks the whole plan",
-      ],
-    },
+  // ---- see it run: a terminal streaming the real flow (fixture replay) ------
+  const TERMINAL = [
+    { cmd: "uv run ledgerlens incident --replay freshness_breach" },
+    { tag: "incident_dashboard", msg: "trigger    freshness assertion FAILED (observed 23m > 15m SLO)" },
+    { tag: "mcp_client", msg: "context    get_entities + get_lineage …", ok: "owner=data-platform tier=1 · 3 downstream" },
+    { tag: "agent", msg: "plan       4 bounded, reversible actions proposed", ok: "fingerprint=20f3ace2" },
+    { tag: "VerifierPanel", msg: "verify     verifier-A ✓  verifier-B ✓  quorum 2/2", ok: "approved (advisory)" },
+    { tag: "PolicyGate", msg: "authorize  exact-plan hash match · allowlist · grounding", ok: "AUTHORIZED" },
+    { tag: "action_adapters", msg: "act        github.issue.create", ok: "fixture://github/issues/481" },
+    { tag: "action_adapters", msg: "act        slack.message.post", ok: "fixture://slack/messages/1712.4401" },
+    { tag: "action_adapters", msg: "act        pagerduty.event.trigger", ok: "fixture://pagerduty/incidents/778" },
+    { tag: "action_adapters", msg: "act        jira.issue.create", ok: "fixture://jira/issues/DATAOPS-219" },
+    { tag: "mcp_mutations", msg: "writeback  save_document → DataHub", ok: "recorded" },
+    { tag: "memory", msg: "handoff    next agent inherits facts + unknowns", ok: "ready" },
+    { done: "✓ done · cause, user impact, and recovery remain unknown · fixture replay" },
   ];
+  const termLine = (l) => {
+    if (l.cmd) return h("div", { class: "term-line cmd" }, h("span", { class: "term-prompt", text: "$ " }), l.cmd);
+    if (l.done) return h("div", { class: "term-line term-done", text: l.done });
+    const row = h("div", { class: "term-line" }, h("span", { class: "term-tag", text: "[" + l.tag + "] " }), l.msg);
+    if (l.ok) row.append(h("span", { class: "term-ok", text: "  " + l.ok }));
+    return row;
+  };
   const buildCode = () => {
-    const grid = h("div", { class: "code-grid" });
-    for (const c of CODE) {
-      grid.append(h("article", { class: "code-card" },
-        h("div", { class: "code-hd" }, h("h3", { text: c.title }), h("code", { class: "code-file", text: c.file })),
-        h("pre", { class: "code-block", text: c.code.join("\n") })));
-    }
+    const bodyT = h("div", { class: "term-body" });
+    const term = h("div", { class: "terminal" },
+      h("div", { class: "term-bar" },
+        h("span", { class: "tdot r" }), h("span", { class: "tdot y" }), h("span", { class: "tdot g" }),
+        h("span", { class: "term-title", text: "orchestrator.py — LedgerLens · fixture replay" })),
+      bodyT);
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let started = false;
+    const stream = () => {
+      if (started) return;
+      started = true;
+      if (reduce) { for (const l of TERMINAL) bodyT.append(termLine(l)); return; }
+      let i = 0;
+      const step = () => {
+        if (i >= TERMINAL.length) { bodyT.append(h("span", { class: "term-cursor", "aria-hidden": "true" })); return; }
+        const line = termLine(TERMINAL[i]); line.classList.add("term-in"); bodyT.append(line); i += 1;
+        setTimeout(step, 270);
+      };
+      step();
+    };
+    if (typeof IntersectionObserver === "function") {
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) if (e.isIntersecting) { io.disconnect(); stream(); }
+      }, { threshold: 0.25 });
+      io.observe(term);
+    } else { stream(); }
     return h("section", { class: "sec" },
-      h("p", { class: "sec-eyebrow", text: "GRAPH-ENGINEERING THE FLOW OF DATA" }),
-      h("h2", { class: "sec-title", text: "How the flow is built — real repo code (condensed)" }),
-      grid);
+      h("p", { class: "sec-eyebrow", text: "SEE IT RUN" }),
+      h("h2", { class: "sec-title", text: "The pipeline, running — a live terminal" }),
+      h("p", { class: "sec-note" }, "The real orchestrator (",
+        h("a", { href: "https://github.com/tomyimkc/ledgerlens/blob/main/src/ledgerlens/orchestrator.py", target: "_blank", rel: "noopener", text: "orchestrator.py" }),
+        ") running the fixture incident — the same code path a live run takes. Every receipt here is fixture://."),
+      term);
   };
 
   // ---- live gate proof -----------------------------------------------------
@@ -323,7 +302,7 @@
     detailEl.replaceChildren(h("div", { class: "logloading" }, h("span", { class: "sv-spinner", "aria-hidden": "true" }), GATE));
     const proof = await buildProofSection();
     detailEl.replaceChildren(
-      buildWhat(), buildPipe(), buildComparison(), buildDanger(), buildCode(),
+      buildWhat(), buildPipe(), buildComparison(), buildCode(),
       ...(proof ? [proof] : []), buildAdoption(), buildSetup());
   };
 
