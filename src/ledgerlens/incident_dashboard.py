@@ -1308,6 +1308,20 @@ def create_incident_router(
             },
         )
 
+    @router.get("/api/live-receipts", name="incident_live_receipts")
+    async def api_live_receipts() -> Any:
+        # Real per-incident run receipts, published by scripts/build_live_receipts_index.py.
+        # Absent until a real run is committed; the demo falls back to simulated receipts.
+        path = _STATIC_ROOT / "live-receipts.json"
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+        except (json.JSONDecodeError, OSError):
+            payload = {}
+        return JSONResponse(
+            {"ok": True, "receipts": payload if isinstance(payload, Mapping) else {}},
+            headers=_content_security_headers(),
+        )
+
     @router.get("/api/state", name="incident_state")
     async def api_state() -> Any:
         try:

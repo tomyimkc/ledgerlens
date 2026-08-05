@@ -2384,6 +2384,11 @@ body.js .flow-root {
   margin: 0 auto; padding: 10px 22px 14px;
   display: flex; flex-direction: column; gap: 9px;
 }
+/* Real, executed-run receipts are visually distinct and clickable where verifiable. */
+a.chip.chip-real { border-color: var(--teal); background: var(--teal-dim); color: var(--teal); font-weight: 700; text-decoration: none; }
+a.chip.chip-real:hover { background: var(--teal); color: #fff; }
+code.chip.chip-real { border-color: var(--teal); background: var(--teal-dim); color: var(--teal); }
+
 /* Fixed rows keep their natural height; only the detail/proofs area flexes. */
 body.js .flow-hero,
 body.js .orient,

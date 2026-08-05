@@ -141,6 +141,7 @@
   ];
 
   let backend = null;
+  let liveReceipts = {};
   let current = SCENARIOS[0];
   let nodes = [];
   let arrows = [];
@@ -157,7 +158,7 @@
         h("span", { class: "ttype", text: s.type }),
         h("span", { class: "tent", text: s.entity }),
         h("span", { class: "tsev sev" + s.sev, text: "SEV-" + s.sev }),
-        s.featured ? h("span", { class: "tstar", text: "★ backed by a real run" }) : null);
+        hasRealRun(s) ? h("span", { class: "tstar", text: "★ backed by a real run" }) : null);
       card.addEventListener("click", () => { current = s; paintTimeline(); stopRun(); setModeWalk(); buildStory(); active = -1; setActive(0); });
       timelineEl.append(card);
     }
@@ -240,14 +241,37 @@
     return card;
   };
 
+  const hasRealRun = (s) => !!(s && liveReceipts && liveReceipts[s.id]);
+
   const chipRow = (values) => {
     const wrap = h("div", { class: "chips" });
     for (const v of arr(values)) if (v) wrap.append(h("code", { class: "chip", text: v }));
     return wrap.childElementCount ? wrap : null;
   };
 
+  // Real-run receipts: linked and verifiable where the provider returns a URL.
+  const realChipRow = (actions) => {
+    const wrap = h("div", { class: "chips" });
+    for (const a of arr(actions)) {
+      if (!a || !a.receipt) continue;
+      const label = (a.provider ? a.provider + " · " : "") + String(a.receipt);
+      wrap.append(a.url
+        ? h("a", { class: "chip chip-real", href: a.url, target: "_blank", rel: "noopener", text: label })
+        : h("code", { class: "chip chip-real", text: label }));
+    }
+    return wrap.childElementCount ? wrap : null;
+  };
+
   const receiptChips = (i) => {
-    // Featured scenario: the backend actually executed the fixture pipeline.
+    // Real executed run (published by build_live_receipts_index.py) takes precedence.
+    const live = liveReceipts[current.id];
+    if (live) {
+      if (i === 5) return realChipRow(live.actions);
+      if (i === 6 && live.writeback) return chipRow([live.writeback]);
+      if (i === 7 && live.memory) return chipRow([live.memory]);
+      return null;
+    }
+    // Featured scenario: the backend executed the deterministic fixture pipeline.
     if (current.featured && backend) {
       if (i === 5) return chipRow(arr(backend.actions).map((a) => a.receipt));
       if (i === 6 && backend.writeback?.receipt) return chipRow([backend.writeback.receipt]);
@@ -274,9 +298,10 @@
     rail.append(h("div", { class: "fact-row" }, h("small", { text: "ENTITY" }), h("code", { text: s.entity })));
     rail.append(h("div", { class: "fact-row" }, h("small", { text: "OWNER" }), h("span", { text: (ctx.owner || be.entity?.owner || "—") + " · " + (ctx.tier || be.entity?.tier || "—") })));
     rail.append(h("div", { class: "fact-row" }, h("small", { text: "BLAST RADIUS" }), h("span", { text: assets.length + " downstream asset" + (assets.length === 1 ? "" : "s") })));
-    rail.append(h("div", { class: "fact-run " + (s.featured ? "real" : "sim") },
-      h("small", { text: s.featured ? "★ BACKED BY A REAL RUN" : "SIMULATED FIXTURE" }),
-      h("span", { text: s.featured ? "Real four-provider receipts (E-16)" : "Illustrative — real run pending" })));
+    const real = hasRealRun(s);
+    rail.append(h("div", { class: "fact-run " + (real ? "real" : "sim") },
+      h("small", { text: real ? "★ BACKED BY A REAL RUN" : "SIMULATED FIXTURE" }),
+      h("span", { text: real ? "Real provider receipts — click to verify" : "Illustrative — real run pending" })));
     return rail;
   };
 
@@ -295,18 +320,17 @@
     if (i === 1 && backend && backend.context) bodyEl.append(lineageGraph());
     if (i === 6) {
       const wb = h("p", { class: "dhback" }, "↳ writes the incident receipt back to DataHub via save_document (MCP mutation).");
-      if (current.featured) wb.append(" Fixture receipt below; a real DataHub OSS write + official-MCP read-back was recorded 2026-07-31 — ",
+      wb.append(" A real DataHub OSS write + official-MCP read-back was also recorded 2026-07-31 — ",
         h("a", { href: "https://github.com/tomyimkc/ledgerlens/blob/main/docs/EVIDENCE_INDEX.md", target: "_blank", rel: "noopener", text: "evidence (E-07)" }));
       bodyEl.append(wb);
     }
     const chips = receiptChips(i);
     if (chips) bodyEl.append(chips);
-    if (!current.featured && i === 5) bodyEl.append(h("p", { class: "dnote", text: "Simulated fixture receipts — this scenario is illustrative (the ★ incident is backed by a recorded real run)." }));
-    if (i === 5 && current.featured) bodyEl.append(h("p", { class: "dhback" },
-      "↳ fixture receipts above. One real four-provider run was recorded 2026-08-03 — GitHub ",
-      h("a", { href: "https://github.com/tomyimkc/ledgerlens/issues/29", target: "_blank", rel: "noopener", text: "#29" }),
-      " · Slack · PagerDuty · Jira KAN-2, one bounded rehearsal action each — ",
-      h("a", { href: "https://github.com/tomyimkc/ledgerlens/blob/main/docs/EVIDENCE_INDEX.md", target: "_blank", rel: "noopener", text: "evidence (E-16)" })));
+    if (i === 5 && hasRealRun(current)) bodyEl.append(h("p", { class: "dhback" },
+      "↳ real four-provider run — click a receipt above to verify, or see the ",
+      h("a", { href: "https://github.com/tomyimkc/ledgerlens/blob/main/docs/EVIDENCE_INDEX.md", target: "_blank", rel: "noopener", text: "evidence index" }),
+      ". One bounded rehearsal action each; a receipt does not prove recovery."));
+    if (i === 5 && !hasRealRun(current)) bodyEl.append(h("p", { class: "dnote", text: "Simulated fixture receipts — illustrative. Run this incident live (make run-all-incidents-live) to back it with real, clickable receipts." }));
     const row = h("div", { class: "logrow", "data-i": String(i) },
       h("div", { class: "logmark" }, h("span", { class: "lognum", text: (i + 1).toString().padStart(2, "0") })),
       bodyEl,
@@ -469,6 +493,10 @@
       const data = await res.json();
       if (!res.ok || !data.ok || !data.state) throw new Error(data.detail || "Trigger failed.");
       backend = data.state;
+      try {
+        const lr = await fetch(`${apiBase}/live-receipts`, { credentials: "same-origin" }).then((r) => r.json());
+        if (lr && lr.receipts && typeof lr.receipts === "object") liveReceipts = lr.receipts;
+      } catch (error) { /* real receipts are best-effort; fall back to simulated */ }
       buildTimeline(); paintTimeline(); buildPipe(); buildControls(); buildStory(); buildProofs();
       resetFlow();
     } catch (error) {
