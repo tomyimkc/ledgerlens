@@ -151,10 +151,44 @@
     ];
     const grid = h("div", { class: "adopt-grid" });
     for (const [t, d] of feats) grid.append(h("article", { class: "adopt-card" }, h("h3", { text: t }), h("p", { text: d })));
+
+    const ioCard = (tagText, tagCls, tool, code, note) =>
+      h("article", { class: "io-card" },
+        h("div", { class: "io-hd" }, h("span", { class: "io-tag " + tagCls, text: tagText }), h("code", { class: "io-tool", text: tool })),
+        h("pre", { class: "code-block io-code", text: code.join("\n") }),
+        note);
+    const io = h("div", { class: "io-grid" },
+      ioCard("INPUT · READ", "read", "mcp-server-datahub · read-only tools", [
+        "get_entities([\"urn:li:dataset:(…,analytics.payments_daily,PROD)\"])",
+        "  → ownership, tier, schemaMetadata,",
+        "     customProperties{ ledgerlens.runbookUrl, ledgerlens.schema }",
+        "",
+        "get_lineage(root_urn, direction=\"downstream\", max_hops=2, count=25)",
+        "  → [ finance.revenue_executive, risk.payment_anomaly_features, … ]",
+      ], h("p", { class: "io-note", text: "⇒ becomes the grounded facts (owner · tier · blast radius) the gate authorizes against." })),
+      ioCard("OUTPUT · WRITE-BACK", "write", "mcp-server-datahub · save_document", [
+        "// request → save_document   (the ONE allowlisted mutation)",
+        "{ document_type: \"Context\",",
+        "  title:   \"LedgerLens incident command receipt: INC-…\",",
+        "  content: \"## Bounded incident command receipt …\",",
+        "  related_assets: [\"urn:li:dataset:(…,mart_product_kpis,PROD)\"],",
+        "  topics:  [\"incident-response\", \"ledgerlens\", \"candidate-only\"] }",
+        "",
+        "// response ← DataHub",
+        "{ success: true,",
+        "  urn:     \"urn:li:document:shared-901b860f-66ff-…\",",
+        "  message: \"Successfully created document: …\" }",
+      ], h("p", { class: "io-note" }, "⇒ a ", h("b", { text: "real local DataHub OSS run" }),
+        " (", h("a", { href: EVIDENCE, target: "_blank", rel: "noopener", text: "evidence E-07" }),
+        "); the next agent reads that document back via get_entities.")));
+
     return h("section", { class: "sec" },
       h("p", { class: "sec-eyebrow", text: "ALREADY ON DATAHUB? IT DROPS IN" }),
       h("h2", { class: "sec-title", text: "Easy to adopt into your existing workflow" }),
-      grid);
+      grid,
+      h("h3", { class: "io-sub", text: "Real MCP integration — what goes in, what comes out" }),
+      h("p", { class: "sec-note", text: "LedgerLens speaks only the official DataHub MCP surface: it reads context with read-only tools and writes exactly one document back. No new pipeline, no bespoke API." }),
+      io);
   };
 
   // ---- see it run: a terminal streaming the real flow (fixture replay) ------
