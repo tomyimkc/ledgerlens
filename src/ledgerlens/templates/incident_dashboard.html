@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta
       name="description"
-      content="LedgerLens: how this repo uses DataHub MCP — context in, plan-exact gate, receipted write-back."
+      content="LedgerLens in plain English: read DataHub, draft with AI, lock with hard rules, leave receipts."
     >
-    <title>How LedgerLens works with DataHub · Demo</title>
+    <title>LedgerLens · plain-English demo</title>
     <link rel="stylesheet" href="{{ base_path }}/assets/incident.css">
     <script defer src="{{ base_path }}/assets/incident.js"></script>
   </head>
@@ -26,7 +26,7 @@
         </span>
         <div>
           <strong>LedgerLens</strong>
-          <span>DataHub MCP → exact-plan gate → receipts</span>
+          <span>Safe data-incident helper for DataHub teams</span>
         </div>
       </div>
 
@@ -60,14 +60,14 @@
     {% if state.fixture %}
       <div class="topbar" data-testid="fixture-label">
         <nav class="topnav" aria-label="Project links">
-          <a class="tnav-btn primary" href="#how-repo-works">How the repo works</a>
-          <a class="tnav-btn" href="#mcp-io">DataHub MCP I/O</a>
-          <a class="tnav-btn" href="#gate-demo">Gate proof</a>
+          <a class="tnav-btn primary" href="#ai-or-not">Does it use AI?</a>
+          <a class="tnav-btn" href="#unique">What is unique?</a>
+          <a class="tnav-btn" href="#how-repo-works">Step by step</a>
+          <a class="tnav-btn" href="#gate-demo">Live proof</a>
           <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens" target="_blank" rel="noopener">GitHub</a>
-          <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens/blob/main/docs/EVIDENCE_INDEX.md" target="_blank" rel="noopener">Evidence</a>
           <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens#readme" target="_blank" rel="noopener">README</a>
         </nav>
-        <span class="topbar-note">Public fixture · <code>fixture://</code> receipts · review the walkthrough below before video recapture</span>
+        <span class="topbar-note">Safe public demo · no real tickets or pages are sent from this page</span>
       </div>
     {% elif state.availability != "ready" %}
       <aside class="live-warning" role="alert" data-testid="live-unconfigured">
@@ -84,8 +84,8 @@
         <section class="flow-root" data-flow-root aria-label="Incident pipeline">
           <div class="flow-hero">
             <div>
-              <p class="eyebrow">DEMO · HOW THIS REPO WORKS WITH DATAHUB · FIXTURE</p>
-              <h1>From catalog context to authorized work — with receipts.</h1>
+              <p class="eyebrow">PUBLIC DEMO · SAFE REPLAY · PLAIN ENGLISH</p>
+              <h1>When data looks wrong, help the right people act — without letting AI approve itself.</h1>
             </div>
             <button type="button" class="button button-signal" data-flow-replay data-trigger-incident>
               <span aria-hidden="true">↑</span> Restart
@@ -93,8 +93,8 @@
           </div>
           <div class="orient">
             <span class="orient-lead">
-              Official DataHub MCP: <code>get_entities</code> / <code>get_lineage</code> (read) ·
-              <code>save_document</code> (one allowlisted write-back) · deterministic gate in Python.
+              DataHub is the company's data map. LedgerLens reads that map, may use AI to draft steps,
+              then uses hard rules for the final yes/no — and leaves a receipt.
             </span>
           </div>
           <div class="timeline" data-timeline aria-label="Incident events"></div>
