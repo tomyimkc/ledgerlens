@@ -108,7 +108,115 @@
         h("b", { text: "receipt" }),
         "; and unknowns like root cause stay marked unknown unless proven. We do not claim to be the only possible design — we claim this split is clear, testable, and already implemented in open source."),
       h("p", { class: "sec-foot" },
-        "Live proof below: the same gate code refuses a plan that drifted after review."));
+        "Live proof below: the same gate code refuses a plan that drifted after review. ",
+        "If you disagree with the AI draft, you are not stuck — pick an alternate plan (next section) and re-seal under the same lock."));
+
+  const TEMPLATES_UI = [
+    { id: "notify_and_ticket", label: "Notify + ticket only", why: "Quieter human choice: Slack + one GitHub issue + DataHub receipt." },
+    { id: "ticket_only", label: "Ticket trackers only", why: "GitHub + Jira + receipt. No chat or page noise." },
+    { id: "notify_only", label: "Notify on-call only", why: "Slack + PagerDuty note + receipt. No new tickets." },
+    { id: "full_fanout", label: "Restore full fanout", why: "Back to the AI-style default (all four tools + receipt)." },
+  ];
+
+  const buildAlternatePlan = () => {
+    const status = h("div", { class: "alt-status", "data-alt-status", "aria-live": "polite" },
+      h("p", { class: "alt-status-lead", text: "Load this page’s live demo state, then try a quieter plan." }));
+    const buttons = h("div", { class: "alt-grid", "data-testid": "alternate-plan-buttons" });
+    for (const t of TEMPLATES_UI) {
+      const btn = h("button", {
+        type: "button",
+        class: "button button-secondary alt-btn",
+        "data-alt-template": t.id,
+      },
+        h("strong", { text: t.label }),
+        h("small", { text: t.why }));
+      buttons.append(btn);
+    }
+
+    const setStatus = (nodes) => {
+      status.replaceChildren(...(Array.isArray(nodes) ? nodes : [nodes]));
+    };
+
+    const refreshStateLine = async () => {
+      try {
+        const r = await fetch(apiBase + "/state", { credentials: "same-origin" }).then((x) => x.json());
+        const s = r && r.state;
+        if (!s || !s.planner) return;
+        const fp = (s.authorization && s.authorization.plan_hash) || s.planner.plan_hash || "—";
+        const n = (s.planner.steps || []).length;
+        const actions = (s.actions || []).map((a) => a.provider).join(", ") || "none yet";
+        setStatus([
+          h("p", {},
+            h("b", { text: "Current sealed plan — " }),
+            h("code", { text: String(fp).slice(0, 12) + (String(fp).length > 12 ? "…" : "") }),
+            ` · ${n} step(s) · providers: ${actions}`),
+          h("p", { class: "alt-hint", text:
+            "Pick a template below. The seal changes, any prior grant is wiped, and the same Python lock must pass again." }),
+        ]);
+      } catch (_e) {
+        setStatus(h("p", { text: "Could not load demo state (safe to ignore offline)." }));
+      }
+    };
+
+    buttons.addEventListener("click", async (ev) => {
+      const btn = ev.target && ev.target.closest && ev.target.closest("[data-alt-template]");
+      if (!btn) return;
+      const templateId = btn.getAttribute("data-alt-template");
+      buttons.querySelectorAll("button").forEach((b) => { b.disabled = true; });
+      setStatus(h("p", { text: "Revising plan and wiping any prior grant…" }));
+      try {
+        const r = await fetch(apiBase + "/plan/revise", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "X-Requested-With": "LedgerLens-Incident-Commander" },
+          body: JSON.stringify({ template_id: templateId }),
+        }).then((x) => x.json());
+        if (!r || !r.ok) throw new Error((r && r.detail) || "Plan revision failed.");
+        const s = r.state;
+        const fp = r.plan_hash || (s.authorization && s.authorization.plan_hash) || "—";
+        const steps = (s.planner && s.planner.steps) || [];
+        const decision = (s.authorization && s.authorization.decision) || "pending";
+        setStatus([
+          h("p", {},
+            h("b", { class: "ok", text: "Plan revised · grant wiped. " }),
+            "New seal: ", h("code", { text: String(fp) }),
+            ` · decision: ${decision} (must re-authorize).`),
+          h("p", { text: "Steps now: " + steps.map((st) => st.action).join(" → ") }),
+          h("p", { class: "alt-hint", text:
+            "Same allowlist and reversibility rules still apply. AI did not approve this change — you did, and the lock still has the final yes/no." }),
+        ]);
+      } catch (err) {
+        setStatus(h("p", { class: "alt-err", text: String(err && err.message ? err.message : err) }));
+      } finally {
+        buttons.querySelectorAll("button").forEach((b) => { b.disabled = false; });
+      }
+    });
+
+    // Best-effort initial state line.
+    refreshStateLine();
+
+    return h("section", { class: "sec", id: "alternate-plan", "data-testid": "alternate-plan" },
+      h("p", { class: "sec-eyebrow", text: "IF YOU DISAGREE WITH THE AI PLAN" }),
+      h("h2", { class: "sec-title", text: "You are not stuck on deny — swap the plan, re-seal, same lock" }),
+      h("p", { class: "sec-note" },
+        "A common fear with hard safety locks: if the AI draft is wrong, does everything freeze? ",
+        h("b", { text: "No." }),
+        " A human commander can replace the proposed steps with a quieter template (or a custom allowlisted list). ",
+        "That wipes any old authorization grant, computes a ", h("b", { text: "new fingerprint" }),
+        ", and requires the same deterministic gate again. Flexibility without letting the model approve itself."),
+      h("div", { class: "alt-api", "data-testid": "alternate-plan-api" },
+        h("p", {}, h("b", { text: "In the API — " }),
+          h("code", { text: "GET /api/plan-templates" }), ", ",
+          h("code", { text: "POST /api/plan/revise" }), " or ",
+          h("code", { text: "PUT /api/plan" }),
+          " with ", h("code", { text: "template_id" }), " or custom ", h("code", { text: "steps" }), "."),
+        h("p", { class: "alt-hint", text: "Only allowlisted, reversible actions are accepted. Off-list tools return HTTP 400." })),
+      status,
+      buttons,
+      h("p", { class: "sec-foot" },
+        "Code: ", fileLink("src/ledgerlens/incident_dashboard.py", "incident_dashboard.py"),
+        " · templates + ", h("code", { text: "set_plan" }), " · grant wipe on revise."));
+  };
 
   const REPO_STEPS = [
     { n: "1", title: "Something looks wrong in the data", file: "src/ledgerlens/orchestrator.py", fileLabel: "orchestrator.py",
@@ -172,7 +280,10 @@
       h("p", { class: "sec-eyebrow", text: "HOW IT WORKS — STEP BY STEP" }),
       h("h2", { class: "sec-title", text: "Eight steps from data looks wrong to work is done and logged" }),
       h("p", { class: "sec-note" },
-        "Tap a step to expand. Each one says whether an LLM is involved, in plain words, and links to the real file for technical readers."),
+        "Tap a step to expand. Each one says whether an LLM is involved, in plain words, and links to the real file for technical readers. ",
+        "If the draft in step 3 is wrong, jump to ",
+        h("a", { href: "#alternate-plan", text: "Disagree with AI?" }),
+        " — swap the plan and re-seal under the same lock."),
       list);
   };
 
@@ -487,11 +598,117 @@
       orient.append(h("nav", { class: "toc-links", "aria-label": "On this page" },
         h("a", { href: "#ai-or-not", text: "Does it use AI?" }),
         h("a", { href: "#unique", text: "What is unique?" }),
+        h("a", { href: "#alternate-plan", text: "Disagree with AI?" }),
         h("a", { href: "#how-repo-works", text: "Step by step" }),
         h("a", { href: "#gate-demo", text: "Live proof" }),
         h("a", { href: "#get-started", text: "Try it" })));
     }
   };
+
+  // Legacy command-surface handlers (authorize / execute / plan revise) when that
+  // panel is visible (no-JS or manual mode). Harmless no-ops if nodes are absent.
+  const toast = document.querySelector("[data-command-toast]");
+  let toastTimer;
+  const showToast = (message, isError) => {
+    if (!toast) return;
+    window.clearTimeout(toastTimer);
+    toast.textContent = message;
+    toast.classList.toggle("error", !!isError);
+    toast.classList.add("visible");
+    toastTimer = window.setTimeout(() => toast.classList.remove("visible"), 3200);
+  };
+  const command = async (path, payload, method) => {
+    const response = await fetch(apiBase + path, {
+      method: method || "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Requested-With": "LedgerLens-Incident-Commander",
+      },
+      body: payload === undefined ? undefined : JSON.stringify(payload || {}),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) {
+      const failures = result.authorization && result.authorization.failures;
+      const suffix = Array.isArray(failures) && failures.length ? " " + failures.join("; ") + "." : "";
+      throw new Error((result.detail || "Command failed.") + suffix);
+    }
+    return result;
+  };
+  document.querySelectorAll("[data-copy]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const value = button.getAttribute("data-copy");
+      if (!value || !navigator.clipboard) return;
+      try {
+        await navigator.clipboard.writeText(value);
+        showToast("Plan fingerprint copied.");
+      } catch (_e) {
+        showToast("Could not copy.", true);
+      }
+    });
+  });
+  const wireTrigger = (el) => {
+    el && el.addEventListener("click", async () => {
+      try {
+        await command("/trigger", { source: body.dataset.mode });
+        showToast("Incident trigger accepted. Authorization was reset.");
+        window.location.reload();
+      } catch (error) {
+        showToast(error.message, true);
+      }
+    });
+  };
+  wireTrigger(document.querySelector("[data-trigger-incident]"));
+  wireTrigger(document.querySelector("[data-legacy-trigger]"));
+  const authorizationForm = document.querySelector("[data-authorization-form]");
+  authorizationForm && authorizationForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = new FormData(authorizationForm);
+    const feedback = document.querySelector("[data-gate-feedback]");
+    try {
+      await command("/authorize", {
+        actor: form.get("actor"),
+        confirmation: form.get("confirmation"),
+        plan_hash: form.get("plan_hash"),
+        acknowledge_claim_boundary: form.get("acknowledge_claim_boundary") === "on",
+      });
+      showToast("Authorization grant recorded for the exact plan.");
+      window.location.reload();
+    } catch (error) {
+      if (feedback) feedback.textContent = error.message;
+      showToast("Authorization denied.", true);
+    }
+  });
+  const executeBtn = document.querySelector("[data-execute-fanout]");
+  executeBtn && executeBtn.addEventListener("click", async () => {
+    try {
+      await command("/execute");
+      showToast("Fanout completed.");
+      window.location.reload();
+    } catch (error) {
+      showToast(error.message, true);
+    }
+  });
+  document.querySelectorAll("[data-plan-template]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const templateId = button.getAttribute("data-plan-template");
+      const feedback = document.querySelector("[data-plan-revise-feedback]");
+      try {
+        const result = await command("/plan/revise", { template_id: templateId });
+        if (feedback) {
+          feedback.textContent =
+            "Plan revised. New fingerprint: " +
+            (result.plan_hash || "") +
+            ". Prior grant wiped — re-authorize the exact new plan.";
+        }
+        showToast("Alternate plan sealed. Re-authorize before execute.");
+        window.location.reload();
+      } catch (error) {
+        if (feedback) feedback.textContent = error.message;
+        showToast(error.message, true);
+      }
+    });
+  });
 
   const start = async () => {
     body.classList.add("js");
@@ -509,6 +726,7 @@
       buildWhat(),
       buildAiSplit(),
       buildUnique(),
+      buildAlternatePlan(),
       buildRepoHow(),
       buildMcpIo(),
       buildPipe(),

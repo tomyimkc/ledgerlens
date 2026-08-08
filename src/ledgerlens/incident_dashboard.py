@@ -59,6 +59,180 @@ ALLOWED_ACTIONS = frozenset(
     }
 )
 
+# Provider cards shown in the fanout panel (write-back is a separate surface).
+_ACTION_PROVIDER: dict[str, tuple[str, str, str]] = {
+    "github.issue.create": ("GitHub", "GH", "Create incident issue"),
+    "slack.message.post": ("Slack", "SL", "Post bounded incident brief"),
+    "pagerduty.incident.note": ("PagerDuty", "PD", "Append incident note"),
+    "jira.issue.create": ("Jira", "JR", "Create recovery task"),
+}
+
+# Human / operator alternate plans — still go through the same deterministic gate.
+# Templates let a commander disagree with an AI draft without a total deny-stuck state.
+PLAN_TEMPLATES: dict[str, JsonObject] = {
+    "full_fanout": {
+        "id": "full_fanout",
+        "label": "Full collaboration fanout (AI default)",
+        "summary": (
+            "GitHub issue, Slack brief, PagerDuty note, Jira recovery task, "
+            "and DataHub write-back."
+        ),
+        "objective": "Coordinate bounded response work without asserting unproven causality.",
+        "scope": "Collaboration fanout and metadata write-back only",
+        "steps": [
+            {
+                "order": 1,
+                "action": "github.issue.create",
+                "title": "Open an auditable incident work item",
+                "target": "data-platform/operations",
+                "reversible": True,
+                "reason": "Preserve owner, evidence pointers, and remediation checklist.",
+            },
+            {
+                "order": 2,
+                "action": "slack.message.post",
+                "title": "Notify the bounded incident channel",
+                "target": "#inc-data-platform",
+                "reversible": True,
+                "reason": "Publish the known facts, unknowns, and current authorization scope.",
+            },
+            {
+                "order": 3,
+                "action": "pagerduty.incident.note",
+                "title": "Attach provenance context to the active page",
+                "target": "PD-INC-PAYMENTS-778",
+                "reversible": True,
+                "reason": (
+                    "Give the on-call responder DataHub entity and blast-radius pointers."
+                ),
+            },
+            {
+                "order": 4,
+                "action": "jira.issue.create",
+                "title": "Create the follow-up recovery task",
+                "target": "DATAOPS",
+                "reversible": True,
+                "reason": "Track freshness recovery and post-incident verification separately.",
+            },
+            {
+                "order": 5,
+                "action": "datahub.incident.writeback",
+                "title": "Write the bounded response receipt to DataHub",
+                "target": "analytics.payments_daily",
+                "reversible": True,
+                "reason": (
+                    "Keep the entity, action receipts, unknowns, and next owner together."
+                ),
+            },
+        ],
+    },
+    "notify_and_ticket": {
+        "id": "notify_and_ticket",
+        "label": "Notify + ticket only (human alternate)",
+        "summary": (
+            "Smaller human-chosen plan: Slack notify, one GitHub issue, DataHub receipt. "
+            "No PagerDuty page annotation, no Jira."
+        ),
+        "objective": (
+            "Coordinate a quieter bounded response when the commander disagrees with "
+            "a full AI fanout."
+        ),
+        "scope": "Notify, ticket, and metadata write-back only",
+        "steps": [
+            {
+                "order": 1,
+                "action": "slack.message.post",
+                "title": "Notify the bounded incident channel",
+                "target": "#inc-data-platform",
+                "reversible": True,
+                "reason": "Alert the team without opening extra trackers yet.",
+            },
+            {
+                "order": 2,
+                "action": "github.issue.create",
+                "title": "Open a single auditable work item",
+                "target": "data-platform/operations",
+                "reversible": True,
+                "reason": "One durable ticket is enough when the human prefers less fanout.",
+            },
+            {
+                "order": 3,
+                "action": "datahub.incident.writeback",
+                "title": "Write the bounded response receipt to DataHub",
+                "target": "analytics.payments_daily",
+                "reversible": True,
+                "reason": "Keep the next agent oriented without claiming recovery.",
+            },
+        ],
+    },
+    "ticket_only": {
+        "id": "ticket_only",
+        "label": "Ticket trackers only",
+        "summary": "GitHub + Jira + DataHub write-back. No chat or page annotations.",
+        "objective": "Create durable work items without paging or channel noise.",
+        "scope": "Tracker issues and metadata write-back only",
+        "steps": [
+            {
+                "order": 1,
+                "action": "github.issue.create",
+                "title": "Open an auditable incident work item",
+                "target": "data-platform/operations",
+                "reversible": True,
+                "reason": "Primary engineering tracker for the incident.",
+            },
+            {
+                "order": 2,
+                "action": "jira.issue.create",
+                "title": "Create the follow-up recovery task",
+                "target": "DATAOPS",
+                "reversible": True,
+                "reason": "Separate recovery tracking from the incident work item.",
+            },
+            {
+                "order": 3,
+                "action": "datahub.incident.writeback",
+                "title": "Write the bounded response receipt to DataHub",
+                "target": "analytics.payments_daily",
+                "reversible": True,
+                "reason": "Link trackers back to the catalog entity.",
+            },
+        ],
+    },
+    "notify_only": {
+        "id": "notify_only",
+        "label": "Notify on-call only",
+        "summary": "Slack + PagerDuty note + DataHub receipt. No new tickets.",
+        "objective": "Inform responders without opening new tracker issues yet.",
+        "scope": "Collaboration notify and metadata write-back only",
+        "steps": [
+            {
+                "order": 1,
+                "action": "slack.message.post",
+                "title": "Notify the bounded incident channel",
+                "target": "#inc-data-platform",
+                "reversible": True,
+                "reason": "Publish known facts and unknowns to the incident channel.",
+            },
+            {
+                "order": 2,
+                "action": "pagerduty.incident.note",
+                "title": "Attach provenance context to the active page",
+                "target": "PD-INC-PAYMENTS-778",
+                "reversible": True,
+                "reason": "Give on-call DataHub entity and blast-radius pointers.",
+            },
+            {
+                "order": 3,
+                "action": "datahub.incident.writeback",
+                "title": "Write the bounded response receipt to DataHub",
+                "target": "analytics.payments_daily",
+                "reversible": True,
+                "reason": "Record that notification-only coordination occurred.",
+            },
+        ],
+    },
+}
+
 
 class IncidentBackend(Protocol):
     """Runtime contract used by the mountable dashboard."""
@@ -89,6 +263,12 @@ class AuthorizationDenied(IncidentDashboardError):
     def __init__(self, message: str, authorization: Mapping[str, Any]) -> None:
         super().__init__(message)
         self.authorization = dict(authorization)
+
+
+class PlanValidationError(IncidentDashboardError):
+    """Raised when a submitted alternate plan fails structural validation."""
+
+    status_code = 400
 
 
 class LiveBackendUnavailable(IncidentDashboardError):
@@ -171,6 +351,164 @@ def plan_fingerprint(state: Mapping[str, Any]) -> str | None:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
 
 
+def list_plan_templates() -> list[JsonObject]:
+    """Return public metadata for operator-selectable alternate plans."""
+
+    return [
+        {
+            "id": template["id"],
+            "label": template["label"],
+            "summary": template["summary"],
+            "objective": template["objective"],
+            "scope": template["scope"],
+            "step_count": len(template["steps"]) if isinstance(template["steps"], list) else 0,
+            "actions": [
+                step.get("action")
+                for step in (template["steps"] if isinstance(template["steps"], list) else [])
+                if isinstance(step, Mapping)
+            ],
+        }
+        for template in PLAN_TEMPLATES.values()
+    ]
+
+
+def _normalise_plan_step(raw: Mapping[str, Any], order: int) -> JsonObject:
+    action = str(raw.get("action", "")).strip()
+    title = str(raw.get("title", "")).strip()
+    target = str(raw.get("target", "")).strip()
+    reason = str(raw.get("reason", "")).strip()
+    reversible = raw.get("reversible")
+    if action not in ALLOWED_ACTIONS:
+        raise PlanValidationError(
+            f"Action '{action or '(empty)'}' is not allowlisted. "
+            f"Allowed: {', '.join(sorted(ALLOWED_ACTIONS))}."
+        )
+    if reversible is not True:
+        raise PlanValidationError(
+            f"Step {order} ({action}) must set reversible=true; irreversible actions are refused."
+        )
+    if not title or not target:
+        raise PlanValidationError(f"Step {order} requires non-empty title and target.")
+    return {
+        "order": order,
+        "action": action,
+        "title": title,
+        "target": target,
+        "reversible": True,
+        "reason": reason or "Operator-supplied bounded response step.",
+    }
+
+
+def validate_plan_payload(payload: Mapping[str, Any]) -> JsonObject:
+    """Validate a put/revise plan body and return a normalised planner fragment.
+
+    Accepts either ``template_id`` (from PLAN_TEMPLATES) or an explicit ``steps`` list.
+    Optional ``objective`` / ``scope`` override template defaults.
+    """
+
+    template_id = payload.get("template_id")
+    if template_id is not None:
+        if not isinstance(template_id, str) or template_id not in PLAN_TEMPLATES:
+            known = ", ".join(sorted(PLAN_TEMPLATES))
+            raise PlanValidationError(
+                f"Unknown template_id '{template_id}'. Known templates: {known}."
+            )
+        template = PLAN_TEMPLATES[template_id]
+        steps_raw = template["steps"]
+        objective = str(payload.get("objective") or template["objective"])
+        scope = str(payload.get("scope") or template["scope"])
+        source = f"template:{template_id}"
+        label = str(template["label"])
+    else:
+        steps_raw = payload.get("steps")
+        if not isinstance(steps_raw, list) or not steps_raw:
+            raise PlanValidationError(
+                "Provide template_id or a non-empty steps list of allowlisted reversible actions."
+            )
+        objective = str(
+            payload.get("objective")
+            or "Coordinate bounded response work without asserting unproven causality."
+        )
+        scope = str(payload.get("scope") or "Collaboration fanout and metadata write-back only")
+        source = "operator-custom"
+        label = "Operator custom plan"
+
+    if not isinstance(steps_raw, list) or not steps_raw:
+        raise PlanValidationError("Plan must contain at least one step.")
+
+    steps: list[JsonObject] = []
+    for index, item in enumerate(steps_raw, start=1):
+        if not isinstance(item, Mapping):
+            raise PlanValidationError(f"Step {index} must be an object.")
+        steps.append(_normalise_plan_step(item, index))
+
+    return {
+        "objective": objective.strip() or "Bounded incident response.",
+        "scope": scope.strip() or "Allowlisted reversible actions only",
+        "steps": steps,
+        "source": source,
+        "label": label,
+        "risk": "No production rollback or incident resolution is authorized by this plan.",
+    }
+
+
+def _actions_from_steps(steps: Sequence[Mapping[str, Any]]) -> list[JsonObject]:
+    """Rebuild provider fanout cards from plan steps (excludes DataHub write-back)."""
+
+    actions: list[JsonObject] = []
+    for step in steps:
+        if not isinstance(step, Mapping):
+            continue
+        action = step.get("action")
+        if not isinstance(action, str) or action not in _ACTION_PROVIDER:
+            continue
+        provider, short, operation = _ACTION_PROVIDER[action]
+        actions.append(
+            {
+                "provider": provider,
+                "short": short,
+                "operation": operation,
+                "target": str(step.get("target") or ""),
+                "status": "held",
+                "detail": "Waiting for deterministic authorization.",
+                "receipt": None,
+            }
+        )
+    return actions
+
+
+def _held_writeback(entity: str = "analytics.payments_daily") -> JsonObject:
+    return {
+        "status": "held",
+        "entity": entity,
+        "operation": "DataHub incident receipt UPSERT",
+        "receipt": None,
+        "detail": "No DataHub write-back has occurred.",
+    }
+
+
+def _draft_memory() -> JsonObject:
+    return {
+        "status": "draft",
+        "memory_id": None,
+        "next_agent": "Recovery verifier",
+        "summary": "Fanout and write-back have not executed.",
+        "known_facts": [
+            "A fixture freshness assertion is outside its recorded threshold.",
+            "The fixture graph contains eight downstream assets.",
+        ],
+        "unknowns": [
+            "Root cause is not established.",
+            "End-user impact is not established.",
+        ],
+        "completed": [],
+        "next_actions": [
+            "Obtain deterministic authorization for the bounded fanout.",
+            "After execution, verify provider and DataHub receipts.",
+        ],
+    }
+
+
 def _fixture_state() -> JsonObject:
     state: JsonObject = {
         "schemaVersion": "1.0",
@@ -192,6 +530,7 @@ def _fixture_state() -> JsonObject:
             "authorize": True,
             "execute": True,
             "replay": True,
+            "revise_plan": True,
         },
         "incident": {
             "id": "INC-2042",
@@ -494,6 +833,60 @@ class ReplayIncidentBackend:
             self._state["observed_at"] = "2026-07-31T03:14:00Z"
             return copy.deepcopy(self._state)
 
+    def set_plan(self, plan: Mapping[str, Any]) -> Mapping[str, Any]:
+        """Replace the proposed plan, re-fingerprint, and reset execution state.
+
+        Any prior authorization grant is invalid once the plan changes; the commander
+        clears its grant table separately. This is the re-seal loop for alternate plans.
+        """
+
+        with self._lock:
+            planner = self._state.get("planner")
+            if not isinstance(planner, dict):
+                raise PlanValidationError("No planner state is available to revise.")
+            steps = plan.get("steps")
+            if not isinstance(steps, list) or not steps:
+                raise PlanValidationError("Revised plan must include steps.")
+
+            planner["objective"] = plan.get("objective") or planner.get("objective")
+            planner["scope"] = plan.get("scope") or planner.get("scope")
+            planner["risk"] = plan.get("risk") or planner.get("risk")
+            planner["steps"] = copy.deepcopy(steps)
+            planner["generated_by"] = str(
+                plan.get("label") or plan.get("source") or "Operator-revised plan"
+            )
+            planner["plan_source"] = str(plan.get("source") or "operator")
+            # Force recomputation of the seal for the new steps.
+            planner.pop("plan_hash", None)
+
+            self._state["actions"] = _actions_from_steps(steps)
+            writeback_entity = "analytics.payments_daily"
+            for step in steps:
+                if isinstance(step, Mapping) and step.get("action") == "datahub.incident.writeback":
+                    writeback_entity = str(step.get("target") or writeback_entity)
+                    break
+            self._state["writeback"] = _held_writeback(writeback_entity)
+            self._state["memory"] = _draft_memory()
+            incident = self._state.get("incident")
+            if isinstance(incident, dict):
+                incident["status"] = "awaiting_authorization"
+
+            # Recompute fingerprint against the new steps + incident id.
+            fingerprint = plan_fingerprint(self._state)
+            planner["plan_hash"] = fingerprint
+            self._state["events"].append(
+                {
+                    "time": "03:12:40",
+                    "label": "Plan revised",
+                    "detail": (
+                        f"Operator replaced the proposed plan ({plan.get('source', 'custom')}); "
+                        f"new fingerprint {fingerprint}. Prior grants are void."
+                    ),
+                    "source": "operator plan revision",
+                }
+            )
+            return copy.deepcopy(self._state)
+
     def execute(self, authorization: Mapping[str, Any]) -> Mapping[str, Any]:
         with self._lock:
             incident = self._state.get("incident")
@@ -510,23 +903,34 @@ class ReplayIncidentBackend:
                 "PagerDuty": "fixture://pagerduty/incidents/778/notes/4",
                 "Jira": "fixture://jira/issues/DATAOPS-219",
             }
+            completed: list[str] = []
+            used_receipts: list[str] = []
             for action in self._state["actions"]:
+                provider = action["provider"]
                 action["status"] = "succeeded"
                 action["detail"] = "Deterministic fixture action recorded."
-                action["receipt"] = receipts[action["provider"]]
+                action["receipt"] = receipts.get(provider, f"fixture://{provider.lower()}/ok")
+                completed.append(f"{provider} action recorded")
+                used_receipts.append(str(action["receipt"]))
 
             self._state["incident"]["status"] = "coordinating"
+            writeback_entity = "analytics.payments_daily"
+            writeback = self._state.get("writeback")
+            if isinstance(writeback, Mapping) and writeback.get("entity"):
+                writeback_entity = str(writeback["entity"])
+            writeback_receipt = "fixture://datahub/writeback/inc-2042/receipt-5f2d"
             self._state["writeback"] = {
                 "status": "recorded",
-                "entity": "analytics.payments_daily",
+                "entity": writeback_entity,
                 "operation": "DataHub incident receipt UPSERT",
-                "receipt": "fixture://datahub/writeback/inc-2042/receipt-5f2d",
+                "receipt": writeback_receipt,
                 "aspect": "datasetProperties.customProperties",
                 "recorded_at": "2026-07-31T03:14:00Z",
                 "detail": (
                     "Fixture receipt only. No DataHub request or external mutation occurred."
                 ),
             }
+            completed.append("DataHub incident receipt written")
             self._state["memory"] = {
                 "status": "ready",
                 "memory_id": "fixture://ledgerlens/memory/inc-2042/handoff-1",
@@ -536,7 +940,7 @@ class ReplayIncidentBackend:
                     "and root cause remain unverified."
                 ),
                 "known_facts": [
-                    "All four fixture provider actions returned deterministic receipts.",
+                    f"{len(self._state['actions'])} fixture provider action(s) returned receipts.",
                     "A fixture DataHub write-back receipt was recorded.",
                     "No production rollback or incident resolution was authorized.",
                 ],
@@ -545,13 +949,7 @@ class ReplayIncidentBackend:
                     "End-user impact is not established.",
                     "Freshness recovery has not been observed.",
                 ],
-                "completed": [
-                    "GitHub incident issue created",
-                    "Slack incident brief posted",
-                    "PagerDuty note appended",
-                    "Jira recovery task created",
-                    "DataHub incident receipt written",
-                ],
+                "completed": completed,
                 "next_actions": [
                     "Observe a new freshness check before claiming recovery.",
                     "Compare deploy and query evidence before assigning cause.",
@@ -559,8 +957,8 @@ class ReplayIncidentBackend:
                 ],
                 "provenance": [
                     "fixture://datahub/assertions/payments-daily/obs-8831",
-                    "fixture://datahub/writeback/inc-2042/receipt-5f2d",
-                    *receipts.values(),
+                    writeback_receipt,
+                    *used_receipts,
                 ],
             }
             self._state["events"].extend(
@@ -575,7 +973,8 @@ class ReplayIncidentBackend:
                         "time": "03:14:00",
                         "label": "Fanout completed",
                         "detail": (
-                            "Four fixture provider receipts and one write-back receipt recorded."
+                            f"{len(self._state['actions'])} fixture provider receipt(s) and one "
+                            "write-back receipt recorded."
                         ),
                         "source": "fixture execution",
                     },
@@ -603,6 +1002,7 @@ class UnavailableIncidentBackend:
                 "authorize": False,
                 "execute": False,
                 "replay": False,
+                "revise_plan": False,
             },
             "incident": None,
             "context": None,
@@ -869,6 +1269,38 @@ class IncidentCommander:
         with self._lock:
             self._authorizations[str(result["incident_id"])] = copy.deepcopy(result)
         return await self.snapshot()
+
+    async def set_plan(self, payload: Mapping[str, Any]) -> JsonObject:
+        """Replace the proposed plan and wipe any grant for the current incident.
+
+        Alternate plans (templates or custom steps) are first-class: the operator is
+        not stuck on deny. The new plan is re-sealed; authorization must pass again
+        under the same deterministic gate.
+        """
+
+        plan = validate_plan_payload(payload)
+        state = await self.snapshot()
+        incident = state.get("incident")
+        if not isinstance(incident, Mapping) or not isinstance(incident.get("id"), str):
+            raise PlanValidationError("No incident is available to attach a revised plan.")
+        incident_id = str(incident["id"])
+
+        if not hasattr(self.backend, "set_plan"):
+            raise LiveBackendUnavailable(
+                "Incident backend does not implement set_plan for alternate plans."
+            )
+        await _backend_call(self.backend, "set_plan", plan)
+        # Grant wipe: any prior authorization is void once the seal changes.
+        with self._lock:
+            self._authorizations.pop(incident_id, None)
+            # Also clear any other grants — plan revision is global for the commander.
+            self._authorizations.clear()
+        return await self.snapshot()
+
+    async def revise_plan(self, payload: Mapping[str, Any]) -> JsonObject:
+        """Alias for :meth:`set_plan` — operator-facing re-seal entry point."""
+
+        return await self.set_plan(payload)
 
     async def execute(self) -> JsonObject:
         state = await self.snapshot()
@@ -1408,6 +1840,66 @@ def create_incident_router(
         except Exception as exc:
             return error_response(exc)
 
+    @router.get("/api/plan-templates", name="incident_plan_templates")
+    async def api_plan_templates() -> Any:
+        return JSONResponse(
+            {
+                "ok": True,
+                "templates": list_plan_templates(),
+                "allowed_actions": sorted(ALLOWED_ACTIONS),
+                "note": (
+                    "Selecting a template replaces the proposed plan and voids any prior "
+                    "authorization grant. The new plan must pass the same deterministic gate."
+                ),
+                "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
+            },
+            headers=_content_security_headers(),
+        )
+
+    @router.put("/api/plan", name="incident_put_plan")
+    async def api_put_plan(request: Request) -> Any:
+        try:
+            payload = await request.json()
+            if not isinstance(payload, Mapping):
+                payload = {}
+            state = await commander.set_plan(payload)
+            return JSONResponse(
+                {
+                    "ok": True,
+                    "state": state,
+                    "plan_hash": state.get("authorization", {}).get("plan_hash")
+                    or (state.get("planner") or {}).get("plan_hash"),
+                    "grant_wiped": True,
+                    "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
+                },
+                headers=_content_security_headers(),
+            )
+        except Exception as exc:
+            return error_response(exc)
+
+    @router.post("/api/plan/revise", name="incident_revise_plan")
+    async def api_revise_plan(request: Request) -> Any:
+        """Operator-facing re-seal: same body as PUT /api/plan."""
+
+        try:
+            payload = await request.json()
+            if not isinstance(payload, Mapping):
+                payload = {}
+            state = await commander.revise_plan(payload)
+            return JSONResponse(
+                {
+                    "ok": True,
+                    "state": state,
+                    "plan_hash": state.get("authorization", {}).get("plan_hash")
+                    or (state.get("planner") or {}).get("plan_hash"),
+                    "grant_wiped": True,
+                    "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
+                },
+                headers=_content_security_headers(),
+            )
+        except Exception as exc:
+            return error_response(exc)
+
     cast(Any, router).incident_commander = commander
     return router
 
@@ -1449,12 +1941,17 @@ def create_incident_app(
 __all__ = [
     "ALLOWED_ACTIONS",
     "CLAIM_BOUNDARY",
+    "PLAN_TEMPLATES",
+    "AuthorizationDenied",
     "IncidentBackend",
     "IncidentCommander",
+    "PlanValidationError",
     "ReplayIncidentBackend",
     "UnavailableIncidentBackend",
     "create_incident_app",
     "create_incident_router",
     "evaluate_authorization",
+    "list_plan_templates",
     "plan_fingerprint",
+    "validate_plan_payload",
 ]

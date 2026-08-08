@@ -62,6 +62,7 @@
         <nav class="topnav" aria-label="Project links">
           <a class="tnav-btn primary" href="#ai-or-not">Does it use AI?</a>
           <a class="tnav-btn" href="#unique">What is unique?</a>
+          <a class="tnav-btn" href="#alternate-plan">Disagree with AI?</a>
           <a class="tnav-btn" href="#how-repo-works">Step by step</a>
           <a class="tnav-btn" href="#gate-demo">Live proof</a>
           <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens" target="_blank" rel="noopener">GitHub</a>
@@ -296,6 +297,52 @@
                   <strong>{{ state.planner.risk }}</strong>
                 </div>
               </div>
+
+              {% if state.capabilities.revise_plan %}
+                <div class="plan-revise" data-testid="plan-revise" data-plan-revise>
+                  <header class="plan-revise-hd">
+                    <p class="eyebrow">DISAGREE WITH THIS PLAN?</p>
+                    <strong>Pick a smaller alternate — same safety lock, new seal</strong>
+                    <p>
+                      You are not stuck on deny. Swap the AI draft for a human template
+                      (or keep the full fanout). Any prior authorization is wiped; the new
+                      plan must pass the same deterministic gate before anything runs.
+                    </p>
+                  </header>
+                  <div class="plan-template-grid" data-plan-templates>
+                    <button
+                      type="button"
+                      class="button button-secondary plan-template-btn"
+                      data-plan-template="notify_and_ticket"
+                      {% if not state.capabilities.revise_plan %}disabled{% endif %}
+                    >
+                      Notify + ticket only
+                    </button>
+                    <button
+                      type="button"
+                      class="button button-secondary plan-template-btn"
+                      data-plan-template="ticket_only"
+                    >
+                      Ticket trackers only
+                    </button>
+                    <button
+                      type="button"
+                      class="button button-secondary plan-template-btn"
+                      data-plan-template="notify_only"
+                    >
+                      Notify on-call only
+                    </button>
+                    <button
+                      type="button"
+                      class="button button-secondary plan-template-btn"
+                      data-plan-template="full_fanout"
+                    >
+                      Restore full fanout
+                    </button>
+                  </div>
+                  <p class="plan-revise-feedback" data-plan-revise-feedback aria-live="polite"></p>
+                </div>
+              {% endif %}
             </article>
 
             <article class="command-panel fanout-panel" data-testid="action-fanout">

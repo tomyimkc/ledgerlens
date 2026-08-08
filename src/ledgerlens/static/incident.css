@@ -2699,3 +2699,99 @@ body.js .topbar { flex: 0 0 auto; }
 @media (max-width: 800px) {
   .ai-split, .unique-grid { grid-template-columns: 1fr; }
 }
+
+/* ---- Alternate plan (disagree with AI) ---- */
+.alt-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.alt-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  text-align: left;
+  padding: 14px 16px;
+  height: auto;
+  white-space: normal;
+  border-radius: 12px;
+}
+.alt-btn strong { font-size: 14.5px; }
+.alt-btn small {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--muted, #8fa3bd);
+  font-weight: 450;
+}
+.alt-status {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border, rgba(120,160,205,0.22));
+  background: var(--surface, rgba(12, 22, 36, 0.55));
+  font-size: 14px;
+  line-height: 1.45;
+}
+.alt-status p { margin: 0 0 8px; }
+.alt-status p:last-child { margin-bottom: 0; }
+.alt-status code,
+.alt-api code {
+  font-size: 12.5px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.25);
+}
+.alt-hint { color: var(--muted, #8fa3bd); font-size: 13.5px; }
+.alt-err { color: #f07178; }
+.alt-api {
+  margin-top: 12px;
+  font-size: 13.5px;
+  color: var(--muted, #8fa3bd);
+}
+.alt-api p { margin: 0 0 6px; }
+.plan-revise {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px dashed color-mix(in srgb, var(--teal) 50%, transparent);
+  background: color-mix(in srgb, var(--teal) 8%, transparent);
+}
+.plan-revise-hd .eyebrow { margin: 0 0 4px; }
+.plan-revise-hd strong { display: block; margin-bottom: 6px; }
+.plan-revise-hd p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--muted, #8fa3bd);
+}
+.plan-template-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.plan-template-btn {
+  font-size: 13px;
+  padding: 10px 12px;
+  white-space: normal;
+  height: auto;
+}
+.plan-revise-feedback {
+  margin: 10px 0 0;
+  font-size: 13px;
+  min-height: 1.2em;
+}
+.button-secondary {
+  background: transparent;
+  border: 1px solid var(--border, rgba(120,160,205,0.35));
+  color: var(--ink, #e8f0fb);
+}
+.button-secondary:hover:not(:disabled) {
+  border-color: var(--teal, #0f766e);
+  background: color-mix(in srgb, var(--teal) 12%, transparent);
+}
+@media (max-width: 720px) {
+  .alt-grid, .plan-template-grid { grid-template-columns: 1fr; }
+}
