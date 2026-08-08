@@ -27,10 +27,29 @@
   };
 
   const REPO = "https://github.com/tomyimkc/ledgerlens";
+  // Prefer main; line anchors still resolve once the PR lands. Path-only links always work.
   const BLOB = REPO + "/blob/main/";
   const EVIDENCE = BLOB + "docs/EVIDENCE_INDEX.md";
-  const fileLink = (path, label) =>
-    h("a", { class: "file-link", href: BLOB + path, target: "_blank", rel: "noopener", text: label || path });
+  const fileLink = (path, label, lines) => {
+    let href = BLOB + path;
+    if (lines) href += "#L" + String(lines).replace("-", "-L");
+    return h("a", {
+      class: "file-link",
+      href: href,
+      target: "_blank",
+      rel: "noopener",
+      text: label || path,
+    });
+  };
+  const codeCard = (title, path, lines, code, note) => {
+    const head = h("div", { class: "code-card-hd" },
+      h("strong", { text: title }),
+      fileLink(path, path + (lines ? ":" + lines : ""), lines));
+    return h("article", { class: "code-card real-code", "data-testid": "real-code" },
+      head,
+      h("pre", { class: "code-block", text: code }),
+      note ? h("p", { class: "code-card-note", text: note }) : null);
+  };
 
   const buildWhat = () => {
     const box = (t, s, cls) =>
@@ -119,19 +138,12 @@
   ];
 
   const buildAlternatePlan = () => {
-    const status = h("div", { class: "alt-status", "data-alt-status", "aria-live": "polite" },
-      h("p", { class: "alt-status-lead", text: "Load this page’s live demo state, then try a quieter plan." }));
+    const status = h("div", {
+      class: "alt-status",
+      "data-alt-status": "1",
+      "aria-live": "polite",
+    }, h("p", { class: "alt-status-lead", text: "Loading this page live demo state…" }));
     const buttons = h("div", { class: "alt-grid", "data-testid": "alternate-plan-buttons" });
-    for (const t of TEMPLATES_UI) {
-      const btn = h("button", {
-        type: "button",
-        class: "button button-secondary alt-btn",
-        "data-alt-template": t.id,
-      },
-        h("strong", { text: t.label }),
-        h("small", { text: t.why }));
-      buttons.append(btn);
-    }
 
     const setStatus = (nodes) => {
       status.replaceChildren(...(Array.isArray(nodes) ? nodes : [nodes]));
@@ -141,15 +153,18 @@
       try {
         const r = await fetch(apiBase + "/state", { credentials: "same-origin" }).then((x) => x.json());
         const s = r && r.state;
-        if (!s || !s.planner) return;
-        const fp = (s.authorization && s.authorization.plan_hash) || s.planner.plan_hash || "—";
+        if (!s || !s.planner) {
+          setStatus(h("p", { text: "Demo state not ready yet." }));
+          return;
+        }
+        const fp = (s.authorization && s.authorization.plan_hash) || s.planner.plan_hash || "-";
         const n = (s.planner.steps || []).length;
         const actions = (s.actions || []).map((a) => a.provider).join(", ") || "none yet";
         setStatus([
           h("p", {},
-            h("b", { text: "Current sealed plan — " }),
-            h("code", { text: String(fp).slice(0, 12) + (String(fp).length > 12 ? "…" : "") }),
-            ` · ${n} step(s) · providers: ${actions}`),
+            h("b", { text: "Current sealed plan - " }),
+            h("code", { text: String(fp).slice(0, 12) + (String(fp).length > 12 ? "..." : "") }),
+            " · " + n + " step(s) · providers: " + actions),
           h("p", { class: "alt-hint", text:
             "Pick a template below. The seal changes, any prior grant is wiped, and the same Python lock must pass again." }),
         ]);
@@ -158,29 +173,33 @@
       }
     };
 
-    buttons.addEventListener("click", async (ev) => {
-      const btn = ev.target && ev.target.closest && ev.target.closest("[data-alt-template]");
-      if (!btn) return;
-      const templateId = btn.getAttribute("data-alt-template");
+    const revise = async (templateId, btn) => {
       buttons.querySelectorAll("button").forEach((b) => { b.disabled = true; });
+      if (btn) btn.classList.add("is-busy");
       setStatus(h("p", { text: "Revising plan and wiping any prior grant…" }));
       try {
-        const r = await fetch(apiBase + "/plan/revise", {
+        const response = await fetch(apiBase + "/plan/revise", {
           method: "POST",
           credentials: "same-origin",
-          headers: { "Content-Type": "application/json", "X-Requested-With": "LedgerLens-Incident-Commander" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "LedgerLens-Incident-Commander",
+          },
           body: JSON.stringify({ template_id: templateId }),
-        }).then((x) => x.json());
-        if (!r || !r.ok) throw new Error((r && r.detail) || "Plan revision failed.");
-        const s = r.state;
-        const fp = r.plan_hash || (s.authorization && s.authorization.plan_hash) || "—";
+        });
+        const r = await response.json();
+        if (!response.ok || !r || !r.ok) {
+          throw new Error((r && r.detail) || ("Plan revision failed (HTTP " + response.status + ")."));
+        }
+        const s = r.state || {};
+        const fp = r.plan_hash || (s.authorization && s.authorization.plan_hash) || "-";
         const steps = (s.planner && s.planner.steps) || [];
         const decision = (s.authorization && s.authorization.decision) || "pending";
         setStatus([
           h("p", {},
             h("b", { class: "ok", text: "Plan revised · grant wiped. " }),
             "New seal: ", h("code", { text: String(fp) }),
-            ` · decision: ${decision} (must re-authorize).`),
+            " · decision: " + decision + " (must re-authorize)."),
           h("p", { text: "Steps now: " + steps.map((st) => st.action).join(" → ") }),
           h("p", { class: "alt-hint", text:
             "Same allowlist and reversibility rules still apply. AI did not approve this change — you did, and the lock still has the final yes/no." }),
@@ -188,11 +207,29 @@
       } catch (err) {
         setStatus(h("p", { class: "alt-err", text: String(err && err.message ? err.message : err) }));
       } finally {
-        buttons.querySelectorAll("button").forEach((b) => { b.disabled = false; });
+        buttons.querySelectorAll("button").forEach((b) => {
+          b.disabled = false;
+          b.classList.remove("is-busy");
+        });
       }
-    });
+    };
 
-    // Best-effort initial state line.
+    for (const t of TEMPLATES_UI) {
+      const btn = h("button", {
+        type: "button",
+        class: "button button-secondary alt-btn",
+        "data-alt-template": t.id,
+      },
+        h("strong", { text: t.label }),
+        h("small", { text: t.why }));
+      btn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        revise(t.id, btn);
+      });
+      buttons.append(btn);
+    }
+
     refreshStateLine();
 
     return h("section", { class: "sec", id: "alternate-plan", "data-testid": "alternate-plan" },
@@ -210,13 +247,122 @@
           h("code", { text: "POST /api/plan/revise" }), " or ",
           h("code", { text: "PUT /api/plan" }),
           " with ", h("code", { text: "template_id" }), " or custom ", h("code", { text: "steps" }), "."),
-        h("p", { class: "alt-hint", text: "Only allowlisted, reversible actions are accepted. Off-list tools return HTTP 400." })),
+        h("p", { class: "alt-hint" },
+          "Only allowlisted, reversible actions are accepted. Implementation: ",
+          fileLink("src/ledgerlens/incident_dashboard.py", "set_plan()", "1268-1293"),
+          ".")),
       status,
       buttons,
       h("p", { class: "sec-foot" },
         "Code: ", fileLink("src/ledgerlens/incident_dashboard.py", "incident_dashboard.py"),
-        " · templates + ", h("code", { text: "set_plan" }), " · grant wipe on revise."));
+        " · ", fileLink("src/ledgerlens/incident_dashboard.py", "PLAN_TEMPLATES", "72"),
+        " · ", fileLink("src/ledgerlens/incident_dashboard.py", "validate_plan_payload", "397")));
   };
+
+  const buildRealCode = () =>
+    h("section", { class: "sec", id: "real-code", "data-testid": "see-real-code" },
+      h("p", { class: "sec-eyebrow", text: "REAL CODE FROM THIS REPO" }),
+      h("h2", { class: "sec-title", text: "What actually runs — click through to GitHub" }),
+      h("p", { class: "sec-note" },
+        "These are not mockups. Each block is a short excerpt of the Python that powers the demo. ",
+        "The file link opens the full source on GitHub (with line anchors when known)."),
+      h("div", { class: "real-code-grid" },
+        codeCard(
+          "Seal the exact plan (fingerprint)",
+          "src/ledgerlens/incident_dashboard.py",
+          "339-346",
+          [
+            "def plan_fingerprint(state: Mapping[str, Any]) -> str | None:",
+            '    """Return a stable fingerprint for the exact proposed plan."""',
+            "    payload = _canonical_plan_payload(state)",
+            "    if payload is None:",
+            "        return None",
+            "    canonical = json.dumps(",
+            "        payload, ensure_ascii=False,",
+            "        separators=(\",\", \":\"), sort_keys=True)",
+            "    return hashlib.sha256(",
+            "        canonical.encode(\"utf-8\")).hexdigest()[:16]",
+          ].join("\n"),
+          "Used by the safety lock and by every authorize/execute call."
+        ),
+        codeCard(
+          "Fail-closed gate (no model judgment)",
+          "src/ledgerlens/incident_dashboard.py",
+          "1064-1093",
+          [
+            "def evaluate_authorization(state, payload=None) -> JsonObject:",
+            '    """Evaluate the fail-closed authorization policy without model judgment."""',
+            "    fingerprint = plan_fingerprint(state)",
+            "    safe_steps = bool(step_items) and all(",
+            "        step.get(\"action\") in ALLOWED_ACTIONS",
+            "        and step.get(\"reversible\") is True",
+            "        for step in step_items",
+            "    )",
+            "    # ... phrase + plan_hash must match the seal ...",
+            "    allowed = has_request and all(item[\"status\"] == \"pass\" for item in conditions)",
+          ].join("\n"),
+          "AI output is not an input to this function. Deterministic checks only."
+        ),
+        codeCard(
+          "Disagree with AI: revise + wipe grant",
+          "src/ledgerlens/incident_dashboard.py",
+          "1268-1293",
+          [
+            "async def set_plan(self, payload: Mapping[str, Any]) -> JsonObject:",
+            "    plan = validate_plan_payload(payload)",
+            "    await _backend_call(self.backend, \"set_plan\", plan)",
+            "    # Grant wipe: any prior authorization is void once the seal changes.",
+            "    with self._lock:",
+            "        self._authorizations.clear()",
+            "    return await self.snapshot()",
+          ].join("\n"),
+          "Alternate templates and custom steps both land here."
+        ),
+        codeCard(
+          "Production PolicyGate (allowlist + quorum)",
+          "src/ledgerlens/verification.py",
+          "311-374",
+          [
+            "def authorize(self, context, plan, verification) -> AuthorizationDecision:",
+            '    """Evaluate all policy rules and deny when any required fact is unknown."""',
+            "    if not verification.approved:",
+            "        reasons.append(\"verification_not_approved\")",
+            "    if len(eligible_families) < self.config.required_quorum:",
+            "        reasons.append(\"verifier_quorum_not_met\")",
+            "    for action in plan.actions:",
+            "        allowance = self._allowances.get(action.action_type)",
+            "        if allowance is None:",
+            "            reasons.append(f\"action_not_allowlisted:{action.action_id}\")",
+            "        if action.target not in allowance.targets:",
+            "            reasons.append(f\"target_not_allowlisted:{action.action_id}\")",
+          ].join("\n"),
+          "This is the production gate for real multi-provider fanout (E-16)."
+        ),
+        codeCard(
+          "How you run the demo locally",
+          "src/ledgerlens/cli.py",
+          "406-448",
+          [
+            '@app.command("incident-commander")',
+            "def incident_commander(",
+            "    host: str = \"127.0.0.1\",",
+            "    port: int = 8000,",
+            "    fixture: bool = True,",
+            "    autonomous: bool = False,",
+            ") -> None:",
+            '    """Launch the Autonomous Data Incident Commander."""',
+            "    _run_server(..., incident_fixture_mode=fixture,",
+            "               incident_autonomous_execution=autonomous,",
+            "               incident_only=True)",
+          ].join("\n"),
+          "Or: make incident-demo  →  scripts/demo_incident_commander.sh"
+        )),
+      h("p", { class: "sec-foot" },
+        "Full tree: ",
+        h("a", { href: REPO, target: "_blank", rel: "noopener", text: REPO }),
+        " · evidence index: ",
+        h("a", { href: EVIDENCE, target: "_blank", rel: "noopener", text: "EVIDENCE_INDEX.md" }),
+        "."));
 
   const REPO_STEPS = [
     { n: "1", title: "Something looks wrong in the data", file: "src/ledgerlens/orchestrator.py", fileLabel: "orchestrator.py",
@@ -354,21 +500,46 @@
   };
 
   const TERMINAL = [
-    { cmd: "uv run ledgerlens incident --replay freshness_breach" },
+    { cmd: "make incident-demo", href: BLOB + "Makefile" },
+    { cmd: "# → uv run bash scripts/demo_incident_commander.sh", href: BLOB + "scripts/demo_incident_commander.sh" },
+    { cmd: "# → ledgerlens incident-commander --fixture", href: BLOB + "src/ledgerlens/cli.py#L406" },
     { tag: "alert", msg: "payments table late (23 min > 15 min limit)" },
-    { tag: "DataHub", msg: "looked up owner + what depends on it", ok: "owner found · 3 downstream" },
-    { tag: "LLM draft", msg: "suggested 4 safe steps", ok: "sealed fingerprint=20f3ace2" },
-    { tag: "LLM review", msg: "second opinion: looks ok", ok: "advice only" },
-    { tag: "Python lock", msg: "exact plan still matches · tools allowed", ok: "AUTHORIZED" },
-    { tag: "tools", msg: "ticket · Slack · page · Jira", ok: "receipts recorded" },
-    { tag: "DataHub", msg: "filed incident receipt", ok: "next person can continue" },
-    { done: "✓ finished · we still do not claim root cause or full recovery · demo uses safe fixture data" },
+    { tag: "DataHub", msg: "looked up owner + what depends on it", ok: "owner found · 3 downstream", href: BLOB + "src/ledgerlens/datahub_context.py" },
+    { tag: "LLM draft", msg: "suggested safe steps", ok: "sealed plan_fingerprint", href: BLOB + "src/ledgerlens/incident_dashboard.py#L339" },
+    { tag: "LLM review", msg: "second opinion: looks ok", ok: "advice only", href: BLOB + "src/ledgerlens/verification.py" },
+    { tag: "Python lock", msg: "evaluate_authorization · allowlist · seal", ok: "AUTHORIZED", href: BLOB + "src/ledgerlens/incident_dashboard.py#L1064" },
+    { tag: "tools", msg: "ticket · Slack · page · Jira", ok: "receipts recorded", href: BLOB + "src/ledgerlens/actions/" },
+    { tag: "DataHub", msg: "filed incident receipt", ok: "next person can continue", href: BLOB + "src/ledgerlens/datahub_writeback.py" },
+    { done: "finished · no root-cause or recovery claim · fixture data only" },
   ];
   const termLine = (l) => {
-    if (l.cmd) return h("div", { class: "term-line cmd" }, h("span", { class: "term-prompt", text: "$ " }), l.cmd);
+    if (l.cmd) {
+      const row = h("div", { class: "term-line cmd" }, h("span", { class: "term-prompt", text: "$ " }));
+      if (l.href) {
+        row.append(h("a", {
+          class: "term-code-link",
+          href: l.href,
+          target: "_blank",
+          rel: "noopener",
+          text: l.cmd,
+        }));
+      } else {
+        row.append(document.createTextNode(l.cmd));
+      }
+      return row;
+    }
     if (l.done) return h("div", { class: "term-line term-done", text: l.done });
     const row = h("div", { class: "term-line" }, h("span", { class: "term-tag", text: "[" + l.tag + "] " }), l.msg);
     if (l.ok) row.append(h("span", { class: "term-ok", text: "  " + l.ok }));
+    if (l.href) {
+      row.append(h("a", {
+        class: "term-src",
+        href: l.href,
+        target: "_blank",
+        rel: "noopener",
+        text: " source",
+      }));
+    }
     return row;
   };
   const buildCode = () => {
@@ -376,7 +547,7 @@
     const term = h("div", { class: "terminal", "data-testid": "pipeline-terminal" },
       h("div", { class: "term-bar" },
         h("span", { class: "tdot r" }), h("span", { class: "tdot y" }), h("span", { class: "tdot g" }),
-        h("span", { class: "term-title", text: "what a run looks like · safe demo data" })),
+        h("span", { class: "term-title", text: "what a run looks like · links open real files" })),
       bodyT);
     const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let started = false;
@@ -409,7 +580,9 @@
       h("h2", { class: "sec-title", text: "One example, end to end" }),
       h("p", { class: "sec-note" },
         "This public page uses a ", h("b", { text: "safe replay" }),
-        " (no real pages or tickets fire). The sequence is the same shape as a live run."),
+        " (no real pages or tickets fire). Blue links open the actual repo files that implement each stage. ",
+        "Full source cards are in ",
+        h("a", { href: "#real-code", text: "Real code from this repo" }), "."),
       term);
   };
 
@@ -586,8 +759,39 @@
         h("a", { href: BLOB + "ARCHITECTURE.md", target: "_blank", rel: "noopener", text: "Architecture (technical)" })));
   };
 
+  const scrollToId = (id) => {
+    if (!id) return false;
+    const el = document.getElementById(id);
+    if (!el) return false;
+    const header = document.querySelector(".command-header");
+    const topbar = document.querySelector(".topbar");
+    const offset = (header ? header.offsetHeight : 0) + (topbar ? topbar.offsetHeight : 0) + 12;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    try { history.replaceState(null, "", "#" + id); } catch (_e) { /* ignore */ }
+    return true;
+  };
+
+  const wireInPageNav = () => {
+    document.querySelectorAll('a[href^="#"]').forEach((a) => {
+      a.addEventListener("click", (ev) => {
+        const href = a.getAttribute("href") || "";
+        if (href.length < 2) return;
+        const id = href.slice(1);
+        if (scrollToId(id)) {
+          ev.preventDefault();
+        }
+      });
+    });
+  };
+
   const decorateHero = () => {
-    replayBtn && replayBtn.remove();
+    // Keep Restart visible and clickable (do not remove the button).
+    if (replayBtn) {
+      replayBtn.hidden = false;
+      replayBtn.removeAttribute("disabled");
+      replayBtn.style.display = "";
+    }
     const heroCopy = root.querySelector(".flow-hero > div");
     if (heroCopy && !heroCopy.querySelector(".hero-sub")) {
       heroCopy.append(h("p", { class: "hero-sub", text:
@@ -600,6 +804,7 @@
         h("a", { href: "#unique", text: "What is unique?" }),
         h("a", { href: "#alternate-plan", text: "Disagree with AI?" }),
         h("a", { href: "#how-repo-works", text: "Step by step" }),
+        h("a", { href: "#real-code", text: "Real code" }),
         h("a", { href: "#gate-demo", text: "Live proof" }),
         h("a", { href: "#get-started", text: "Try it" })));
     }
@@ -721,20 +926,41 @@
     detailEl.replaceChildren(
       h("div", { class: "logloading" },
         h("span", { class: "sv-spinner", "aria-hidden": "true" }), GATE));
-    const proof = await buildProofSection();
+    let proof = null;
+    try {
+      proof = await buildProofSection();
+    } catch (_e) {
+      proof = null;
+    }
     detailEl.replaceChildren(
       buildWhat(),
       buildAiSplit(),
       buildUnique(),
       buildAlternatePlan(),
       buildRepoHow(),
+      buildRealCode(),
       buildMcpIo(),
       buildPipe(),
       buildCode(),
       ...(proof ? [proof] : []),
       buildComparison(),
       buildSetup());
+    wireInPageNav();
+    // Honor deep links after content is mounted.
+    if (location.hash && location.hash.length > 1) {
+      setTimeout(() => scrollToId(location.hash.slice(1)), 50);
+    }
   };
 
-  start();
+  start().catch((err) => {
+    console.error("LedgerLens demo failed to start", err);
+    body.classList.add("js");
+    detailEl.replaceChildren(
+      h("section", { class: "sec" },
+        h("h2", { class: "sec-title", text: "Demo UI failed to load" }),
+        h("p", { class: "sec-note", text: String(err && err.message ? err.message : err) }),
+        h("p", { class: "sec-note" },
+          "You can still open the source: ",
+          h("a", { href: REPO, target: "_blank", rel: "noopener", text: REPO }))));
+  });
 })();

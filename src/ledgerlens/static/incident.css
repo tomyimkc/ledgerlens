@@ -2372,7 +2372,15 @@ footer {
    Clean, scrollable product page (JS active): stacked sections, no playback.
    ============================================================================ */
 body.js { overflow: auto; height: auto; }
-body.js .flow-hero .button-signal { display: none; }
+/* Keep Restart clickable in the clean JS layout */
+body.js .flow-hero .button-signal {
+  display: inline-flex;
+  width: auto;
+  min-width: 120px;
+  pointer-events: auto;
+  position: relative;
+  z-index: 2;
+}
 body.js .hero-sub { margin: 10px 0 0; font-size: 15px; line-height: 1.55; color: var(--muted); max-width: 66ch; }
 body.js .timeline:empty,
 body.js .scrollhint:empty { display: none; }
@@ -2794,4 +2802,87 @@ body.js .topbar { flex: 0 0 auto; }
 }
 @media (max-width: 720px) {
   .alt-grid, .plan-template-grid { grid-template-columns: 1fr; }
+}
+
+/* ---- Real code cards + clickable affordances ---- */
+.real-code-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 16px;
+}
+@media (min-width: 900px) {
+  .real-code-grid { grid-template-columns: 1fr 1fr; }
+}
+.code-card.real-code {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.code-card-hd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 14px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.code-card-hd strong { font-size: 14px; }
+.code-card-note {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}
+.term-code-link,
+.term-src {
+  color: #7dd3fc;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.term-code-link:hover,
+.term-src:hover { color: #fff; }
+.term-src { margin-left: 8px; font-size: 11.5px; opacity: 0.9; }
+.alt-btn {
+  cursor: pointer;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.alt-btn:active:not(:disabled) { transform: translateY(1px); }
+.alt-btn.is-busy { opacity: 0.7; }
+.tnav-btn {
+  cursor: pointer;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
+}
+.repo-step-hd {
+  cursor: pointer;
+  pointer-events: auto;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: inherit;
+}
+.button,
+button.button {
+  pointer-events: auto;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+/* Section targets clear sticky header + topnav */
+.sec[id],
+section[id] {
+  scroll-margin-top: 140px;
 }

@@ -284,6 +284,15 @@ def test_router_mounts_under_custom_prefix_with_its_own_assets() -> None:
     assert "HOW THIS REPO WORKS" in script.text or "how-repo-works" in script.text
     assert "get_entities" in script.text
     assert "save_document" in script.text
+    # Demo UI must parse and wire interactive controls + link real source.
+    assert "buildAlternatePlan" in script.text or "alternate-plan" in script.text
+    assert "plan_fingerprint" in script.text
+    assert "evaluate_authorization" in script.text
+    assert "github.com/tomyimkc/ledgerlens" in script.text
+    assert "/blob/main/" in script.text
+    assert "data-alt-status" in script.text
+    # Guard against the class of object-literal bugs that silently kill the whole page.
+    assert '"data-alt-status",' not in script.text  # bare key without value
 
 
 def test_untrusted_backend_text_is_escaped_and_secret_fields_are_redacted() -> None:
