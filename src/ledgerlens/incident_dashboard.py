@@ -74,8 +74,7 @@ PLAN_TEMPLATES: dict[str, JsonObject] = {
         "id": "full_fanout",
         "label": "Full collaboration fanout (AI default)",
         "summary": (
-            "GitHub issue, Slack brief, PagerDuty note, Jira recovery task, "
-            "and DataHub write-back."
+            "GitHub issue, Slack brief, PagerDuty note, Jira recovery task, and DataHub write-back."
         ),
         "objective": "Coordinate bounded response work without asserting unproven causality.",
         "scope": "Collaboration fanout and metadata write-back only",
@@ -102,9 +101,7 @@ PLAN_TEMPLATES: dict[str, JsonObject] = {
                 "title": "Attach provenance context to the active page",
                 "target": "PD-INC-PAYMENTS-778",
                 "reversible": True,
-                "reason": (
-                    "Give the on-call responder DataHub entity and blast-radius pointers."
-                ),
+                "reason": ("Give the on-call responder DataHub entity and blast-radius pointers."),
             },
             {
                 "order": 4,
@@ -120,9 +117,7 @@ PLAN_TEMPLATES: dict[str, JsonObject] = {
                 "title": "Write the bounded response receipt to DataHub",
                 "target": "analytics.payments_daily",
                 "reversible": True,
-                "reason": (
-                    "Keep the entity, action receipts, unknowns, and next owner together."
-                ),
+                "reason": ("Keep the entity, action receipts, unknowns, and next owner together."),
             },
         ],
     },
