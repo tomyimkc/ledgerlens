@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta
       name="description"
-      content="LedgerLens Incident Commander coordinates evidence-bounded response work."
+      content="LedgerLens in plain English: read DataHub, draft with AI, lock with hard rules, leave receipts."
     >
-    <title>Incident Commander · LedgerLens</title>
+    <title>LedgerLens · plain-English demo</title>
     <link rel="stylesheet" href="{{ base_path }}/assets/incident.css">
     <script defer src="{{ base_path }}/assets/incident.js"></script>
   </head>
@@ -26,7 +26,7 @@
         </span>
         <div>
           <strong>LedgerLens</strong>
-          <span>Plan-exact authorization</span>
+          <span>Safe data-incident helper for DataHub teams</span>
         </div>
       </div>
 
@@ -60,13 +60,16 @@
     {% if state.fixture %}
       <div class="topbar" data-testid="fixture-label">
         <nav class="topnav" aria-label="Project links">
-          <a class="tnav-btn primary" href="https://youtu.be/D0SVpDWOrUw" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Watch the 3-min demo</a>
-          <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens" target="_blank" rel="noopener">GitHub repo</a>
-          <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens/blob/main/docs/EVIDENCE_INDEX.md" target="_blank" rel="noopener">Evidence index</a>
+          <a class="tnav-btn primary" href="#ai-or-not">Does it use AI?</a>
+          <a class="tnav-btn" href="#unique">What is unique?</a>
+          <a class="tnav-btn" href="#alternate-plan">Disagree with AI?</a>
+          <a class="tnav-btn" href="#how-repo-works">Step by step</a>
+          <a class="tnav-btn" href="#real-code">Real code</a>
+          <a class="tnav-btn" href="#gate-demo">Live proof</a>
+          <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens" target="_blank" rel="noopener">GitHub</a>
           <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens#readme" target="_blank" rel="noopener">README</a>
-          <a class="tnav-btn" href="https://github.com/acryldata/mcp-server-datahub/pull/160" target="_blank" rel="noopener">Upstream PR</a>
         </nav>
-        <span class="topbar-note">Public fixture replay · receipts are <code>fixture://</code> · no live calls</span>
+        <span class="topbar-note">Safe public demo · no real tickets or pages are sent from this page</span>
       </div>
     {% elif state.availability != "ready" %}
       <aside class="live-warning" role="alert" data-testid="live-unconfigured">
@@ -83,8 +86,8 @@
         <section class="flow-root" data-flow-root aria-label="Incident pipeline">
           <div class="flow-hero">
             <div>
-              <p class="eyebrow">PLAN-EXACT AUTHORIZATION · DATAHUB AGENT · FIXTURE</p>
-              <h1>The exact reviewed plan is the only thing that can run.</h1>
+              <p class="eyebrow">PUBLIC DEMO · SAFE REPLAY · PLAIN ENGLISH</p>
+              <h1>When data looks wrong, help the right people act — without letting AI approve itself.</h1>
             </div>
             <button type="button" class="button button-signal" data-flow-replay data-trigger-incident>
               <span aria-hidden="true">↑</span> Restart
@@ -92,8 +95,8 @@
           </div>
           <div class="orient">
             <span class="orient-lead">
-              Built on <strong>DataHub</strong> — MCP <code>get_entities</code> (read) +
-              <code>save_document</code> (write-back).
+              DataHub is the company's data map. LedgerLens reads that map, may use AI to draft steps,
+              then uses hard rules for the final yes/no — and leaves a receipt.
             </span>
           </div>
           <div class="timeline" data-timeline aria-label="Incident events"></div>
@@ -295,6 +298,52 @@
                   <strong>{{ state.planner.risk }}</strong>
                 </div>
               </div>
+
+              {% if state.capabilities.revise_plan %}
+                <div class="plan-revise" data-testid="plan-revise" data-plan-revise>
+                  <header class="plan-revise-hd">
+                    <p class="eyebrow">DISAGREE WITH THIS PLAN?</p>
+                    <strong>Pick a smaller alternate — same safety lock, new seal</strong>
+                    <p>
+                      You are not stuck on deny. Swap the AI draft for a human template
+                      (or keep the full fanout). Any prior authorization is wiped; the new
+                      plan must pass the same deterministic gate before anything runs.
+                    </p>
+                  </header>
+                  <div class="plan-template-grid" data-plan-templates>
+                    <button
+                      type="button"
+                      class="button button-secondary plan-template-btn"
+                      data-plan-template="notify_and_ticket"
+                      {% if not state.capabilities.revise_plan %}disabled{% endif %}
+                    >
+                      Notify + ticket only
+                    </button>
+                    <button
+                      type="button"
+                      class="button button-secondary plan-template-btn"
+                      data-plan-template="ticket_only"
+                    >
+                      Ticket trackers only
+                    </button>
+                    <button
+                      type="button"
+                      class="button button-secondary plan-template-btn"
+                      data-plan-template="notify_only"
+                    >
+                      Notify on-call only
+                    </button>
+                    <button
+                      type="button"
+                      class="button button-secondary plan-template-btn"
+                      data-plan-template="full_fanout"
+                    >
+                      Restore full fanout
+                    </button>
+                  </div>
+                  <p class="plan-revise-feedback" data-plan-revise-feedback aria-live="polite"></p>
+                </div>
+              {% endif %}
             </article>
 
             <article class="command-panel fanout-panel" data-testid="action-fanout">
