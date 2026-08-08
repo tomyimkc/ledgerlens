@@ -281,7 +281,9 @@ def test_router_mounts_under_custom_prefix_with_its_own_assets() -> None:
     assert css.status_code == 200
     assert "--signal: #0f766e" in css.text
     assert script.status_code == 200
-    assert "Evaluating deterministic gate" in script.text
+    assert "HOW THIS REPO WORKS" in script.text or "how-repo-works" in script.text
+    assert "get_entities" in script.text
+    assert "save_document" in script.text
 
 
 def test_untrusted_backend_text_is_escaped_and_secret_fields_are_redacted() -> None:

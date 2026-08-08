@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta
       name="description"
-      content="LedgerLens Incident Commander coordinates evidence-bounded response work."
+      content="LedgerLens: how this repo uses DataHub MCP — context in, plan-exact gate, receipted write-back."
     >
-    <title>Incident Commander · LedgerLens</title>
+    <title>How LedgerLens works with DataHub · Demo</title>
     <link rel="stylesheet" href="{{ base_path }}/assets/incident.css">
     <script defer src="{{ base_path }}/assets/incident.js"></script>
   </head>
@@ -26,7 +26,7 @@
         </span>
         <div>
           <strong>LedgerLens</strong>
-          <span>Plan-exact authorization</span>
+          <span>DataHub MCP → exact-plan gate → receipts</span>
         </div>
       </div>
 
@@ -60,13 +60,14 @@
     {% if state.fixture %}
       <div class="topbar" data-testid="fixture-label">
         <nav class="topnav" aria-label="Project links">
-          <a class="tnav-btn primary" href="https://youtu.be/D0SVpDWOrUw" target="_blank" rel="noopener"><span aria-hidden="true">▶</span> Watch the 3-min demo</a>
-          <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens" target="_blank" rel="noopener">GitHub repo</a>
-          <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens/blob/main/docs/EVIDENCE_INDEX.md" target="_blank" rel="noopener">Evidence index</a>
+          <a class="tnav-btn primary" href="#how-repo-works">How the repo works</a>
+          <a class="tnav-btn" href="#mcp-io">DataHub MCP I/O</a>
+          <a class="tnav-btn" href="#gate-demo">Gate proof</a>
+          <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens" target="_blank" rel="noopener">GitHub</a>
+          <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens/blob/main/docs/EVIDENCE_INDEX.md" target="_blank" rel="noopener">Evidence</a>
           <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens#readme" target="_blank" rel="noopener">README</a>
-          <a class="tnav-btn" href="https://github.com/acryldata/mcp-server-datahub/pull/160" target="_blank" rel="noopener">Upstream PR</a>
         </nav>
-        <span class="topbar-note">Public fixture replay · receipts are <code>fixture://</code> · no live calls</span>
+        <span class="topbar-note">Public fixture · <code>fixture://</code> receipts · review the walkthrough below before video recapture</span>
       </div>
     {% elif state.availability != "ready" %}
       <aside class="live-warning" role="alert" data-testid="live-unconfigured">
@@ -83,8 +84,8 @@
         <section class="flow-root" data-flow-root aria-label="Incident pipeline">
           <div class="flow-hero">
             <div>
-              <p class="eyebrow">PLAN-EXACT AUTHORIZATION · DATAHUB AGENT · FIXTURE</p>
-              <h1>The exact reviewed plan is the only thing that can run.</h1>
+              <p class="eyebrow">DEMO · HOW THIS REPO WORKS WITH DATAHUB · FIXTURE</p>
+              <h1>From catalog context to authorized work — with receipts.</h1>
             </div>
             <button type="button" class="button button-signal" data-flow-replay data-trigger-incident>
               <span aria-hidden="true">↑</span> Restart
@@ -92,8 +93,8 @@
           </div>
           <div class="orient">
             <span class="orient-lead">
-              Built on <strong>DataHub</strong> — MCP <code>get_entities</code> (read) +
-              <code>save_document</code> (write-back).
+              Official DataHub MCP: <code>get_entities</code> / <code>get_lineage</code> (read) ·
+              <code>save_document</code> (one allowlisted write-back) · deterministic gate in Python.
             </span>
           </div>
           <div class="timeline" data-timeline aria-label="Incident events"></div>
