@@ -12,6 +12,7 @@ from ledgerlens.ai_roles import JsonIncidentPlanner, JsonPlanVerifier
 from ledgerlens.config import Settings
 from ledgerlens.incident_models import ActionRisk
 from ledgerlens.model_runtime import (
+    JsonObject,
     RecordingJsonClient,
     close_clients,
     create_json_client,
@@ -45,7 +46,7 @@ def build_ai_roles(
     action_targets: Mapping[str, Sequence[str]] | None = None,
     tool_catalog: AgentToolCatalog | None = None,
     record_llm_io: bool = False,
-    llm_io_records: list | None = None,
+    llm_io_records: list[JsonObject] | None = None,
 ) -> AIRoleBundle:
     """Create one planner and a verifier panel using OpenAI and/or Anthropic natives.
 
@@ -63,7 +64,7 @@ def build_ai_roles(
         raise ValueError("planner model must not also be a verifier model")
 
     transport_map = dict(transports or {})
-    records: list = llm_io_records if llm_io_records is not None else []
+    records: list[JsonObject] = llm_io_records if llm_io_records is not None else []
 
     planner_provider = settings.resolved_planner_provider()
     verifier_provider = settings.resolved_verifier_provider()

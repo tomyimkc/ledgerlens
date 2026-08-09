@@ -1,9 +1,13 @@
 # LedgerLens non-video winner-readiness scorecard
 
-**Assessment date:** August 3, 2026 (supersedes the August 1 provisional scores)
+**Assessment date:** August 9, 2026 (supersedes the August 3 scorecard)
 **Scope:** Non-video public repository, hosted fixture, recorded receipts, and reproducibility.
 **Scoring rule:** Five core criteria are scored independently. The open-source contribution is a separate bonus, because the official rules call it a bonus even while listing criteria as equally weighted. These are internal readiness assessments, not official judging scores.
-**Method note:** The August 1 draft rated the five-core average at 7.8. An adversarially-verified re-audit on August 3 — every proposed gap refuted by an independent reader of the source — found that figure optimistic (it scored the code, not what a judge can verify) and reset it to ~5.8. The scores below are the honest state **after** the August 3 improvements (real-pipeline benchmark, benchmark honesty disclosure, `examples/`, DataHub agent-context framing, and the offline-tested live provider rehearsal). They are deliberately conservative.
+**Method note:** The August 1 draft rated the five-core average at 7.8. An adversarial
+re-audit on August 3 found that figure optimistic because it scored code rather than judge-visible
+proof. The August 9 refresh includes the produced E-16 rehearsal, public video URL, recorded Agent
+I/O page, and interactive server-evaluated Seal Lab. It remains conservative because the public
+incident state is a fixture and no production outcome or independent validation is claimed.
 
 ## Current scorecard
 
@@ -13,10 +17,10 @@
 | B. Technical execution and end-to-end functionality | 7.5 / 10 | High | Typed orchestrator; deterministic authority tests; real-pipeline `PolicyGate`/`VerifierPanel` benchmark; **produced one-run live fanout across all four providers (E-16)**; CI; hosted smoke | A single bounded rehearsal per provider; no sustained-reliability or scale evidence | Add a live DataHub read/write-back to the same run for full read→act→write-back in one receipt | Finalist-capable |
 | C. Originality beyond DataHub built-ins | 7.0 / 10 | Medium | Exact-plan authorization; verifier quorum; allowlists; HMAC-bound adapters; next-agent handoff; **explicit contrast vs. DataHub's Actions Framework and generic LLM agents** (README) | No independent reviewer has assessed differentiation | Complete two consented formative reviews without overstating them | Finalist-capable |
 | D. Real-world usefulness | 6.0 / 10 | Medium | Concrete on-call persona and worked incident; ownership/lineage context; bounded work with explicit unknowns; **"point it at your own DataHub" adoption path** | Synthetic incidents; no real user study or production outcome | Recruit two role-appropriate formative reviewers and publish only consented aggregate findings | Contender |
-| E. Submission quality and reproducibility | 6.5 / 10 | High | Public Apache-2.0 repo; **`examples/` folder** (rules-recommended); one-command demo; CI; secret scan; readiness check; canonical evidence index; **clean-clone reproduction verified**; on-thesis repo About/topics | Final release/package alignment and the final hosted-smoke receipt from the merged final revision are not yet recorded | Run and publish final clean-clone/hosted-smoke receipts from the final revision | Contender |
+| E. Submission quality and reproducibility | 7.0 / 10 | High | Public Apache-2.0 repo and Space; public video URL; interactive Seal Lab; recorded Agent I/O; `examples/`; one-command demo; CI; secret scan; evidence index; clean-clone receipt | The current public video was not visually re-audited in this engineering pass; final release/package alignment and hosted smoke from the merged revision are not yet recorded | Run final merged hosted smoke, verify the video/project URLs in a clean browser, and record the release SHA | Finalist-capable |
 | F. Open-source contribution bonus | 4.5 / 10 | High | Public upstream issue #159 and PR #160; the three Copilot review comments on #160 were addressed in `fe49bac` | PR is open, review-required, and unmerged; no maintainer acceptance | Keep the contribution accurately linked; respond only to justified maintainer feedback | Contender bonus |
 
-**Five-core average:** **6.6 / 10**
+**Five-core average:** **6.8 / 10**
 **Bonus:** **4.5 / 10** (reported separately; not folded into the core average)
 
 ## Why the score is not higher
@@ -26,7 +30,9 @@
 - Both benchmarks are deterministic and synthetic. The real-pipeline benchmark exercises the production gate, but its OFF arm fails by construction — it proves the fail-closed gate, not model capability.
 - External-evaluation infrastructure is ready, but no consented independent review result exists.
 - The upstream contribution remains an open, unmerged PR.
-- Final release, clean-clone-of-final-revision receipt, video URL, and Devpost submit remain owner-controlled, time-sensitive work.
+- The public video and published Devpost project exist, but this engineering pass could not
+  visually re-audit the YouTube playback; final release and final merged hosted-smoke evidence
+  remain time-sensitive.
 
 ## P0/P1/P2 gap matrix
 
@@ -35,8 +41,8 @@
 | P0 | Headline benchmark mechanism was undisclosed (scripted responders). | A, E | A judge inspecting the code could read the gap as manufactured. | Disclose the mechanism beside the numbers on every surface; add a real-pipeline benchmark. | `benchmarks/incident_commander/README.md`; E-15. | **Done (PR #23/#24)** |
 | P0 | Public demo shows no DataHub involvement. | A | The one clickable artifact never touches DataHub. | Run a supervised live-DataHub session on the owner's own instance; link the receipt. | Live receipt + `docs/LIVE_DATAHUB_PUBLIC.md`. | Owner-only |
 | P0 | Only GitHub had a produced live provider receipt. | B, D | "Agents that do real work" wants demonstrated action. | Run the one-run rehearsal across all four providers with scoped credentials. | E-16 receipt: GitHub #29, Slack, PagerDuty, Jira KAN-2. | **Done** — produced 2026-08-03 |
-| P0 | Final submission lacks owner video URL, eligibility confirmation, and submit receipt. | E | Required material and eligibility cannot be automated. | Owner completes checklist; do not evaluate the video itself. | Devpost and owner receipts. | Owner-only |
-| P1 | Judges may not hunt for receipts. | A, B, E, F | Evidence must be one click away. | Canonical evidence index + `examples/` folder linked from README. | E-01..E-16; `examples/README.md`. | **Done** |
+| P0 | Final submission video/project URLs and eligibility need a last clean-browser review. | E | A recorded URL is not the same as verified playback and account eligibility. | Owner performs the last clean-browser/account review before the deadline. | Public playback plus Devpost project state. | Video URL + published state done; final owner review remains |
+| P1 | Judges may not hunt for receipts. | A, B, C, E | Evidence must be felt before a judge leaves the page. | Put the server-evaluated Seal Lab immediately after the uniqueness pitch; retain the canonical evidence index and examples. | E-19 plus E-01..E-18; `examples/README.md`. | **Done on feature branch; public deployment pending** |
 | P1 | Submission did not speak DataHub's own vocabulary. | A, C, D | DataHub-team judges reward their own framing. | Cite the Agent Context Kit and the "context problem" framing, accurately. | README/ARCHITECTURE. | **Done (PR #24)** |
 | P1 | No completed consented external review. | C, D, E | Credibility/usability evidence is thin. | Recruit two role-appropriate reviewers; retain raw records privately. | Consent-safe aggregate only if permitted. | Owner/external |
 | P1 | Upstream PR has no maintainer result. | F | Bonus is weaker without a reviewed contribution. | Monitor and respond to maintainers; never pressure or claim acceptance. | Upstream PR state. | External |
@@ -57,10 +63,18 @@
 
 ## Candid winner-readiness verdict
 
-**Finalist-capable, with remaining owner-only risks.**
+**Finalist-capable, with remaining public-proof and final-release risks.**
 
-The authority-boundary and DataHub-centrality story is strong, and the August 3 work removed the integrity risk in the flagship benchmark, added evidence that exercises the real pipeline, and made the submission speak DataHub's own language. It is not yet winner-safe because the two highest-value proofs — a live DataHub-backed demo and produced live provider receipts — are built but not yet *run*, and there is no completed external review or merged upstream PR. The remaining distance to winner is now dominated by owner-controlled, real-world artifacts rather than engineering.
+The authority-boundary and DataHub-centrality story is strong. The E-16 receipt now establishes one
+bounded supervised four-provider run, and the Seal Lab makes the exact-plan thesis judge-testable.
+It is not winner-safe because the clickable incident remains a fixture, the live run is one
+rehearsal rather than sustained evidence, and there is no completed external review or merged
+upstream PR.
 
 ## Why LedgerLens still may not win
 
-A judge may treat the public fixture as a polished simulation rather than proof of operational impact. Until the owner runs the supervised live-DataHub session and the one-run provider rehearsal, the live story remains one closed GitHub issue plus one local DataHub write-back. The synthetic benchmarks, the absence of a completed external review, and the unmerged upstream PR limit the externally verifiable story. Strong, honest documentation reduces this risk but cannot replace those artifacts.
+A judge may still treat the public fixture as a polished simulation rather than proof of
+operational impact. The one supervised provider rehearsal and local DataHub write-back are narrow
+evidence, not sustained operation or recovery. The synthetic benchmarks, absence of a completed
+external review, and unmerged upstream PR limit the externally verifiable story. The Seal Lab
+improves inspectability; it does not erase those gaps.

@@ -20,7 +20,7 @@ evaluate_repository = MODULE.evaluate_repository
 def test_repository_satisfies_non_video_readiness_contract() -> None:
     errors, deferred = evaluate_repository(ROOT)
     assert errors == []
-    assert any("video URL" in blocker for blocker in deferred)
+    assert any("public video" in blocker for blocker in deferred)
     assert any("v0.2.1" in blocker for blocker in deferred)
     assert any("live DataHub read/write-back" in blocker for blocker in deferred)
 

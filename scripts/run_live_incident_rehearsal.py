@@ -393,7 +393,11 @@ def main() -> int:
     if args.output.exists() and not args.force:
         print(f"refusing to overwrite existing receipt: {args.output}", file=sys.stderr)
         return 2
-    llm_key = os.getenv("OPENAI_API_KEY") or os.getenv("LEDGERLENS_LLM_API_KEY") or os.getenv("ANTHROPIC_API_KEY")
+    llm_key = (
+        os.getenv("OPENAI_API_KEY")
+        or os.getenv("LEDGERLENS_LLM_API_KEY")
+        or os.getenv("ANTHROPIC_API_KEY")
+    )
     if not llm_key:
         print("LEDGERLENS_LLM_API_KEY is required", file=sys.stderr)
         return 2

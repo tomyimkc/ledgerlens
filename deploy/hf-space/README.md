@@ -7,10 +7,10 @@ sdk: docker
 app_port: 7860
 pinned: true
 license: apache-2.0
-short_description: Verifier-gated autonomous data incident response.
+short_description: DataHub incident plans sealed by deterministic policy.
 ---
 
-# LedgerLens — Autonomous Data Incident Commander
+# LedgerLens — Policy-Sealed Incident Commander
 
 LedgerLens turns DataHub-shaped incident context into a bounded response plan, model-variant
 verification, deterministic authorization, receipted operational fanout, DataHub write-back, and
@@ -24,7 +24,8 @@ This public Space runs the **deterministic fixture replay**:
 - every simulated external receipt uses `fixture://`;
 - AI output is advisory and deterministic policy remains the authority.
 
-Click **Replay trigger** to run the complete visible workflow.
+Open the **Seal Lab** to submit controlled plan, verifier, and target changes to the real
+server-side gate without executing any provider tool.
 
 ```yaml
 candidateOnly: true
@@ -35,4 +36,3 @@ Source and live evidence receipts are published in `tomyimkc/ledgerlens`, releas
 
 The previous Sophia Governance Gate Space is preserved on branch
 `backup/governance-gate-20260731`.
-

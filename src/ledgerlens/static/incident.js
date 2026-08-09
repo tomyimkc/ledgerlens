@@ -522,7 +522,7 @@
             "    fixture: bool = True,",
             "    autonomous: bool = False,",
             ") -> None:",
-            '    """Launch the Autonomous Data Incident Commander."""',
+            '    """Launch the policy-sealed Data Incident Commander."""',
             "    _run_server(..., incident_fixture_mode=fixture,",
             "               incident_autonomous_execution=autonomous,",
             "               incident_only=True)",
@@ -935,17 +935,160 @@
   };
 
   const buildProofSection = async () => {
-    try {
-      const g = await fetch(apiBase + "/gate-demo", { credentials: "same-origin" }).then((r) => r.json());
-      if (g && g.demo) {
-        return h("section", { class: "sec", id: "gate-demo", "data-testid": "gate-demo" },
-          h("p", { class: "sec-eyebrow", text: "LIVE PROOF" }),
-          h("h2", { class: "sec-title", text: "If the plan changes after review, nothing runs" }),
-          gateWhere(),
-          gateCard(g.demo));
+    const scenarios = [
+      { id: "reviewed-plan", label: "Run reviewed plan", hint: "unchanged" },
+      { id: "append-tool-call", label: "+ unreviewed tool call", hint: "plan drift" },
+      { id: "verifier-objection", label: "Verifier objects", hint: "quorum split" },
+      { id: "off-allowlist-target", label: "Change tool target", hint: "scope escape" },
+    ];
+    const controls = h("div", { class: "seal-controls", role: "group", "aria-label": "Seal Lab mutation" });
+    const output = h("div", { class: "seal-output", "aria-live": "polite" },
+      h("div", { class: "logloading" },
+        h("span", { class: "sv-spinner", "aria-hidden": "true" }), " Evaluating reviewed plan…"));
+    const proofJson = h("pre", { class: "seal-json", hidden: "hidden" });
+    const copyStatus = h("span", { class: "seal-copy-status", "aria-live": "polite" });
+    const copyButton = h("button", {
+      class: "button seal-copy",
+      type: "button",
+      text: "Copy redacted proof JSON",
+      disabled: "disabled",
+    });
+    let latestLab = null;
+
+    const renderLab = (lab) => {
+      latestLab = lab;
+      const result = lab.result || {};
+      const authorized = result.decision === "authorized";
+      const checks = list(result.conditions);
+      const failures = list(result.failedConditions);
+      const reviewFp = String(result.reviewedPlanFingerprint || "not available");
+      const evaluatedFp = String(result.evaluatedPlanFingerprint || "not available");
+      const context = lab.context || {};
+      const checkList = h("div", { class: "seal-check-list" });
+      if (checks.length) {
+        checks.forEach((check) => {
+          const status = check.status || "pending";
+          checkList.append(h("div", { class: "seal-check " + status },
+            mark(status),
+            h("span", {},
+              h("strong", { text: check.name || "Gate condition" }),
+              check.detail ? h("small", { text: check.detail }) : null)));
+        });
+      } else {
+        failures.forEach((failure) => {
+          checkList.append(h("div", { class: "seal-check fail" },
+            mark("fail"),
+            h("span", {}, h("strong", { text: failure }))));
+        });
       }
-    } catch (_e) { /* best-effort */ }
-    return null;
+      output.replaceChildren(
+        h("div", { class: "seal-verdict " + (authorized ? "authorized" : "denied") },
+          h("span", { class: "seal-verdict-k", text: "SERVER GATE DECISION" }),
+          h("strong", { text: authorized ? "AUTHORIZED" : "DENIED" }),
+          h("small", { text: "tools held · external mutations false" })),
+        h("div", { class: "seal-context" },
+          h("span", { text: "DATAHUB CONTEXT · UNCHANGED" }),
+          h("strong", { text: context.asset || "grounded fixture asset" }),
+          h("small", { text:
+            (context.owner ? "owner: " + context.owner + " · " : "") +
+            (context.blastRadius || "bounded blast radius") })),
+        h("div", { class: "seal-fingerprint-row" },
+          h("div", {},
+            h("small", { text: "REVIEWED SEAL" }),
+            h("code", { text: reviewFp })),
+          h("span", { class: "seal-arrow", text: reviewFp === evaluatedFp ? "=" : "≠" }),
+          h("div", { class: reviewFp === evaluatedFp ? "" : "changed" },
+            h("small", { text: "EVALUATED PLAN" }),
+            h("code", { text: evaluatedFp }))),
+        h("div", { class: "seal-mutation" },
+          h("small", { text: "YOUR MUTATION" }),
+          h("strong", { text: result.mutation || "None" }),
+          h("p", { text: result.explanation || "" })),
+        checkList,
+        h("p", { class: "seal-engine" },
+          h("b", { text: "Executed on the server by " }),
+          h("code", { text: result.gate || "deterministic policy" }),
+          ". The browser only renders the returned decision."));
+      proofJson.textContent = JSON.stringify(lab, null, 2);
+      copyButton.removeAttribute("disabled");
+    };
+
+    const buttons = new Map();
+    const runScenario = async (scenario) => {
+      buttons.forEach((button, id) => {
+        const active = id === scenario;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+      output.replaceChildren(
+        h("div", { class: "logloading" },
+          h("span", { class: "sv-spinner", "aria-hidden": "true" }),
+          " Running the real gate…"));
+      copyButton.setAttribute("disabled", "disabled");
+      copyStatus.textContent = "";
+      const response = await fetch(apiBase + "/seal-lab", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scenario }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.lab) {
+        throw new Error(payload.detail || "Seal Lab request failed.");
+      }
+      renderLab(payload.lab);
+    };
+
+    scenarios.forEach((scenario) => {
+      const button = h("button", {
+        class: "seal-control",
+        type: "button",
+        "aria-pressed": "false",
+      },
+      h("strong", { text: scenario.label }),
+      h("small", { text: scenario.hint }));
+      button.addEventListener("click", () => {
+        runScenario(scenario.id).catch((error) => {
+          output.replaceChildren(h("p", { class: "seal-error", text: error.message }));
+        });
+      });
+      buttons.set(scenario.id, button);
+      controls.append(button);
+    });
+
+    copyButton.addEventListener("click", async () => {
+      if (!latestLab) return;
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(latestLab, null, 2));
+        copyStatus.textContent = "Copied.";
+      } catch (_error) {
+        proofJson.hidden = false;
+        copyStatus.textContent = "Clipboard unavailable; JSON shown below.";
+      }
+    });
+
+    const section = h("section", {
+      class: "sec seal-lab",
+      id: "gate-demo",
+      "data-testid": "seal-lab",
+    },
+    h("p", { class: "sec-eyebrow", text: "INTERACTIVE FIXTURE · REAL GATE CODE" }),
+    h("h2", { class: "sec-title", text: "Tamper with the plan. The seal should refuse." }),
+    h("p", { class: "sec-note" },
+      "Choose one controlled change. Every click calls the server-side authorization code; ",
+      h("b", { text: "no provider tool executes" }),
+      ". The fixture keeps the DataHub context stable so only the selected boundary changes."),
+    gateWhere(),
+    controls,
+    output,
+    h("div", { class: "seal-copy-row" }, copyButton, copyStatus),
+    proofJson,
+    h("p", { class: "sec-foot" },
+      "This demonstrates deterministic gate behavior, not production safety or incident recovery. ",
+      h("a", { href: EVIDENCE, target: "_blank", rel: "noopener", text: "Evidence scopes E-01, E-04, E-05, E-15" }),
+      "."));
+    await runScenario("reviewed-plan");
+    return section;
   };
 
   const COMPARISON = [
@@ -1047,9 +1190,14 @@
     if (!id) return false;
     const el = document.getElementById(id);
     if (!el) return false;
+    const switcher = document.querySelector(".page-switcher");
     const header = document.querySelector(".command-header");
     const topbar = document.querySelector(".topbar");
-    const offset = (header ? header.offsetHeight : 0) + (topbar ? topbar.offsetHeight : 0) + 12;
+    const offset =
+      (switcher ? switcher.offsetHeight : 0) +
+      (header ? header.offsetHeight : 0) +
+      (topbar ? topbar.offsetHeight : 0) +
+      12;
     const top = el.getBoundingClientRect().top + window.scrollY - offset;
     window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
     try { history.replaceState(null, "", "#" + id); } catch (_e) { /* ignore */ }
@@ -1091,7 +1239,7 @@
         h("a", { href: "#how-repo-works", text: "Agentic flow" }),
         h("a", { href: "#tool-belt", text: "Your tools" }),
         h("a", { href: "#alternate-plan", text: "Revise plan" }),
-        h("a", { href: "#gate-demo", text: "Live proof" }),
+        h("a", { href: "#gate-demo", text: "Seal Lab" }),
         h("a", { href: "#get-started", text: "Try it" }),
         h("a", { class: "toc-page", href: home + "/agent-io", text: "Agent I/O page →" })));
     }
@@ -1223,6 +1371,7 @@
       buildWhat(),
       buildAiSplit(),
       buildUnique(),
+      ...(proof ? [proof] : []),
       buildVsPlanMode(),
       buildRepoHow(),
       buildToolBelt(),
@@ -1231,7 +1380,6 @@
       buildMcpIo(),
       buildPipe(),
       buildCode(),
-      ...(proof ? [proof] : []),
       buildComparison(),
       buildSetup());
     wireInPageNav();

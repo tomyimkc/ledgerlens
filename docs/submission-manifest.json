@@ -1,6 +1,6 @@
 {
   "schemaVersion": "ledgerlens.submission-manifest.v1",
-  "project": "LedgerLens — Autonomous Data Incident Commander",
+  "project": "LedgerLens — Policy-Sealed Incident Commander",
   "category": "Agents That Do Real Work",
   "candidateOnly": true,
   "canClaimAGI": false,
@@ -10,7 +10,7 @@
     "license": "Apache-2.0",
     "publicApp": "https://tomyimkc-ledgerlens-incident-commander.hf.space/",
     "spacePage": "https://huggingface.co/spaces/tomyimkc/ledgerlens-incident-commander",
-    "videoUrl": "OWNER INPUT REQUIRED",
+    "videoUrl": "https://youtu.be/D0SVpDWOrUw",
     "publicBaseline": "v0.2.0@00063e40bfc785f13e6db938e0795928e4f843ba",
     "finalRelease": "v0.2.1 (not yet published)"
   },
@@ -31,7 +31,7 @@
   },
   "readinessSnapshot": {
     "verdict": "finalist-capable",
-    "fiveCoreAverage": 6.6,
+    "fiveCoreAverage": 6.8,
     "bonus": 4.5,
     "note": "Internal readiness assessment, not an official judging score. See docs/WINNER_READINESS.md."
   },
@@ -45,7 +45,8 @@
     {"id": "E-12", "claim": "External-review kit ready, no result claimed", "artifact": "docs/EXTERNAL_EVALUATION.md", "scope": "infrastructure only"},
     {"id": "E-15", "claim": "Real PolicyGate/VerifierPanel authorizes only fact-grounded actions", "artifact": "benchmarks/incident_commander/real-pipeline-ablation-receipt.json", "scope": "deterministic stub planner; proves fail-closed gate, not uplift"},
     {"id": "E-16", "claim": "One run executed a bounded action against all four providers", "artifact": "benchmarks/incident_commander/live-incident-rehearsal-receipt.json", "scope": "one bounded rehearsal action per provider; not sustained/production"},
-    {"id": "E-17", "claim": "Published commands reproduce from a clean clone", "artifact": "benchmarks/results/clean-clone-2026-08-03.json", "scope": "offline gates only"}
+    {"id": "E-17", "claim": "Published commands reproduce from a clean clone", "artifact": "benchmarks/results/clean-clone-2026-08-03.json", "scope": "offline gates only"},
+    {"id": "E-19", "claim": "Interactive Seal Lab refuses controlled plan and target drift", "artifact": "/incident/api/seal-lab", "scope": "public fixture context; tools held; no external mutations"}
   ],
   "producedLiveArtifacts": {
     "date": "2026-08-03",
@@ -65,9 +66,8 @@
     "liveRehearsal": "uv run python scripts/run_live_incident_rehearsal.py --confirm-live"
   },
   "ownerOnly": [
-    "Record the public under-three-minute video URL.",
-    "Cut and publish v0.2.1 from the final commit (after the video URL exists); record the real SHA.",
-    "Complete Devpost account/team/eligibility review; click Submit; save the receipt.",
+    "Cut and publish v0.2.1 from the final merged submission commit; record the real SHA.",
+    "Re-check Devpost account/team/eligibility and the public project/video URLs in a clean browser.",
     "Optional: supervised live-DataHub session against the owner's own instance.",
     "Optional: two consented external reviews via docs/EXTERNAL_EVALUATION.md.",
     "Revoke the throwaway provider credentials used for E-16."

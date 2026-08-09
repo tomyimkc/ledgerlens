@@ -1619,6 +1619,125 @@ def allowlist_scope_demo() -> JsonObject:
     }
 
 
+SEAL_LAB_SCENARIOS = frozenset(
+    {
+        "reviewed-plan",
+        "append-tool-call",
+        "verifier-objection",
+        "off-allowlist-target",
+    }
+)
+
+
+def seal_lab_demo(state: Mapping[str, Any], scenario: str) -> JsonObject:
+    """Run one controlled judge mutation through the real authorization code.
+
+    The lab never executes a provider adapter. Each scenario is constructed server-side
+    so browser JavaScript cannot manufacture the decision it displays.
+    """
+
+    selected = scenario.strip().casefold()
+    if selected not in SEAL_LAB_SCENARIOS:
+        raise ValueError(f"Unknown seal-lab scenario: {scenario}")
+
+    exact = plan_exact_authorization_demo(state)
+    reviewed_fingerprint = exact["reviewedPlanFingerprint"]
+    context = state.get("context")
+    entity = context.get("entity") if isinstance(context, Mapping) else None
+    blast = context.get("blast_radius") if isinstance(context, Mapping) else None
+    context_summary = {
+        "source": context.get("source") if isinstance(context, Mapping) else None,
+        "asset": entity.get("name") if isinstance(entity, Mapping) else None,
+        "owner": entity.get("owner") if isinstance(entity, Mapping) else None,
+        "blastRadius": blast.get("summary") if isinstance(blast, Mapping) else None,
+        "changed": False,
+    }
+
+    if selected == "reviewed-plan":
+        outcome = exact["approved"]
+        result: JsonObject = {
+            "mutation": "None. Submit the exact reviewed plan.",
+            "decision": outcome["decision"],
+            "reviewedPlanFingerprint": reviewed_fingerprint,
+            "evaluatedPlanFingerprint": reviewed_fingerprint,
+            "failedConditions": [],
+            "conditions": outcome["conditions"],
+            "gate": "dashboard.evaluate_authorization",
+            "explanation": (
+                "The DataHub context is grounded, the scope is bounded, every action is "
+                "allowlisted and reversible, verifier checks pass, and the supplied grant "
+                "matches this exact plan."
+            ),
+        }
+    elif selected == "append-tool-call":
+        outcome = exact["denied"]
+        result = {
+            "mutation": "Append one Slack tool call after the plan was reviewed.",
+            "decision": outcome["decision"],
+            "reviewedPlanFingerprint": reviewed_fingerprint,
+            "evaluatedPlanFingerprint": exact["executedPlanFingerprint"],
+            "failedConditions": outcome["failedConditions"],
+            "conditions": outcome["conditions"],
+            "gate": "dashboard.evaluate_authorization",
+            "explanation": (
+                "The DataHub context did not change, but the exact plan bytes did. The old "
+                "grant cannot authorize the appended tool call."
+            ),
+        }
+    elif selected == "verifier-objection":
+        quorum = verifier_quorum_demo(state)
+        outcome = quorum["split"]
+        result = {
+            "mutation": "Change verifier B from pass to objected; leave the plan unchanged.",
+            "decision": outcome["decision"],
+            "reviewedPlanFingerprint": reviewed_fingerprint,
+            "evaluatedPlanFingerprint": reviewed_fingerprint,
+            "failedConditions": outcome["failedConditions"],
+            "conditions": [],
+            "gate": "dashboard.evaluate_authorization",
+            "explanation": (
+                "The plan fingerprint still matches, but the structured verifier precondition "
+                "no longer passes. Model criticism closes the gate; it does not open it."
+            ),
+        }
+    else:
+        scope = allowlist_scope_demo()
+        outcome = scope["denied"]
+        result = {
+            "mutation": (
+                f"Change the Slack target from {scope['allowlistedTarget']} "
+                f"to {scope['offAllowlistTarget']}."
+            ),
+            "decision": outcome["decision"],
+            "reviewedPlanFingerprint": reviewed_fingerprint,
+            "evaluatedPlanFingerprint": reviewed_fingerprint,
+            "failedConditions": outcome["failedConditions"],
+            "conditions": [],
+            "gate": "verification.PolicyGate",
+            "explanation": (
+                "The production PolicyGate receives the same grounded action and passing AI "
+                "reviews, but refuses the off-allowlist destination. The model cannot widen "
+                "the configured target scope."
+            ),
+        }
+
+    return {
+        "kind": "interactive-seal-lab",
+        "scenario": selected,
+        "context": context_summary,
+        "result": result,
+        "serverEvaluated": True,
+        "toolExecution": "held",
+        "externalMutations": False,
+        "fixture": state.get("mode") == "fixture",
+        "authority": "deterministic-policy",
+        "ai_can_authorize": False,
+        "claimBoundary": copy.deepcopy(CLAIM_BOUNDARY),
+        "candidateOnly": True,
+        "canClaimAGI": False,
+    }
+
+
 def _content_security_headers() -> dict[str, str]:
     return {
         "Cache-Control": "no-store",
@@ -1876,6 +1995,30 @@ def create_incident_router(
         except Exception as exc:
             return error_response(exc)
 
+    @router.post("/api/seal-lab", name="incident_seal_lab")
+    async def api_seal_lab(request: Request) -> Any:
+        try:
+            payload = await request.json()
+            scenario = payload.get("scenario") if isinstance(payload, Mapping) else None
+            if not isinstance(scenario, str) or scenario not in SEAL_LAB_SCENARIOS:
+                return JSONResponse(
+                    {
+                        "ok": False,
+                        "detail": "Select a supported seal-lab scenario.",
+                        "allowedScenarios": sorted(SEAL_LAB_SCENARIOS),
+                        "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
+                    },
+                    status_code=400,
+                    headers=_content_security_headers(),
+                )
+            state = await commander.snapshot()
+            return JSONResponse(
+                {"ok": True, "lab": seal_lab_demo(state, scenario)},
+                headers=_content_security_headers(),
+            )
+        except Exception as exc:
+            return error_response(exc)
+
     @router.get("/api/quorum-demo", name="incident_quorum_demo")
     async def api_quorum_demo() -> Any:
         try:
@@ -2052,5 +2195,6 @@ __all__ = [
     "evaluate_authorization",
     "list_plan_templates",
     "plan_fingerprint",
+    "seal_lab_demo",
     "validate_plan_payload",
 ]

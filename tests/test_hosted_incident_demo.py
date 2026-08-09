@@ -14,6 +14,7 @@ MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
 build_receipt = MODULE.build_receipt
 validate_health = MODULE.validate_health
+validate_seal_lab = MODULE.validate_seal_lab
 validate_trigger = MODULE.validate_trigger
 
 
@@ -65,9 +66,31 @@ def _trigger() -> dict[str, Any]:
     }
 
 
+def _seal_lab() -> dict[str, Any]:
+    return {
+        "ok": True,
+        "lab": {
+            "scenario": "append-tool-call",
+            "serverEvaluated": True,
+            "externalMutations": False,
+            "authority": "deterministic-policy",
+            "ai_can_authorize": False,
+            "candidateOnly": True,
+            "canClaimAGI": False,
+            "result": {
+                "decision": "denied",
+                "reviewedPlanFingerprint": "reviewed",
+                "evaluatedPlanFingerprint": "changed",
+                "failedConditions": ["Plan fingerprint is intact"],
+            },
+        },
+    }
+
+
 def test_hosted_contract_accepts_bounded_fixture_replay() -> None:
     assert validate_health(_health()) == []
     assert validate_trigger(_trigger()) == []
+    assert validate_seal_lab(_seal_lab()) == []
 
 
 def test_hosted_contract_rejects_claim_and_mutation_drift() -> None:
@@ -96,6 +119,15 @@ def test_hosted_contract_rejects_ai_self_authorization() -> None:
     errors = validate_trigger(trigger)
     assert "authorization.authority must be deterministic-policy" in errors
     assert "authorization.ai_can_authorize must be false" in errors
+
+
+def test_hosted_contract_rejects_browser_only_or_authorized_plan_drift() -> None:
+    seal_lab = _seal_lab()
+    seal_lab["lab"]["serverEvaluated"] = False
+    seal_lab["lab"]["result"]["decision"] = "authorized"
+    errors = validate_seal_lab(seal_lab)
+    assert "seal-lab must be evaluated by the server" in errors
+    assert "seal-lab plan drift must be denied" in errors
 
 
 def test_failed_receipt_does_not_assert_observed_safe_values() -> None:

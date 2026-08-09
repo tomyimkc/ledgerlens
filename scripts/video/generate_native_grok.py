@@ -42,7 +42,8 @@ PROMPT_TMPL = (
     "articulation, in a {expression} manner, for exactly this speech: "
     "“{speech}” "
     "Natural blinking, breathing, subtle head motion, restrained hand gestures, stable background, "
-    "gentle cinematic push-in. No captions, no added text, no logo, no extra people, no identity drift."
+    "gentle cinematic push-in. No captions, no added text, no logo, no extra people, "
+    "no identity drift."
 )
 
 
@@ -163,11 +164,7 @@ def main() -> int:
         want = {item.strip() for item in args.only.split(",") if item.strip()}
         scenes = [scene for scene in scenes if scene["id"] in want]
     if not args.force:
-        scenes = [
-            scene
-            for scene in scenes
-            if not (OUT / f"{scene['id']}-raw.mp4").is_file()
-        ]
+        scenes = [scene for scene in scenes if not (OUT / f"{scene['id']}-raw.mp4").is_file()]
     if not scenes:
         print("all clips already present; nothing to do")
         return 0

@@ -9,7 +9,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -83,7 +82,12 @@ def main() -> int:
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(json.dumps({"output": str(args.output), "ok": True, "provider": args.provider}, sort_keys=True))
+    print(
+        json.dumps(
+            {"output": str(args.output), "ok": True, "provider": args.provider},
+            sort_keys=True,
+        )
+    )
     return 0
 
 

@@ -298,8 +298,16 @@ def test_router_mounts_under_custom_prefix_with_its_own_assets() -> None:
     assert "table-vs-plan-mode" in script.text
     assert "table-claim-layers" in script.text
     assert "table-scope-limits" in script.text
-    assert "planning is not authority" in script.text.lower() or "Planning is not authority" in script.text
+    assert (
+        "planning is not authority" in script.text.lower()
+        or "Planning is not authority" in script.text
+    )
     assert "AI plan mode" in script.text
+    assert "/seal-lab" in script.text
+    assert "INTERACTIVE FIXTURE" in script.text
+    assert "Copy redacted proof JSON" in script.text
+    assert '.topbar .tnav-btn[href^="#"] { display: none; }' in css.text
+    assert 'body.js .topbar .tnav-btn[href^="#"] { display: inline-flex; }' in css.text
     # Agentic / tool-use framing (not fixed 8-step BPMN product language).
     assert "AGENTIC FLOW" in script.text or "agentic-flow" in script.text
     assert "tool-belt" in script.text
@@ -310,6 +318,7 @@ def test_router_mounts_under_custom_prefix_with_its_own_assets() -> None:
     assert "FOR SKEPTICAL JUDGES" not in script.text
     assert "where we can win" not in script.text.lower()
     assert "bleed if careless" not in script.text.lower()
+
 
 def test_untrusted_backend_text_is_escaped_and_secret_fields_are_redacted() -> None:
     fixture = copy.deepcopy(ReplayIncidentBackend().snapshot())
@@ -348,6 +357,64 @@ def test_plan_exact_and_quorum_demos_reject_via_the_real_gate() -> None:
     assert "Verifier policy checks are complete" in quorum["split"]["failedConditions"]
 
 
+def test_interactive_seal_lab_runs_controlled_mutations_on_the_server() -> None:
+    client = _fixture_client()
+
+    reviewed = client.post(
+        "/incident/api/seal-lab",
+        json={"scenario": "reviewed-plan"},
+    ).json()["lab"]
+    assert reviewed["serverEvaluated"] is True
+    assert reviewed["externalMutations"] is False
+    assert reviewed["context"]["changed"] is False
+    assert reviewed["result"]["decision"] == "authorized"
+    assert (
+        reviewed["result"]["reviewedPlanFingerprint"]
+        == reviewed["result"]["evaluatedPlanFingerprint"]
+    )
+
+    appended = client.post(
+        "/incident/api/seal-lab",
+        json={"scenario": "append-tool-call"},
+    ).json()["lab"]
+    assert appended["result"]["decision"] == "denied"
+    assert (
+        appended["result"]["reviewedPlanFingerprint"]
+        != appended["result"]["evaluatedPlanFingerprint"]
+    )
+    assert "Plan fingerprint is intact" in appended["result"]["failedConditions"]
+
+    objected = client.post(
+        "/incident/api/seal-lab",
+        json={"scenario": "verifier-objection"},
+    ).json()["lab"]
+    assert objected["result"]["decision"] == "denied"
+    assert "Verifier policy checks are complete" in objected["result"]["failedConditions"]
+
+    escaped = client.post(
+        "/incident/api/seal-lab",
+        json={"scenario": "off-allowlist-target"},
+    ).json()["lab"]
+    assert escaped["result"]["decision"] == "denied"
+    assert any("target_not_allowlisted" in code for code in escaped["result"]["failedConditions"])
+    assert escaped["result"]["gate"] == "verification.PolicyGate"
+    assert escaped["candidateOnly"] is True
+    assert escaped["canClaimAGI"] is False
+
+
+def test_interactive_seal_lab_rejects_unknown_scenarios() -> None:
+    client = _fixture_client()
+
+    response = client.post(
+        "/incident/api/seal-lab",
+        json={"scenario": "turn-off-the-gate"},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["ok"] is False
+    assert "turn-off-the-gate" not in response.json()["allowedScenarios"]
+
+
 def test_agent_io_page_and_trace_endpoint() -> None:
     client = _fixture_client()
 
@@ -360,6 +427,8 @@ def test_agent_io_page_and_trace_endpoint() -> None:
     assert 'href="/incident"' in page.text
     assert "Overview" in page.text
     assert "Back to overview" in page.text or "← Overview" in page.text
+    assert "RECORDED MODEL TRACE" in page.text
+    assert "LIVE MODEL TRACE" not in page.text
     # Trailing-slash variant must not 307 to a broken Location
     page_slash = client.get("/incident/agent-io/", follow_redirects=False)
     assert page_slash.status_code == 200

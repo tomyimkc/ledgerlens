@@ -336,7 +336,7 @@ class RecordingJsonClient:
 
     def __init__(
         self,
-        inner: Any,
+        inner: JsonModelClient,
         *,
         role: str,
         records: list[JsonObject] | None = None,

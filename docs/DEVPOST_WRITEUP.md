@@ -14,7 +14,7 @@
 
 ## One-line summary
 
-LedgerLens is an Autonomous Data Incident Commander that grounds a bounded response plan in
+LedgerLens is a Policy-Sealed Data Incident Commander that grounds a bounded response plan in
 DataHub, uses AI for advisory verification, authorizes with deterministic policy, records
 receipted actions, writes a durable incident record back to DataHub, and prepares the next-agent
 handoff.
@@ -248,7 +248,7 @@ See `DISCLOSURE.md` for the full boundary.
 LedgerLens is a working prototype. It does not establish:
 
 - provider-family independence;
-- live Slack, PagerDuty, or Jira execution;
+- sustained or production Slack, PagerDuty, or Jira operation;
 - incident causality, user impact, recovery, or resolution;
 - production reliability or security certification;
 - independent validation or validated uplift;
@@ -266,6 +266,6 @@ externalValidation: false
 - Public repository: `https://github.com/tomyimkc/ledgerlens`
 - Public project URL: `https://tomyimkc-ledgerlens-incident-commander.hf.space/`
 - Current public baseline: `v0.2.0`
-- Final release target: `v0.2.1`, pending the public video URL
-- Public video: owner input required
+- Final release target: `v0.2.1`, pending the final merged submission revision
+- Public video: `https://youtu.be/D0SVpDWOrUw`
 - Final submission receipt: owner action pending

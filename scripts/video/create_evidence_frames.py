@@ -217,7 +217,7 @@ def title_frame(destination: Path) -> None:
     text(
         draw,
         (92, 278),
-        "Autonomous Data Incident Commander",
+        "Policy-Sealed Data Incident Commander",
         size=44,
         color=CYAN,
         bold=True,
@@ -320,7 +320,8 @@ def deny_hero_frame(destination: Path) -> None:
     text(
         draw,
         (110, 870),
-        "Reviewed plan → authorized    ·    Executed plan (+1 action) → DENIED on fingerprint checks",
+        "Reviewed plan → authorized    ·    Executed plan (+1 action) "
+        "→ DENIED on fingerprint checks",
         size=26,
         color=RED,
         bold=True,
@@ -688,7 +689,9 @@ def real_pipeline_frame(destination: Path) -> None:
     text(
         draw,
         (90, 740),
-        str(receipt.get("whatThisMeasures") or "Fail-closed production gate under context ablation."),
+        str(
+            receipt.get("whatThisMeasures") or "Fail-closed production gate under context ablation."
+        ),
         size=28,
         color=INK,
         bold=True,

@@ -1,6 +1,6 @@
 # LedgerLens
 
-## Autonomous Data Incident Commander
+## Policy-Sealed Data Incident Commander
 
 [![CI](https://github.com/tomyimkc/ledgerlens/actions/workflows/ci.yml/badge.svg)](https://github.com/tomyimkc/ledgerlens/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
@@ -11,11 +11,13 @@
 **What makes it different — plan-exact authorization.** Many agents ground context in DataHub and
 take actions. LedgerLens's edge is *what it authorizes*: authorization is bound to a cryptographic
 fingerprint of the **exact reviewed plan** — not the DataHub context or a risk verdict — and is
-released only on an independent **2-of-2 AI verifier quorum**. AI proposes and reviews; a
+released only after the configured **2-of-2 structured verifier quorum** passes. AI proposes and
+reviews; a
 deterministic policy (plain Python) authorizes the exact plan across GitHub/Slack/PagerDuty/Jira,
 and every action leaves a receipt written back to DataHub. The [live demo](https://tomyimkc-ledgerlens-incident-commander.hf.space/)
-shows two proofs against the *real* gate: a plan tampered *after* review is refused on fingerprint
-mismatch (same DataHub context), and a split verifier quorum holds the gate.
+includes an interactive Seal Lab backed by the server-side gate: a plan tampered *after* review is
+refused on fingerprint mismatch (same DataHub context), a split verifier quorum holds the gate,
+and an off-allowlist target is refused by the production `PolicyGate`.
 
 ### The problem, concretely
 
@@ -163,7 +165,7 @@ make incident-demo
 ```
 
 `make incident-demo` opens <http://127.0.0.1:8000/incident>. Click **Replay trigger** once. In
-autonomous replay mode, the verifier result, deterministic authorization, bounded fanout,
+fixture replay mode, the verifier result, deterministic authorization, bounded fanout,
 DataHub write-back, and next-agent memory complete in one visible sequence.
 
 The demo is intentionally offline and credential-free:
@@ -288,7 +290,7 @@ copy and owner checklist are in [docs/DEVPOST_SUBMISSION.md](docs/DEVPOST_SUBMIS
 |---|---|---|
 | Hosted Incident Commander fixture | The stable public Hugging Face replay exposes `/healthz`, runs the complete visible state transition, returns exactly four `fixture://` provider receipts, records fixture write-back, prepares next-agent memory, and reports deterministic authority with `ai_can_authorize: false` | Live provider execution or a live DataHub mutation from the hosted replay |
 | Temporary public DataHub reachability | A supervised authenticated proof exposed DataHub OSS v1.6.0 through a temporary TLS tunnel; unauthenticated access returned 401, judge login returned 200, Reader grants were verified without metadata-mutation authority, and teardown completed with the former URL returning 503 | A durable public DataHub judge URL, production security, or ongoing availability |
-| Provider action layer | All four adapters implement typed previews, authorization binding, idempotency, retries, and sanitized receipts; the published GitHub receipt records creation and immediate closure of rehearsal issue `#3` | Slack, PagerDuty, or Jira live execution; production permissions |
+| Provider action layer | All four adapters implement typed previews, authorization binding, idempotency, retries, and sanitized receipts; E-16 records one bounded supervised action against GitHub, Slack, PagerDuty, and Jira | Sustained operation, production permissions, or production reliability |
 | DataHub write-back layer | A published local DataHub OSS v1.6.0 receipt records an authorized `save_document` mutation and fresh official-MCP retrieval of the resulting document | Incident causality, user impact, recovery, or production readiness |
 | Verifier layer | A published live OpenAI GPT-5.6 rehearsal records one planner, two verifier variants, four bounded actions, quorum approval, and deterministic authorization with no external mutation | Provider-family independence, independent validation, or validated uplift |
 | Benchmarks | The synthetic DataHub-context ON/OFF ablation records owner accuracy, blast-radius recall, unsupported claims, unsafe actions, duplicate actions, and plan completeness | Production reliability, scientific validity, or general performance uplift. **Both arms are scripted responders, not the LedgerLens pipeline:** context-ON copies the fixture's pre-labeled ground-truth actions, and context-OFF is a fixed generic script that adds an unsafe action in about half of scenarios by a stable hash of the scenario ID. The gap shows what an evidence-grounded schema can express with and without catalog context; it does not measure planner, verifier, or system capability. See the [mechanism disclosure](benchmarks/incident_commander/README.md). |
@@ -344,8 +346,8 @@ The repository is public, licensed under the [Apache License 2.0](LICENSE), and 
 has been completed and torn down, and the repository contains live GitHub, live DataHub
 write-back, AI-verification, benchmark, provenance, and external-evaluation evidence packages.
 
-The final `v0.2.1` tag is intentionally **pending the public video URL** and must not be described
-as published yet. Run the fail-closed non-video gate with:
+The final `v0.2.1` tag is intentionally **pending the final merged submission revision** and must
+not be described as published yet. Run the fail-closed non-video gate with:
 
 ```bash
 make non-video-readiness

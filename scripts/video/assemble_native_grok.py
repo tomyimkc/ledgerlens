@@ -113,6 +113,7 @@ def main() -> int:
     t = 0.0
     for index, scene in enumerate(scenes, start=1):
         start, end = t, t + args.clip_seconds
+
         def ts(sec: float) -> str:
             ms = int(round(sec * 1000))
             h, ms = divmod(ms, 3_600_000)
@@ -120,9 +121,7 @@ def main() -> int:
             s, ms = divmod(ms, 1000)
             return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
 
-        blocks.append(
-            f"{index}\n{ts(start)} --> {ts(end)}\n{scene['speech']}\n"
-        )
+        blocks.append(f"{index}\n{ts(start)} --> {ts(end)}\n{scene['speech']}\n")
         t = end
     srt.write_text("\n".join(blocks) + "\n", encoding="utf-8")
 

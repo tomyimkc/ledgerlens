@@ -133,9 +133,7 @@ def main() -> int:
             width=2,
         )
         try:
-            face = ImageFont.truetype(
-                "/System/Library/Fonts/Supplemental/Arial Bold.ttf", 16
-            )
+            face = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 16)
         except OSError:
             face = ImageFont.load_default()
         bbox = draw.textbbox((0, 0), text, font=face)
@@ -220,7 +218,9 @@ def main() -> int:
         "presenter": {
             "path": str(args.presenter),
             "role": "corner-pip-talking-head",
-            "source": "profile/lipsync face crop — visual presence only; product proof is main stage",
+            "source": (
+                "profile/lipsync face crop — visual presence only; product proof is main stage"
+            ),
             "label": "PRESENTER · LIVE NARRATION",
         },
         "output": {

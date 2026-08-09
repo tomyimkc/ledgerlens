@@ -51,7 +51,13 @@ def draw_window(title: str, body_lines: list[tuple[str, tuple[int, int, int]]]) 
     image = Image.new("RGB", (WIDTH, HEIGHT), BG)
     draw = ImageDraw.Draw(image)
     # chrome
-    draw.rounded_rectangle((60, 70, 1860, 1010), radius=22, fill=PANEL, outline=(40, 60, 80), width=2)
+    draw.rounded_rectangle(
+        (60, 70, 1860, 1010),
+        radius=22,
+        fill=PANEL,
+        outline=(40, 60, 80),
+        width=2,
+    )
     draw.ellipse((90, 100, 122, 132), fill=(255, 95, 86))
     draw.ellipse((140, 100, 172, 132), fill=(255, 189, 46))
     draw.ellipse((190, 100, 222, 132), fill=(39, 201, 63))
@@ -67,8 +73,18 @@ def draw_window(title: str, body_lines: list[tuple[str, tuple[int, int, int]]]) 
             if y > 960:
                 return image
     # claim strip
-    draw.rounded_rectangle((80, 980, 1840, 1040), radius=14, fill=(6, 14, 24), outline=(50, 75, 100))
-    draw.text((110, 995), "candidateOnly: true   ·   canClaimAGI: false   ·   no fabricated shell output", font=font(22, bold=True), fill=MUTED)
+    draw.rounded_rectangle(
+        (80, 980, 1840, 1040),
+        radius=14,
+        fill=(6, 14, 24),
+        outline=(50, 75, 100),
+    )
+    draw.text(
+        (110, 995),
+        "candidateOnly: true   ·   canClaimAGI: false   ·   no fabricated shell output",
+        font=font(22, bold=True),
+        fill=MUTED,
+    )
     return image
 
 
@@ -90,10 +106,7 @@ def main() -> int:
 
     health_json = json.dumps(health, indent=2)
     gate_path = CODING / "local-gate-demo.json"
-    if gate_path.is_file():
-        gate = json.loads(gate_path.read_text(encoding="utf-8"))
-    else:
-        gate = {}
+    gate = json.loads(gate_path.read_text(encoding="utf-8")) if gate_path.is_file() else {}
     gate_summary = {
         "reviewedPlanFingerprint": gate.get("reviewedPlanFingerprint"),
         "executedPlanFingerprint": gate.get("executedPlanFingerprint"),
@@ -106,7 +119,10 @@ def main() -> int:
     # Frame A: healthz curl
     lines_a: list[tuple[str, tuple[int, int, int]]] = [
         ("# Prove the public host is live and honest about fixture mode", MUTED),
-        ("$ curl -sS https://tomyimkc-ledgerlens-incident-commander.hf.space/healthz | jq .", PROMPT),
+        (
+            "$ curl -sS https://tomyimkc-ledgerlens-incident-commander.hf.space/healthz | jq .",
+            PROMPT,
+        ),
         ("", INK),
     ]
     for line in health_json.splitlines():
@@ -128,7 +144,13 @@ def main() -> int:
         ("", INK),
     ]
     for line in gate_json.splitlines():
-        color = GREEN if "authorized" in line else RED if "denied" in line or "fingerprint" in line.lower() and "failed" in gate_json else CYAN if "20f3" in line or "4909" in line else INK
+        color = INK
+        if "authorized" in line:
+            color = GREEN
+        elif "denied" in line or ("fingerprint" in line.lower() and "failed" in gate_json):
+            color = RED
+        elif "20f3" in line or "4909" in line:
+            color = CYAN
         if "denied" in line:
             color = RED
         if "authorized" in line:
@@ -152,7 +174,7 @@ def main() -> int:
         ("PY", PROMPT),
         ("", INK),
         (
-            f"authorized → denied",
+            "authorized → denied",
             RED,
         ),
         (
@@ -170,7 +192,10 @@ def main() -> int:
     lines_d: list[tuple[str, tuple[int, int, int]]] = [
         ("# Replay the fixture incident end-to-end (hosted POST)", MUTED),
         ("$ curl -sS -X POST \\", PROMPT),
-        ("    https://tomyimkc-ledgerlens-incident-commander.hf.space/incident/api/trigger \\", PROMPT),
+        (
+            "    https://tomyimkc-ledgerlens-incident-commander.hf.space/incident/api/trigger \\",
+            PROMPT,
+        ),
         ("    -H 'content-type: application/json' -d '{}'", PROMPT),
         ("", INK),
         ("{", INK),

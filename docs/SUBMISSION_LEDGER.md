@@ -11,21 +11,21 @@ canClaimAGI: false
 externalValidation: false
 ```
 
-**Last updated:** 2026-08-03 · **Repo state at update:** `main` @ `987bd7d`
+**Last updated:** 2026-08-09 · **Repo state at update:** final contest feature branch, pending merge
 
 ## 1. Identity and public surfaces
 
 | Field | Value |
 |---|---|
-| Project | LedgerLens — Autonomous Data Incident Commander |
+| Project | LedgerLens — Policy-Sealed Incident Commander |
 | Category | Agents That Do Real Work |
 | Repository | https://github.com/tomyimkc/ledgerlens (public, Apache-2.0) |
 | Public app | https://tomyimkc-ledgerlens-incident-commander.hf.space/ (HTTP 200, fixture replay) |
 | HF Space page | https://huggingface.co/spaces/tomyimkc/ledgerlens-incident-commander |
 | Deadline | 2026-08-10 17:00 EDT · judge access free through 2026-08-31 |
 | Public baseline | v0.2.0 @ `00063e40bfc785f13e6db938e0795928e4f843ba` |
-| Final release | v0.2.1 — **not yet published** (owner cuts it after the public video URL exists) |
-| Video URL | OWNER INPUT REQUIRED |
+| Final release | v0.2.1 — **not yet published** (cut from the final merged submission revision) |
+| Video URL | https://youtu.be/D0SVpDWOrUw |
 | Upstream bonus | issue #159 (open) · PR #160 (open, unmerged) — acryldata/mcp-server-datahub |
 
 ## 2. Evidence map (see EVIDENCE_INDEX.md for full scope/limits)
@@ -43,6 +43,7 @@ externalValidation: false
 | E-12 | External-review kit ready, no result claimed | `docs/EXTERNAL_EVALUATION.md` |
 | **E-15** | **Real** `PolicyGate`/`VerifierPanel` authorizes only fact-grounded actions | `benchmarks/incident_commander/real-pipeline-ablation-receipt.json` |
 | **E-16** | One run executed a bounded action against **all four providers** | `benchmarks/incident_commander/live-incident-rehearsal-receipt.json` |
+| **E-19** | Interactive server-side Seal Lab refuses controlled plan/scope drift | public Space, `/incident/api/seal-lab` |
 
 ## 3. Produced live artifacts (bounded rehearsal, 2026-08-03)
 
@@ -75,7 +76,7 @@ verified to contain no credential and no PII.
 ## 5. How to reproduce (one line each)
 
 ```bash
-make judge-check                       # full offline gate: lint, mypy, 283 tests, both benchmarks, readiness
+make judge-check                       # current offline gate: lint, mypy, 316 tests, both benchmarks, readiness
 make incident-benchmark-real-pipeline  # E-15: real gate authorizes 100% ON / 0% OFF
 make incident-demo                     # local credential-free replay
 ```
@@ -91,15 +92,15 @@ uv run python scripts/run_live_incident_rehearsal.py --confirm-live
 
 ## 6. Internal readiness snapshot (not official scores)
 
-Five-core average **6.6 / 10**, bonus **4.5 / 10** (separate). Verdict: **finalist-capable**.
+Five-core average **6.8 / 10**, bonus **4.5 / 10** (separate). Verdict: **finalist-capable**.
 Full per-criterion breakdown in [`docs/WINNER_READINESS.md`](WINNER_READINESS.md).
 
 ## 7. Owner-only remaining checklist
 
-- [ ] Record the public under-three-minute video URL.
-- [ ] Cut and publish `v0.2.1` from the final commit (only after the video URL exists); record the real SHA.
+- [x] Record the public under-three-minute video URL.
+- [ ] Cut and publish `v0.2.1` from the final merged submission commit; record the real SHA.
 - [ ] Complete Devpost account/team/eligibility review.
-- [ ] Click final Submit; save the submission receipt.
+- [x] Devpost project is in published state; re-check the final page before the deadline.
 - [ ] (Optional, higher value) Supervised live-DataHub session against the owner's own instance for an in-run read→write-back.
 - [ ] (Optional) Two consented external reviews via `docs/EXTERNAL_EVALUATION.md`; publish only consented aggregate.
 - [ ] (Owner discretion) Revoke the throwaway provider credentials used for E-16; the receipt does not depend on live keys.
