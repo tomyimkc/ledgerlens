@@ -50,7 +50,7 @@ class _PlannerResponse(BaseModel):
 
     confidence: float = Field(ge=0.0, le=1.0)
     summary: str = Field(min_length=1)
-    actions: tuple[_PlannerAction, ...] = Field(min_length=1, max_length=10)
+    actions: tuple[_PlannerAction, ...] = Field(max_length=10)
 
 
 class JsonIncidentPlanner:
@@ -86,7 +86,11 @@ class JsonIncidentPlanner:
             catalog_block = (
                 " You are a tool-using agent: select only action_type and target values "
                 "from agentToolCatalog.tools. Do not invent tools or targets outside "
-                "that catalog. Prefer the smallest useful set of reversible tools."
+                "that catalog. Prefer the smallest useful set of reversible tools. "
+                "Each tool may list required_evidence_fact_ids: propose it only when every "
+                "required fact ID exists in incidentContext.facts, and cite every required "
+                "fact ID in evidence_fact_ids. If no catalogued tool is justified, return "
+                "an empty actions array so deterministic policy can hold execution."
             )
         raw = self.model.complete_json(
             system=(
@@ -104,7 +108,8 @@ class JsonIncidentPlanner:
                 "Create an action plan with exactly these top-level keys: confidence, "
                 "summary, and actions. confidence MUST be a JSON number from 0.0 to 1.0 "
                 "(never a word such as high). summary MUST be a string. actions MUST be "
-                "an array. Each action requires action_type (string), target (string), "
+                "an array and MAY be empty when no grounded tool is justified. Each action "
+                "requires action_type (string), target (string), "
                 "parameters (object), rationale (string), evidence_fact_ids (array of "
                 "supplied fact-ID strings), risk (one of low, medium, high, critical), "
                 "and requires_human_approval (JSON boolean). "

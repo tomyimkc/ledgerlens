@@ -33,7 +33,7 @@ reconstruct ownership, lineage, runbooks, criticality, evidence, and previous ac
 separate systems while an alert clock is running.
 
 LedgerLens is a **Policy-Sealed Data Incident Commander** built around DataHub. It runs one visible
-workflow:
+bounded agent turn:
 
 ```text
 trigger
@@ -64,7 +64,10 @@ receipt references, and required recovery checks.
 
 The stable public project URL is a deterministic, credential-free fixture replay. It labels every
 simulated receipt `fixture://`, reports `externalMutations: false`, and never presents fixture work
-as live provider execution.
+as live provider execution. Its interactive **DataHub Context Cut** holds one recorded model plan
+fixed, removes ownership or lineage facts, and re-runs the current deterministic policy. Full
+context authorizes; the cuts deny because per-tool evidence contracts are no longer satisfied.
+The planner and verifiers are not re-run, and no provider tool executes (evidence E-20).
 
 Separate evidence receipts establish narrower live facts:
 
@@ -75,6 +78,9 @@ Separate evidence receipts establish narrower live facts:
 - the deterministic policy gate, run against the same catalog with context on versus off, authorized
   100% of the context-on scenarios and 0% of the context-off scenarios, each refusal carrying the
   gate's own reason codes — proving the fail-closed gate, not model uplift (evidence E-15);
+- one recorded model plan, held fixed across four synthetic DataHub context variants, is authorized
+  with the full map and denied when ownership, lineage, or most catalog facts are removed; the
+  public request re-runs current policy only, not the models or tools (evidence E-20);
 - DataHub OSS v1.6.0 accepted an authorized `save_document` write-back and the official MCP
   `get_entities` path retrieved the resulting document;
 - a supervised authenticated public DataHub reachability proof returned 401 without gateway
@@ -106,9 +112,9 @@ contribution separately, so the bonus cannot obscure a weakness in judge access 
 
 | Core criterion | LedgerLens judge evidence |
 |---|---|
-| Meaningful Use of DataHub Tools and Write-Back | DataHub-grounded incident context, ownership, schema, documentation, quality signal, lineage-based blast radius, official MCP reads, controlled `save_document` write-back, and next-agent retrieval |
-| Technical Execution and End-to-End Functionality | Typed state machine, planner/verifier contracts, fail-closed policy, signed provider authorization, idempotency, replay UI, strict mypy over 37 source files, 316 deterministic tests, secret scan, hosted smoke, readiness gates, a real-pipeline benchmark over the production gate (E-15), and one authorized run that executed against all four providers (E-16) |
-| Originality and Extension Beyond Built-ins | Evidence-bound deterministic authorization over the same MCP surface DataHub's Agent Context Kit wraps — a reviewed-plan-fingerprint gate that neither DataHub's Actions Framework nor an unrestricted LLM agent provides |
+| Meaningful Use of DataHub Tools and Write-Back | DataHub-grounded incident context, ownership, schema, documentation, quality signal, lineage-based blast radius, per-tool evidence contracts, Context Cut authorization proof (E-20), official MCP reads, controlled `save_document` write-back, and next-agent retrieval |
+| Technical Execution and End-to-End Functionality | Typed state machine, planner/verifier contracts, fail-closed policy, signed provider authorization, idempotency, replay UI, strict mypy, deterministic tests, secret scan, hosted smoke, readiness gates, a real-pipeline benchmark over the production gate (E-15), current-policy Context Cut replay (E-20), and one authorized run that executed against all four providers (E-16) |
+| Originality and Extension Beyond Built-ins | Evidence-bound deterministic authorization over the same MCP surface DataHub's Agent Context Kit wraps — a reviewed-plan-fingerprint gate plus tool-specific catalog-fact contracts that neither DataHub's Actions Framework nor an unrestricted LLM agent provides |
 | Real-World Usefulness | Coordinates accountable response work and durable handoff while refusing to invent cause, impact, recovery, or resolution |
 | Submission Quality and Reproducibility | Public Apache-2.0 repository, one-command replay, public Space, exact receipts, context ablation, architecture/security docs, and fail-closed automation |
 

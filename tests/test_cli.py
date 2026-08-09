@@ -184,7 +184,7 @@ def test_incident_commander_command_enables_autonomous_fixture(
 
     assert result.exit_code == 0
     assert "FIXTURE / REPLAY" in result.stdout
-    assert "autonomous verifier-gated" in result.stdout
+    assert "automatic execution after deterministic policy authorization" in result.stdout
     assert received == {
         "host": "127.0.0.1",
         "port": 8124,

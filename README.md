@@ -17,7 +17,10 @@ deterministic policy (plain Python) authorizes the exact plan across GitHub/Slac
 and every action leaves a receipt written back to DataHub. The [live demo](https://tomyimkc-ledgerlens-incident-commander.hf.space/)
 includes an interactive Seal Lab backed by the server-side gate: a plan tampered *after* review is
 refused on fingerprint mismatch (same DataHub context), a split verifier quorum holds the gate,
-and an off-allowlist target is refused by the production `PolicyGate`.
+and an off-allowlist target is refused by the production `PolicyGate`. The adjacent DataHub
+Context Cut holds one recorded model plan fixed, removes ownership or lineage facts, and re-runs
+current policy so judges can see that catalog evidence is load-bearing for authorization. The
+planner is not re-run and no tool executes in that proof.
 
 ### The problem, concretely
 
@@ -253,8 +256,9 @@ you can try this against a real instance without touching production.
 
 **Be clear about what is not ready.** This is prototype-stage software:
 
-- Slack, PagerDuty, and Jira adapters are implemented and tested, but no live credential wiring or
-  workspace-onboarding flow ships here — only GitHub has a recorded live execution receipt.
+- Slack, PagerDuty, and Jira adapters are implemented and tested; E-16 records one bounded
+  supervised action per provider. No live credential wiring or workspace-onboarding flow ships
+  here, and sustained or production operation is not claimed.
 - Entity allowlists, action policy, and the incident-policy table are tuned for the bundled synthetic
   catalog and would need to be written for your domain model.
 - There is no multi-tenancy, no RBAC integration with your DataHub roles, and no operational runbook

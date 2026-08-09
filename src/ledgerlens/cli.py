@@ -429,10 +429,14 @@ def incident_commander(
         ),
     ] = True,
 ) -> None:
-    """Launch the Autonomous Data Incident Commander."""
+    """Launch the policy-sealed Data Incident Commander."""
 
     mode = "FIXTURE / REPLAY" if fixture else "LIVE"
-    automation = "autonomous verifier-gated" if autonomous else "manual authorization"
+    automation = (
+        "automatic execution after deterministic policy authorization"
+        if autonomous
+        else "manual authorization"
+    )
     typer.echo(f"Starting LedgerLens Incident Commander in {mode} mode ({automation}).")
     if open_browser:
         Timer(0.8, lambda: webbrowser.open(f"http://{host}:{port}/incident")).start()

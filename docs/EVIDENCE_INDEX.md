@@ -15,7 +15,7 @@ For candid rubric gaps and the non-video scorecard, see the [winner-readiness sc
 | E-03 | The system reads DataHub-shaped ownership, schema, runbook, and lineage context before planning. | Run `make incident-benchmark`; review scenario-level output in the receipt. | `benchmarks/incident_commander/README.md`, `scripts/run_incident_commander_benchmark.py` | Offline fixture evidence, not a live service query. | Meaningful DataHub use |
 | E-04 | The policy gate rejects unsafe or unsupported work instead of relying on model self-approval. | Run the deterministic tests. | `tests/test_verification.py`, `tests/test_incident_dashboard.py`, `tests/test_incident_integration.py` | Test evidence is not a production safety certification. | Technical execution; originality |
 | E-05 | Authorization is bound to an exact reviewed plan. | Inspect the frozen-plan execution path and test cases. | `src/ledgerlens/incident_integration.py`, `src/ledgerlens/incident_dashboard.py`, `tests/test_incident_integration.py` | Applies to the implemented command path; it does not prove organizational authorization policy. | Technical execution; originality |
-| E-06 | A GitHub action adapter executed one bounded rehearsal action. | Open the receipt and the linked closed issue. | `benchmarks/incident_commander/github-live-action-receipt.json` | Proves only the recorded GitHub creation/closure. Slack, PagerDuty, and Jira do not have live receipts. | Technical execution |
+| E-06 | A GitHub action adapter executed one bounded rehearsal action. | Open the receipt and the linked closed issue. | `benchmarks/incident_commander/github-live-action-receipt.json` | Proves only this earlier GitHub creation/closure. The later linked four-provider rehearsal is separately scoped as E-16. | Technical execution |
 | E-07 | A controlled DataHub OSS document write and official-MCP retrieval occurred. | Inspect the write-back receipt and command metadata. | `benchmarks/incident_commander/datahub-live-writeback-receipt.json` | Local DataHub OSS v1.6.0 evidence; it does not prove recovery, causality, or a hosted public DataHub deployment. | Meaningful DataHub use and write-back |
 | E-08 | A planner and two verifier variants produced a bounded, policy-authorized rehearsal plan. | Inspect the rehearsal receipt. | `benchmarks/incident_commander/ai-verification-receipt.json` | No provider action occurred; model labels do not establish provider-family independence. | Technical execution; originality |
 | E-09 | The public fixture URL has a credential-free regression check. | Run `make hosted-smoke` or inspect the scheduled workflow artifact. | `.github/workflows/hosted-smoke.yml`, `scripts/check_hosted_incident_demo.py` | Confirms the current fixture contract, not live external integrations. | Submission quality |
@@ -29,29 +29,34 @@ For candid rubric gaps and the non-video scorecard, see the [winner-readiness sc
 | E-18 | The upstream contribution's own lint/type/test gates reproduce on a fresh clone of the pinned commit. | Run `make reproduce-upstream-mcp-pr` (clones the public fork, verifies the branch HEAD matches the pinned commit, and runs its checks). | `scripts/reproduce_upstream_mcp_pr.py`, `benchmarks/upstream_mcp_contribution/README.md` | Records only that PR #160's checks reproduce at pinned commit `fe49bac`; it is **not** upstream CI, maintainer review, or a merge/acceptance claim. PR #160 is open and unmerged. The receipt is generated on demand (clones external code) and is not in CI. | Open-source bonus |
 | E-16 | A single run executed the whole chain — plan, verify, authorize, and one bounded action against **all four providers** — into one linked receipt. | Open the linked receipt; it records the real OpenAI GPT-5.6 plan, quorum verification, deterministic authorization, and each provider receipt. | `benchmarks/incident_commander/live-incident-rehearsal-receipt.json`, `scripts/run_live_incident_rehearsal.py`, `tests/test_live_incident_rehearsal.py`, `docs/LIVE_PROVIDER_REHEARSAL.md` | **Produced 2026-08-03** on a supervised run: real OpenAI GPT-5.6 planner (`gpt-5.6-sol`) + two verifiers reached quorum, the deterministic gate authorized, and all four adapters executed live — GitHub issue [#29](https://github.com/tomyimkc/ledgerlens/issues/29), a Slack post, a PagerDuty event, and Jira issue [KAN-2](https://tomyimkc.atlassian.net/browse/KAN-2). Each is one bounded rehearsal action, not sustained reliability; distinct model variants do not establish provider-family independence; no causality or recovery is established. | Technical execution; real-world usefulness |
 | E-19 | A judge can tamper with a reviewed plan and see the server-side gate authorize or refuse it. | Open the public Space's **Seal Lab**; try the reviewed plan, appended tool call, verifier objection, and off-allowlist target. | `/incident/api/seal-lab`, `tests/test_incident_dashboard.py`, `scripts/check_hosted_incident_demo.py` | Public fixture context and controlled mutations; tools stay held and `externalMutations: false`. Demonstrates implemented gate behavior, not production safety or incident recovery. | Technical execution; originality; submission quality |
+| E-20 | A judge can hold one recorded model plan fixed, remove specific DataHub facts, and watch the current server policy withdraw authority. | Open the public Space's **DataHub Context Cut**; compare full map, ownership removed, lineage removed, and alert-only. Or run `make context-cut-trace`. | `/incident/api/context-cut/{scenario}`, `src/ledgerlens/context_cut.py`, `src/ledgerlens/static/context-cut-trace.json`, `benchmarks/incident_commander/context-cut-agent-trace.json` | The source plan/verifier outputs are a recorded model trace. Context cuts are synthetic, and the planner/verifiers are **not** re-run per cut. The public request re-runs only deterministic `PolicyGate`; no tool executes. This proves the implemented evidence contract is load-bearing for authorization, not model uplift or adaptive re-planning. | Meaningful DataHub use; technical execution; originality; submission quality |
 
 ## Evidence layers
 
 Keep these layers distinct when describing LedgerLens:
 
 1. **Public fixture evidence** — reproducible visible flow, clearly marked synthetic.
-2. **Local-live evidence** — recorded DataHub OSS and GitHub operations at a named time and version.
-3. **Temporary public proof** — a completed, torn-down authenticated DataHub reachability exercise; not an ongoing public service.
-4. **Implementation and test evidence** — code and deterministic tests that constrain behavior, not field validation.
+2. **Recorded-model evidence** — model prompts/JSON captured locally with no external mutations; not live model calls on the Space.
+3. **Live deterministic replay** — the Space re-runs policy code over immutable fixture or recorded-model inputs; no provider tool executes.
+4. **Local-live evidence** — recorded DataHub OSS and provider operations at a named time and version.
+5. **Temporary public proof** — a completed, torn-down authenticated DataHub reachability exercise; not an ongoing public service.
+6. **Implementation and test evidence** — code and deterministic tests that constrain behavior, not field validation.
 
 ## Judge path
 
 1. Open the [public fixture replay](https://tomyimkc-ledgerlens-incident-commander.hf.space/).
 2. Open the **Seal Lab** and append one unreviewed tool call. Confirm the reviewed and evaluated
    fingerprints differ and the server returns **DENIED** before tools run (E-19).
-3. Trigger one replay and verify: DataHub context → bounded plan → verifier review → deterministic
+3. Open **DataHub Context Cut**. Keep the recorded plan fixed, remove ownership or lineage, and
+   confirm the current policy withdraws authority because required catalog evidence is absent (E-20).
+4. Trigger one replay and verify: DataHub context → bounded plan → verifier review → deterministic
    policy → synthetic receipts → write-back → next-agent handoff.
-4. Confirm that every public replay receipt is `fixture://` and that cause, impact, and recovery
+5. Confirm that every public replay receipt is `fixture://` and that cause, impact, and recovery
    remain unknown.
-5. Use E-02 and E-07 to inspect the separate DataHub context and write-back evidence.
-6. Use E-16 for the separate one-shot four-provider rehearsal; do not generalize it into sustained
+6. Use E-02 and E-07 to inspect the separate DataHub context and write-back evidence.
+7. Use E-16 for the separate one-shot four-provider rehearsal; do not generalize it into sustained
    operation.
-7. Run `make judge-check` for the primary local verification path.
+8. Run `make judge-check` for the primary local verification path.
 
 ## Release identity
 

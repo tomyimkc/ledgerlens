@@ -246,6 +246,100 @@ def validate_seal_lab(payload: object) -> list[str]:
     return errors
 
 
+def validate_context_cut(
+    payload: object,
+    *,
+    expected_scenario: str,
+    expected_authorized: bool,
+) -> list[str]:
+    """Validate a recorded-plan/current-policy DataHub context cut."""
+
+    errors: list[str] = []
+    response = _as_mapping(payload, "context-cut response", errors)
+    _expect(errors, response.get("ok") is True, "context-cut.ok must be true")
+    lab = _as_mapping(response.get("lab"), "context-cut.lab", errors)
+    scenario = _as_mapping(lab.get("scenario"), "context-cut.lab.scenario", errors)
+    replay = _as_mapping(
+        lab.get("livePolicyReplay"),
+        "context-cut.lab.livePolicyReplay",
+        errors,
+    )
+    authorization = _as_mapping(
+        replay.get("authorization"),
+        "context-cut.lab.livePolicyReplay.authorization",
+        errors,
+    )
+    recorded_model = _as_mapping(
+        lab.get("recordedModel"),
+        "context-cut.lab.recordedModel",
+        errors,
+    )
+    _expect(
+        errors,
+        scenario.get("id") == expected_scenario,
+        f"context-cut scenario must be {expected_scenario}",
+    )
+    _expect(
+        errors,
+        lab.get("evidenceClass") == "recorded-model-plan-plus-live-deterministic-policy-replay",
+        "context-cut evidence class must separate recorded model and live policy",
+    )
+    _expect(
+        errors,
+        replay.get("engine") == "ledgerlens.verification.PolicyGate",
+        "context-cut must use PolicyGate",
+    )
+    _expect(
+        errors,
+        replay.get("toolsExecuted") is False,
+        "context-cut toolsExecuted must be false",
+    )
+    _expect(
+        errors,
+        replay.get("matchesRecordedDecision") is True,
+        "context-cut current decision must match the recorded decision",
+    )
+    _expect(
+        errors,
+        authorization.get("authorized") is expected_authorized,
+        f"context-cut authorization must be {expected_authorized}",
+    )
+    _expect(
+        errors,
+        recorded_model.get("plannerReRunForScenario") is False,
+        "context-cut planner must not be represented as re-run",
+    )
+    _expect(
+        errors,
+        recorded_model.get("verifiersReRunForScenario") is False,
+        "context-cut verifiers must not be represented as re-run",
+    )
+    _expect(
+        errors,
+        lab.get("externalMutations") is False,
+        "context-cut.externalMutations must be false",
+    )
+    _expect(
+        errors,
+        lab.get("candidateOnly") is True,
+        "context-cut.candidateOnly must be true",
+    )
+    _expect(
+        errors,
+        lab.get("canClaimAGI") is False,
+        "context-cut.canClaimAGI must be false",
+    )
+    if not expected_authorized:
+        reasons = authorization.get("reason_codes")
+        _expect(
+            errors,
+            isinstance(reasons, list)
+            and any(str(reason).startswith("required_context_fact_missing:") for reason in reasons),
+            "context-cut denial must report a missing required DataHub fact",
+        )
+    return errors
+
+
 def normalize_base_url(value: str) -> str:
     """Return a credential-free HTTP(S) origin."""
 
@@ -338,6 +432,9 @@ def build_receipt(base_url: str, errors: list[str]) -> dict[str, Any]:
             "aiCanAuthorize": False if passed else None,
             "sealLabPlanDriftDecision": "denied" if passed else None,
             "sealLabExternalMutations": False if passed else None,
+            "contextCutFullMapDecision": "authorized" if passed else None,
+            "contextCutOwnerRemovedDecision": "denied" if passed else None,
+            "contextCutToolsExecuted": False if passed else None,
         },
         "candidateOnly": True,
         "canClaimAGI": False,
@@ -408,6 +505,38 @@ def main() -> int:
                 delay=args.retry_delay,
             )
             errors.extend(validate_seal_lab(seal_lab))
+            full_map = request_with_retries(
+                base_url,
+                "/incident/api/context-cut/full-map",
+                method="GET",
+                payload=None,
+                timeout=args.timeout,
+                attempts=args.attempts,
+                delay=args.retry_delay,
+            )
+            errors.extend(
+                validate_context_cut(
+                    full_map,
+                    expected_scenario="full-map",
+                    expected_authorized=True,
+                )
+            )
+            owner_cut = request_with_retries(
+                base_url,
+                "/incident/api/context-cut/owner-cut",
+                method="GET",
+                payload=None,
+                timeout=args.timeout,
+                attempts=args.attempts,
+                delay=args.retry_delay,
+            )
+            errors.extend(
+                validate_context_cut(
+                    owner_cut,
+                    expected_scenario="owner-cut",
+                    expected_authorized=False,
+                )
+            )
         except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:
             errors.append(f"hosted request failed: {type(error).__name__}: {error}")
 

@@ -20,6 +20,7 @@ from ledgerlens.config import Settings
 from ledgerlens.incident_integration import OrchestratorIncidentBackend
 from ledgerlens.incident_models import Incident, IncidentContext
 from ledgerlens.runtime_factory import build_ai_roles, build_policy_gate
+from ledgerlens.tool_catalog import DATAHUB_INCIDENT_EVIDENCE_CONTRACTS
 
 DEFAULT_INCIDENT = "inc-analytics-downstream_availability-01"
 DEFAULT_OUTPUT = Path("benchmarks/incident_commander/ai-verification-receipt.json")
@@ -192,8 +193,16 @@ def main() -> int:
         "pagerduty.event.trigger": ["pagerduty:events-v2"],
         "jira.issue.create": ["DATAOPS"],
     }
+    evidence_contracts = {
+        action_type: DATAHUB_INCIDENT_EVIDENCE_CONTRACTS[action_type]
+        for action_type in action_targets
+    }
     # Planner agent receives the same tool catalog policy will enforce.
-    roles = build_ai_roles(settings, action_targets=action_targets)
+    roles = build_ai_roles(
+        settings,
+        action_targets=action_targets,
+        required_evidence_fact_ids=evidence_contracts,
+    )
     prepared = None
     exit_code = 0
     try:
@@ -204,6 +213,7 @@ def main() -> int:
             verifier_panel=roles.verifier_panel,
             policy_gate=build_policy_gate(
                 action_targets,
+                required_evidence_fact_ids=evidence_contracts,
                 minimum_plan_confidence=0.8,
                 minimum_verifier_confidence=0.85,
                 quorum=2,

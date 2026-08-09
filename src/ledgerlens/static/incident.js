@@ -1091,6 +1091,181 @@
     return section;
   };
 
+  const contextCutReason = (code) => {
+    const parts = String(code || "").split(":");
+    if (parts[0] === "required_context_fact_missing") {
+      return "tool contract needs " + (parts[2] || "a DataHub fact");
+    }
+    if (parts[0] === "required_evidence_not_cited") {
+      return "recorded plan did not cite " + (parts[2] || "a required fact");
+    }
+    if (parts[0] === "action_references_unknown_fact") {
+      return "recorded plan cites a fact removed by this cut";
+    }
+    if (parts[0] === "authorized") return "all evidence contracts satisfied";
+    return parts[0].replaceAll("_", " ");
+  };
+
+  const buildContextCutLab = async () => {
+    const scenarios = [
+      { id: "full-map", label: "Full map", hint: "owner + lineage + runbook" },
+      { id: "owner-cut", label: "Cut ownership", hint: "remove primary-owner" },
+      { id: "lineage-cut", label: "Cut lineage", hint: "remove blast-radius" },
+      { id: "alert-only", label: "Alert only", hint: "ID + severity" },
+    ];
+    const controls = h("div", {
+      class: "context-cut-controls",
+      role: "group",
+      "aria-label": "DataHub context cut",
+    });
+    const output = h("div", { class: "context-cut-output", "aria-live": "polite" },
+      h("div", { class: "logloading" },
+        h("span", { class: "sv-spinner", "aria-hidden": "true" }),
+        " Loading the recorded plan…"));
+    const raw = h("pre", { class: "seal-json", hidden: "hidden" });
+    const reveal = h("button", {
+      class: "button seal-copy",
+      type: "button",
+      text: "Show redacted replay JSON",
+      disabled: "disabled",
+    });
+    let latest = null;
+
+    const render = (lab) => {
+      latest = lab;
+      const scenario = lab.scenario || {};
+      const replay = lab.livePolicyReplay || {};
+      const auth = replay.authorization || {};
+      const model = lab.recordedModel || {};
+      const plan = model.plan || {};
+      const authorized = !!auth.authorized;
+      const selected = list(plan.actions).map((action) => action.action_type);
+      const removed = list(scenario.removedFactIds);
+      const reasons = Array.from(new Set(list(auth.reason_codes).map(contextCutReason)));
+      const toolGrid = h("div", { class: "context-tool-grid" });
+      list(lab.toolEligibility).forEach((tool) => {
+        const eligible = !!tool.eligibleFromContext;
+        toolGrid.append(h("div", { class: "context-tool " + (eligible ? "eligible" : "held") },
+          h("span", { text: eligible ? "AVAILABLE" : "HELD" }),
+          h("strong", { text: tool.actionType || "tool" }),
+          h("small", { text: eligible
+            ? "required DataHub facts present"
+            : "missing: " + list(tool.missingEvidenceFactIds).join(", ") })));
+      });
+      const reasonList = h("ul", { class: "context-reasons" });
+      reasons.forEach((reason) => reasonList.append(h("li", { text: reason })));
+      output.replaceChildren(
+        h("div", { class: "context-cut-verdict " + (authorized ? "authorized" : "denied") },
+          h("div", {},
+            h("span", { class: "seal-verdict-k", text: "CURRENT SERVER POLICY" }),
+            h("strong", { text: authorized ? "AUTHORIZED" : "DENIED" }),
+            h("small", { text: "tools executed: no · external mutations: false" })),
+          h("div", { class: "context-cut-seal" },
+            h("small", { text: "SAME RECORDED PLAN SEAL" }),
+            h("code", { text: replay.planFingerprint || "unavailable" }),
+            h("span", { text: selected.length + " selected tools held fixed" }))),
+        h("div", { class: "context-cut-facts" },
+          h("div", {},
+            h("small", { text: "DATAHUB FACTS REMOVED" }),
+            h("strong", { text: removed.length ? removed.join(" · ") : "none — full map" })),
+          h("div", {},
+            h("small", { text: "CONTROLLED QUESTION" }),
+            h("p", { text: scenario.question || "" }))),
+        toolGrid,
+        h("div", { class: "context-cut-explain" },
+          h("div", {},
+            h("small", { text: "WHY THE GATE DECIDED" }),
+            reasonList),
+          h("div", {},
+            h("small", { text: "EVIDENCE SPLIT" }),
+            h("p", {},
+              h("b", { text: "Recorded model: " }),
+              model.planner || "planner", " proposed the fixed plan. ",
+              h("b", { text: "Live now: " }),
+              "ordinary Python re-evaluated the typed plan against this context cut. ",
+              h("b", { text: "Not run: " }),
+              "the planner, verifiers, and provider tools."))),
+        h("p", { class: "seal-engine" },
+          h("b", { text: "DataHub is load-bearing here: " }),
+          authorized
+            ? "the cited owner, lineage, asset, and runbook facts satisfy the per-tool evidence contracts."
+            : "removing catalog evidence makes the unchanged model plan unexecutable; model approval cannot replace the missing facts."));
+      raw.textContent = JSON.stringify(lab, null, 2);
+      reveal.removeAttribute("disabled");
+    };
+
+    const buttons = new Map();
+    const run = async (scenarioId) => {
+      buttons.forEach((button, id) => {
+        const active = id === scenarioId;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+      output.replaceChildren(
+        h("div", { class: "logloading" },
+          h("span", { class: "sv-spinner", "aria-hidden": "true" }),
+          " Replaying the same sealed plan through PolicyGate…"));
+      reveal.setAttribute("disabled", "disabled");
+      const response = await fetch(apiBase + "/context-cut/" + encodeURIComponent(scenarioId), {
+        credentials: "same-origin",
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.lab) {
+        throw new Error(payload.detail || "Context Cut request failed.");
+      }
+      render(payload.lab);
+    };
+
+    scenarios.forEach((scenario) => {
+      const button = h("button", {
+        class: "seal-control",
+        type: "button",
+        "aria-pressed": "false",
+      },
+      h("strong", { text: scenario.label }),
+      h("small", { text: scenario.hint }));
+      button.addEventListener("click", () => {
+        run(scenario.id).catch((error) => {
+          output.replaceChildren(h("p", { class: "seal-error", text: error.message }));
+        });
+      });
+      buttons.set(scenario.id, button);
+      controls.append(button);
+    });
+    reveal.addEventListener("click", () => {
+      if (!latest) return;
+      raw.hidden = !raw.hidden;
+      reveal.textContent = raw.hidden ? "Show redacted replay JSON" : "Hide replay JSON";
+    });
+
+    const section = h("section", {
+      class: "sec context-cut-lab",
+      id: "context-cut",
+      "data-testid": "context-cut-lab",
+    },
+    h("p", { class: "sec-eyebrow", text: "RECORDED MODEL PLAN · LIVE POLICY REPLAY" }),
+    h("h2", { class: "sec-title", text: "Cut DataHub out. Watch authority disappear." }),
+    h("p", { class: "sec-note" },
+      "The plan and model verdicts stay exactly fixed. Toggle one synthetic DataHub context cut; ",
+      h("b", { text: "the current server gate" }),
+      " decides again using per-tool evidence contracts. This is a controlled authorization ablation, not a claim that the planner re-planned."),
+    h("div", { class: "context-cut-badges" },
+      h("span", { text: "SOURCE · RECORDED MODEL TRACE" }),
+      h("span", { text: "NOW · DETERMINISTIC POLICY" }),
+      h("span", { text: "PLANNER NOT RE-RUN" }),
+      h("span", { text: "TOOLS HELD" })),
+    controls,
+    output,
+    h("div", { class: "seal-copy-row" }, reveal),
+    raw,
+    h("p", { class: "sec-foot" },
+      "Synthetic contexts; no live DataHub request on this page. The source trace used model network calls and zero external mutations. ",
+      h("a", { href: EVIDENCE, target: "_blank", rel: "noopener", text: "Evidence scope E-20" }),
+      "."));
+    await run("full-map");
+    return section;
+  };
+
   const COMPARISON = [
     { s: "Late data table", d: "payments feed is behind schedule",
       af: "May send a fixed alert if someone wired a rule.",
@@ -1240,6 +1415,7 @@
         h("a", { href: "#tool-belt", text: "Your tools" }),
         h("a", { href: "#alternate-plan", text: "Revise plan" }),
         h("a", { href: "#gate-demo", text: "Seal Lab" }),
+        h("a", { href: "#context-cut", text: "Context Cut" }),
         h("a", { href: "#get-started", text: "Try it" }),
         h("a", { class: "toc-page", href: home + "/agent-io", text: "Agent I/O page →" })));
     }
@@ -1362,16 +1538,23 @@
       h("div", { class: "logloading" },
         h("span", { class: "sv-spinner", "aria-hidden": "true" }), GATE));
     let proof = null;
+    let contextCut = null;
     try {
       proof = await buildProofSection();
     } catch (_e) {
       proof = null;
+    }
+    try {
+      contextCut = await buildContextCutLab();
+    } catch (_e) {
+      contextCut = null;
     }
     detailEl.replaceChildren(
       buildWhat(),
       buildAiSplit(),
       buildUnique(),
       ...(proof ? [proof] : []),
+      ...(contextCut ? [contextCut] : []),
       buildVsPlanMode(),
       buildRepoHow(),
       buildToolBelt(),

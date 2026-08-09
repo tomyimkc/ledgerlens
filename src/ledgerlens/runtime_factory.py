@@ -44,6 +44,7 @@ def build_ai_roles(
     *,
     transports: Mapping[str, httpx.BaseTransport] | None = None,
     action_targets: Mapping[str, Sequence[str]] | None = None,
+    required_evidence_fact_ids: Mapping[str, Sequence[str]] | None = None,
     tool_catalog: AgentToolCatalog | None = None,
     record_llm_io: bool = False,
     llm_io_records: list[JsonObject] | None = None,
@@ -109,7 +110,10 @@ def build_ai_roles(
 
     catalog = tool_catalog
     if catalog is None and action_targets is not None:
-        catalog = build_agent_tool_catalog(action_targets)
+        catalog = build_agent_tool_catalog(
+            action_targets,
+            required_evidence_fact_ids=required_evidence_fact_ids,
+        )
 
     planner = JsonIncidentPlanner(
         planner_client,
@@ -151,6 +155,7 @@ def build_020s_ai_roles(*args: Any, **kwargs: Any) -> AIRoleBundle:
 def build_policy_gate(
     targets: Mapping[str, Sequence[str]],
     *,
+    required_evidence_fact_ids: Mapping[str, Sequence[str]] | None = None,
     maximum_risk: ActionRisk = ActionRisk.MEDIUM,
     minimum_plan_confidence: float = 0.8,
     minimum_verifier_confidence: float = 0.85,
@@ -159,6 +164,7 @@ def build_policy_gate(
     """Build exact target/parameter allowlists for the supported action fanout."""
 
     allowances = []
+    evidence_contracts = required_evidence_fact_ids or {}
     for action_type, action_targets in sorted(targets.items()):
         base = TOOL_SPECS.get(action_type)
         if base is None:
@@ -172,6 +178,9 @@ def build_policy_gate(
                 targets=frozenset(action_targets),
                 allowed_parameter_keys=frozenset(base["allowed_parameter_keys"]),
                 required_parameter_keys=frozenset(base["required_parameter_keys"]),
+                required_evidence_fact_ids=frozenset(
+                    str(item) for item in evidence_contracts.get(action_type, ())
+                ),
                 maximum_risk=maximum_risk,
                 automatable=True,
             )
