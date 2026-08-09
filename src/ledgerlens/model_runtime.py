@@ -134,3 +134,78 @@ def close_clients(clients: Sequence[OpenAICompatibleJsonClient]) -> None:
             first_error = first_error or exc
     if first_error is not None:
         raise first_error
+
+
+class RecordingJsonClient:
+    """Wrap a JSON model client and record system/user prompts + JSON responses.
+
+    Used for demo traces and debugging agent I/O. Does not log API keys. Callers
+    should still sanitize context before publishing (redact tokens, PII).
+    """
+
+    def __init__(
+        self,
+        inner: OpenAICompatibleJsonClient,
+        *,
+        role: str,
+        records: list[JsonObject] | None = None,
+    ) -> None:
+        self.inner = inner
+        self.role = role
+        self.records: list[JsonObject] = records if records is not None else []
+        self.model = inner.model
+        self.base_url = inner.base_url
+
+    def __repr__(self) -> str:
+        return f"RecordingJsonClient(role={self.role!r}, model={self.model!r})"
+
+    def close(self) -> None:
+        self.inner.close()
+
+    def complete_json(
+        self,
+        *,
+        system: str,
+        prompt: str,
+        context: Mapping[str, Any] | None = None,
+        temperature: float = 0.0,
+    ) -> JsonObject:
+        user_content = prompt
+        if context is not None:
+            user_content += "\n\nImmutable context JSON:\n" + json.dumps(
+                context,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+        entry: JsonObject = {
+            "role": self.role,
+            "model": self.model,
+            "provider": self.base_url,
+            "temperature": temperature,
+            "input": {
+                "system": system,
+                "userPrompt": prompt,
+                "context": dict(context) if context is not None else None,
+                "userMessageFull": user_content,
+            },
+            "output": None,
+            "error": None,
+        }
+        try:
+            result = self.inner.complete_json(
+                system=system,
+                prompt=prompt,
+                context=context,
+                temperature=temperature,
+            )
+            entry["output"] = {
+                "kind": "json_object",
+                "json": result,
+            }
+            return result
+        except Exception as exc:
+            entry["error"] = f"{type(exc).__name__}: {exc}"
+            raise
+        finally:
+            self.records.append(entry)

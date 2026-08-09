@@ -1091,6 +1091,7 @@
         h("a", { href: "#tool-belt", text: "Your tools" }),
         h("a", { href: "#alternate-plan", text: "Revise plan" }),
         h("a", { href: "#gate-demo", text: "Live proof" }),
+        h("a", { href: (apiBase || "").replace(/\/api\/?$/, "") + "/agent-io", text: "Agent I/O" }),
         h("a", { href: "#get-started", text: "Try it" })));
     }
   };

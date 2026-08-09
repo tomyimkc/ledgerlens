@@ -1740,6 +1740,82 @@ def create_incident_router(
             },
         )
 
+    @router.get("/assets/agent-io.css", name="agent_io_styles")
+    async def agent_io_styles() -> Any:
+        return FileResponse(
+            _STATIC_ROOT / "agent-io.css",
+            media_type="text/css",
+            headers={
+                "Cache-Control": "no-store",
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
+
+    @router.get("/assets/agent-io.js", name="agent_io_script")
+    async def agent_io_script() -> Any:
+        return FileResponse(
+            _STATIC_ROOT / "agent-io.js",
+            media_type="text/javascript",
+            headers={
+                "Cache-Control": "no-store",
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
+
+    @router.get("/agent-io", name="agent_io_page")
+    async def agent_io_page(request: Request) -> Any:
+        """Demo page: planner/verifier prompts, JSON outputs, and policy gate."""
+
+        return templates.TemplateResponse(
+            request=request,
+            name="agent_io.html",
+            status_code=200,
+            context={
+                "request": request,
+                "base_path": clean_prefix,
+            },
+            headers=_content_security_headers(),
+        )
+
+    @router.get("/api/agent-io-trace", name="agent_io_trace")
+    async def agent_io_trace() -> Any:
+        """Serve the recorded agent I/O trace (from run_agent_io_trace.py)."""
+
+        path = _STATIC_ROOT / "agent-io-trace.json"
+        if not path.exists():
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "detail": (
+                        "No agent-io-trace.json yet. Generate with: "
+                        "uv run python scripts/run_agent_io_trace.py --force"
+                    ),
+                    "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
+                },
+                status_code=404,
+                headers=_content_security_headers(),
+            )
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError) as exc:
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "detail": f"Trace unreadable: {exc}",
+                    "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
+                },
+                status_code=500,
+                headers=_content_security_headers(),
+            )
+        return JSONResponse(
+            {
+                "ok": True,
+                "trace": payload if isinstance(payload, Mapping) else {},
+                "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
+            },
+            headers=_content_security_headers(),
+        )
+
     @router.get("/api/live-receipts", name="incident_live_receipts")
     async def api_live_receipts() -> Any:
         # Real per-incident run receipts, published by scripts/build_live_receipts_index.py.

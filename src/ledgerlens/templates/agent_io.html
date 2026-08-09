@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="LedgerLens agent I/O demo: planner and verifier prompts, JSON outputs, policy gate."
+    >
+    <title>LedgerLens · agent I/O trace</title>
+    <link rel="stylesheet" href="{{ base_path }}/assets/incident.css">
+    <link rel="stylesheet" href="{{ base_path }}/assets/agent-io.css">
+    <script defer src="{{ base_path }}/assets/agent-io.js"></script>
+  </head>
+  <body
+    class="agent-io-page"
+    data-api-base="{{ base_path }}/api"
+    data-trace-url="{{ base_path }}/api/agent-io-trace"
+  >
+    <header class="command-header">
+      <div class="brand-lockup">
+        <span class="brand-sigil" aria-hidden="true"><i></i><i></i><i></i></span>
+        <div>
+          <strong>LedgerLens</strong>
+          <span>Agent I/O · how the model plans and how the gate acts</span>
+        </div>
+      </div>
+      <nav class="header-context agent-io-nav" aria-label="Demo navigation">
+        <a class="tnav-btn" href="{{ base_path }}">Main demo</a>
+        <a class="tnav-btn primary" href="#flow">Flow</a>
+        <a class="tnav-btn" href="#llm-calls">LLM I/O</a>
+        <a class="tnav-btn" href="#plan-gate">Plan + gate</a>
+        <a
+          class="tnav-btn"
+          href="https://github.com/tomyimkc/ledgerlens"
+          target="_blank"
+          rel="noopener"
+        >GitHub</a>
+      </nav>
+    </header>
+
+    <main class="agent-io-main">
+      <section class="sec agent-io-hero">
+        <p class="sec-eyebrow">LIVE MODEL TRACE · 020s COMPATIBLE</p>
+        <h1>See what the agent is told — and what it answers</h1>
+        <p class="sec-note">
+          This page shows a recorded (or live-generated) run of the
+          <strong>planner</strong> (e.g. <code>gpt-5.6-sol</code>) and
+          <strong>verifier</strong> models (e.g. <code>gpt-5.6-terra</code>) over the
+          OpenAI-compatible 020s endpoint. You get system + user prompts, tool-catalog
+          context, JSON outputs, then the <strong>deterministic policy gate</strong>
+          (not the model) deciding authorize vs deny.
+        </p>
+        <p class="sec-note pitch-line">
+          No GitHub / Slack / PagerDuty / Jira / DataHub mutations in this trace.
+          API keys never appear here.
+        </p>
+        <div class="agent-io-meta" data-trace-meta aria-live="polite">Loading trace…</div>
+      </section>
+
+      <section class="sec" id="flow">
+        <p class="sec-eyebrow">FLOW</p>
+        <h2 class="sec-title">How the agent acts (one turn)</h2>
+        <div class="agent-flow" data-agent-flow aria-label="Agent flow diagram"></div>
+        <p class="sec-foot">
+          Sense is tools/catalog. Plan and critique are LLMs. Gate is ordinary Python.
+          Tools stay held in this trace so you can inspect I/O safely.
+        </p>
+      </section>
+
+      <section class="sec" id="llm-calls">
+        <p class="sec-eyebrow">LLM INPUT / OUTPUT</p>
+        <h2 class="sec-title">Every model call: prompt in → JSON out</h2>
+        <p class="sec-note">
+          Expand a card to read the system prompt, user instructions, and the model’s
+          structured reply. Context is summarized for readability; full tool catalog
+          remains visible when present.
+        </p>
+        <div class="llm-call-list" data-llm-calls></div>
+      </section>
+
+      <section class="sec" id="plan-gate">
+        <p class="sec-eyebrow">AFTER THE MODELS</p>
+        <h2 class="sec-title">Sealed plan + policy decision</h2>
+        <div class="plan-gate-grid">
+          <article class="io-card">
+            <div class="io-hd">
+              <span class="io-tag read">AGENT PLAN</span>
+              <strong>What the planner proposed</strong>
+            </div>
+            <pre class="code-block" data-plan-out>…</pre>
+          </article>
+          <article class="io-card">
+            <div class="io-hd">
+              <span class="io-tag write">POLICY GATE</span>
+              <strong>What deterministic code decided</strong>
+            </div>
+            <pre class="code-block" data-gate-out>…</pre>
+          </article>
+        </div>
+      </section>
+
+      <section class="sec" id="how-to-run">
+        <p class="sec-eyebrow">REGENERATE LOCALLY</p>
+        <h2 class="sec-title">Test-run with sol / terra on 020s</h2>
+        <pre class="code-block">export LEDGERLENS_LLM_API_KEY=…          # or SOPHIA_020S_KEY
+export LEDGERLENS_LLM_BASE_URL=https://api.020s.com/v1
+export LEDGERLENS_PLANNER_MODEL=gpt-5.6-sol
+export LEDGERLENS_VERIFIER_MODELS=gpt-5.6-terra,gpt-5.5
+
+uv run python scripts/run_agent_io_trace.py --force
+# writes src/ledgerlens/static/agent-io-trace.json
+# then refresh this page</pre>
+        <p class="sec-foot">
+          Script: <code>scripts/run_agent_io_trace.py</code> ·
+          Recording client: <code>RecordingJsonClient</code> in
+          <code>model_runtime.py</code>
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <span>LedgerLens agent I/O</span>
+      <span>candidateOnly · canClaimAGI=false · no external mutations</span>
+    </footer>
+  </body>
+</html>

@@ -348,6 +348,34 @@ def test_plan_exact_and_quorum_demos_reject_via_the_real_gate() -> None:
     assert "Verifier policy checks are complete" in quorum["split"]["failedConditions"]
 
 
+def test_agent_io_page_and_trace_endpoint() -> None:
+    client = _fixture_client()
+
+    page = client.get("/incident/agent-io")
+    assert page.status_code == 200
+    assert "Agent I/O" in page.text or "agent I/O" in page.text.lower()
+    assert "agent-io.js" in page.text
+
+    css = client.get("/incident/assets/agent-io.css")
+    js = client.get("/incident/assets/agent-io.js")
+    assert css.status_code == 200
+    assert js.status_code == 200
+    assert "llm-call" in js.text or "data-llm-calls" in js.text
+
+    # Trace file may or may not be present depending on whether a live run was committed.
+    trace = client.get("/incident/api/agent-io-trace")
+    assert trace.status_code in {200, 404}
+    body = trace.json()
+    if trace.status_code == 200:
+        assert body["ok"] is True
+        assert body["trace"]["kind"] == "agent-io-trace"
+        assert "llmCalls" in body["trace"]
+        assert body["trace"].get("externalMutations") is False
+        assert body["trace"].get("canClaimAGI") is False
+    else:
+        assert body["ok"] is False
+
+
 def test_live_receipts_endpoint_returns_a_mapping() -> None:
     client = _fixture_client()
 
