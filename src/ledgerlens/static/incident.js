@@ -66,9 +66,12 @@
         "Think of ", h("b", { text: "DataHub" }),
         " as the company map of its data: who owns a table, what depends on it, and when quality checks fail. ",
         "LedgerLens is a helper that ", h("b", { text: "reads that map" }),
-        ", suggests a short to-do list (page the owner, open a ticket, warn Slack), ",
-        h("b", { text: "checks that list against hard safety rules" }),
-        ", then only does what was approved — and writes a paper trail back into DataHub."),
+        ", may use AI to draft a short to-do list (ticket, Slack, page), ",
+        h("b", { text: "then uses hard rules — not the model — for the final yes/no" }),
+        " on the exact reviewed plan, runs only allowlisted tools, and writes a paper trail back into DataHub."),
+      h("p", { class: "sec-note pitch-line" },
+        h("b", { text: "Unlike AI plan mode: " }),
+        "planning is not authority. The model may propose; it may not authorize itself."),
       h("p", { class: "sec-note" },
         "It is ", h("b", { text: "not a chatbot you chat with" }),
         ", and ", h("b", { text: "not a plug-in that replaces DataHub" }),
@@ -109,26 +112,195 @@
         h("b", { text: "AI may propose. AI may comment. AI may not authorize itself." })));
   };
 
+  /** Build a responsive comparison table. cols = header labels; rows = array of cell arrays (string or node). */
+  const dataTable = (cols, rows, opts) => {
+    const o = opts || {};
+    const thead = h("thead", {},
+      h("tr", {}, ...cols.map((c, i) =>
+        h("th", {
+          class: (o.colClass && o.colClass[i]) || (i === cols.length - 1 ? "us" : null),
+          scope: "col",
+          text: c,
+        }))));
+    const tbody = h("tbody");
+    for (const row of rows) {
+      const tr = h("tr", {});
+      row.forEach((cell, i) => {
+        const cls = (o.colClass && o.colClass[i]) || null;
+        if (i === 0 && o.firstIsHeader !== false) {
+          tr.append(h("th", { scope: "row", class: cls },
+            typeof cell === "string" ? h("strong", { text: cell }) : cell));
+        } else if (typeof cell === "string") {
+          tr.append(h("td", { class: cls, text: cell }));
+        } else {
+          tr.append(h("td", { class: cls }, cell));
+        }
+      });
+      tbody.append(tr);
+    }
+    return h("div", { class: "cmp-wrap judge-table-wrap" + (o.wrapClass ? " " + o.wrapClass : "") },
+      h("table", {
+        class: "cmp-table judge-table" + (o.tableClass ? " " + o.tableClass : ""),
+        "data-testid": o.testId || null,
+      }, thead, tbody));
+  };
+
   const buildUnique = () =>
     h("section", { class: "sec", id: "unique", "data-testid": "what-is-unique" },
       h("p", { class: "sec-eyebrow", text: "WHAT MAKES THIS DIFFERENT" }),
-      h("h2", { class: "sec-title", text: "Plan-exact authorization — the reviewed plan is the only plan that can run" }),
+      h("h2", { class: "sec-title", text: "Not a smarter plan — a different place for authority" }),
+      h("p", { class: "pitch-line", "data-testid": "authority-pitch" },
+        h("b", { text: "Defendable one-liner: " }),
+        "Most AI plan modes treat the model as both author and approver of work. LedgerLens treats the model as an advisor: DataHub supplies the facts, a deterministic policy authorizes only the exact allowlisted plan that was reviewed, and every action leaves a receipt — so a drifted or self-expanded plan cannot run."),
       h("div", { class: "unique-grid" },
         h("article", { class: "unique-card" },
-          h("h3", { text: "Most AI agents" }),
-          h("p", { text: "The model writes a plan, then the same model (or a soft score) decides it is fine to run. If the plan quietly changes later, nothing stops it." })),
+          h("h3", { text: "AI plan mode (typical)" }),
+          h("p", { text: "Model drafts a plan → the same model (or a soft score) decides it is fine → tools run. Approve the idea, not the exact bytes. Quiet plan drift after “OK” is easy." })),
         h("article", { class: "unique-card us" },
-          h("h3", { text: "This repo" }),
-          h("p", { text: "After review, the plan gets a unique fingerprint (like a seal on a letter). The lock only opens for that exact seal. Add one extra action after the seal? Denied. Same DataHub facts, different plan — still denied." }))),
-      h("p", { class: "sec-note" },
-        "Also unique in practice: it is built around ",
-        h("b", { text: "DataHub as the source of truth" }),
-        " (owners, lineage, quality alerts), not a free-floating chat session; every tool call can leave a ",
-        h("b", { text: "receipt" }),
-        "; and unknowns like root cause stay marked unknown unless proven. We do not claim to be the only possible design — we claim this split is clear, testable, and already implemented in open source."),
+          h("h3", { text: "LedgerLens" }),
+          h("p", { text: "DataHub grounds facts → model may draft/review → non-model policy binds a fingerprint of the exact step list + allowlist → only that plan runs → receipts back into DataHub. Change one step after the seal? Denied." }))),
       h("p", { class: "sec-foot" },
-        "Live proof below: the same gate code refuses a plan that drifted after review. ",
-        "If you disagree with the AI draft, you are not stuck — pick an alternate plan (next section) and re-seal under the same lock."));
+        "Full judge tables next. Live gate proof: ",
+        h("a", { href: "#gate-demo", text: "same context, changed plan → blocked" }),
+        ". Disagree with the AI draft? ",
+        h("a", { href: "#alternate-plan", text: "re-seal under the same lock" }),
+        "."));
+
+  const VS_PLAN_MODE = [
+    ["Who can say “run it”",
+      "Often the same model that planned, or a human click with no plan binding",
+      "Deterministic gate: grounded DataHub context, reversible allowlisted actions, plan fingerprint, grant",
+      "Strong — testable in the UI and unit tests"],
+    ["What “approve” means",
+      "Approve the idea (“looks good”)",
+      "Approve this exact step list (hash of objective + scope + steps)",
+      "Strong if you show the live gate flip; weak if only claimed in prose"],
+    ["Where truth comes from",
+      "Chat context / model memory / scraped docs",
+      "DataHub owners, lineage, quality signal as first-class context",
+      "Strong for a DataHub hackathon; narrower outside DataHub"],
+    ["What can run",
+      "Whatever tools the agent session has",
+      "Fixed collaboration surface (GitHub / Slack / PagerDuty / Jira + one write-back). No “fix production” by default",
+      "Strong on scope; honest that it coordinates, not auto-remediates"],
+    ["Self-expansion after review",
+      "Model can invent new targets or tools mid-run",
+      "Off-allowlist target → deny. Extra step after seal → deny",
+      "Strong with allowlist + plan-exact demos"],
+    ["After the action",
+      "Chat log / raw tool JSON",
+      "Provider receipts + optional DataHub document + explicit unknowns handoff",
+      "Medium — good product story; one linked live four-provider run (E-16), not a fleet"],
+    ["Human disagrees with AI plan",
+      "Re-prompt or abort (often deny-stuck or free-form re-plan)",
+      "Alternate template / custom steps → new seal → same gate (grant wiped)",
+      "Useful; uniqueness is re-seal + grant wipe, not “humans can edit” alone"],
+    ["Autonomy claim",
+      "Often a continuous agent loop that self-approves",
+      "Operator-bound or verifier-quorum + policy; public Space is fixture replay",
+      "Honest if you never call the public page “production autonomous”"],
+  ];
+
+  const NOT_DIFFERENT = [
+    ["Having a multi-step plan", "Plan-then-execute is table stakes for modern agents"],
+    ["Using an LLM at all", "We use models for draft/review only — same as many systems"],
+    ["Human-in-the-loop click", "Many tools require a human; we bind the click to plan bytes"],
+    ["Pretty pipeline diagram", "UI chrome is not originality; the gate is"],
+    ["“Safer AI” as a slogan", "We reduce silent expansion; we do not certify model content quality"],
+  ];
+
+  const REDUCE_VS_NOT = [
+    ["Silent plan drift after review", "Yes — fingerprint mismatch closes the gate", "No — if the human authorizes a bad-but-allowed plan"],
+    ["Model inventing owners / lineage", "Yes — facts come from DataHub, not the model", "No — if DataHub metadata is wrong or stale"],
+    ["Off-allowlist tools / channels", "Yes — PolicyGate + dashboard allowlist refuse", "No — noisy-but-allowlisted Slack text can still be unhelpful"],
+    ["Self-authorization by the model", "Yes — AI cannot open the gate", "No — a human can still approve a weak plan"],
+    ["Accountability / handoff", "Yes — receipts + unknowns preserved", "No — does not prove root cause, impact, or recovery"],
+    ["Incident fully fixed", "Out of scope by design", "We coordinate work; we do not claim MTTR magic"],
+  ];
+
+  const CLAIM_LAYERS = [
+    ["Public Space (this page)", "Full visible flow with fixture:// receipts", "Live DataHub, live pages, or production reliability", "E-01 · open the Space"],
+    ["Plan-exact gate", "Same DataHub context + one extra step → denied", "That every org’s policy is encoded here", "Live proof below · tests"],
+    ["Real pipeline gate (E-15)", "Context-on authorizes; context-off refuses with reason codes", "Model uplift or better planning", "benchmarks · real-pipeline receipt"],
+    ["Live four-provider run (E-16)", "One supervised plan→verify→authorize→GitHub+Slack+PD+Jira", "Sustained production multi-provider ops", "GitHub #29 · KAN-2 · receipt"],
+    ["DataHub write-back (E-07)", "Controlled save_document + MCP read-back on OSS", "Hosted public DataHub or recovery proof", "write-back receipt"],
+    ["Upstream MCP PR", "Open issue #159 / PR #160 with tests", "Merged / accepted by DataHub maintainers", "GitHub PR (bonus only)"],
+  ];
+
+  const JUDGE_RUBRIC = [
+    ["Meaningful DataHub use", "Context + MCP reads + write-back path", "Public demo does not hit a real DataHub"],
+    ["Technical end-to-end", "Typed path, tests, E-15/E-16, hosted fixture", "“Autonomous” wording vs fixture; video still separate"],
+    ["Originality", "Plan-fingerprint + fail-closed policy over DataHub incident loop", "Not a new model; not first HITL agent"],
+    ["Real-world usefulness", "2 a.m. coordination, allowlisted tools, unknowns kept honest", "“Only tickets/chat” looks small vs fantasy auto-remediation agents"],
+    ["Reproducibility", "Open Apache-2.0 repo, one-command demo, labeled receipts", "Full live path needs secrets; do not blur fixture with live"],
+  ];
+
+  const buildVsPlanMode = () =>
+    h("section", { class: "sec", id: "vs-plan-mode", "data-testid": "vs-plan-mode" },
+      h("p", { class: "sec-eyebrow", text: "FOR SKEPTICAL JUDGES" }),
+      h("h2", { class: "sec-title", text: "AI plan mode vs LedgerLens — in tables" }),
+      h("p", { class: "sec-note" },
+        "The shape (plan → act) is not the product. ",
+        h("b", { text: "Authority binding" }),
+        " is. If a judge has used Claude/Cursor plan mode, LangGraph, or self-approving tool agents, these tables are the honest answer — including where we are ",
+        h("b", { text: "not" }),
+        " special."),
+
+      h("h3", { class: "table-title", text: "1. Side-by-side: what actually differs" }),
+      dataTable(
+        ["Dimension", "Typical AI plan mode", "LedgerLens", "How hard a judge can push"],
+        VS_PLAN_MODE.map((r) => r.slice()),
+        { testId: "table-vs-plan-mode", tableClass: "cmp4" }
+      ),
+
+      h("h3", { class: "table-title", text: "2. What is not as different as it sounds" }),
+      h("p", { class: "sec-note" },
+        "Own these before a panel does. Overclaiming is worse than a smaller honest product."),
+      dataTable(
+        ["Common feature", "Honest read"],
+        NOT_DIFFERENT.map((r) => r.slice()),
+        { testId: "table-not-different", tableClass: "cmp2", colClass: [null, null] }
+      ),
+
+      h("h3", { class: "table-title", text: "3. What risk we reduce — and what we do not" }),
+      dataTable(
+        ["Risk / outcome", "Reduced by LedgerLens?", "Still on you / out of scope"],
+        REDUCE_VS_NOT.map((r) => r.slice()),
+        { testId: "table-reduce-vs-not", tableClass: "cmp3" }
+      ),
+
+      h("h3", { class: "table-title", text: "4. Evidence layers — do not blur them" }),
+      h("p", { class: "sec-note" },
+        "This public page is a ",
+        h("b", { text: "safe fixture" }),
+        " (",
+        h("code", { text: "fixture://" }),
+        " receipts). Live runs are separate, narrow, and labeled. Blurring layers loses trust faster than having fewer live demos."),
+      dataTable(
+        ["Layer", "What we claim", "What we do not claim", "How to check"],
+        CLAIM_LAYERS.map((r) => r.slice()),
+        { testId: "table-claim-layers", tableClass: "cmp4" }
+      ),
+
+      h("h3", { class: "table-title", text: "5. Rubric lens (where we can win / bleed)" }),
+      dataTable(
+        ["Criterion", "Where we can win", "Where we bleed if careless"],
+        JUDGE_RUBRIC.map((r) => r.slice()),
+        { testId: "table-judge-rubric", tableClass: "cmp3" }
+      ),
+
+      h("div", { class: "judge-takeaway", "data-testid": "judge-takeaway" },
+        h("p", {},
+          h("b", { text: "Lead with authority, not intelligence. " }),
+          "Do not say “AI plans better incidents.” Do say: AI may draft; it may not authorize; the seal is the plan; DataHub is the map and the paper trail."),
+        h("p", { class: "sec-foot" },
+          "Show next: ",
+          h("a", { href: "#gate-demo", text: "live gate refuse on plan drift" }),
+          " · ",
+          h("a", { href: "#real-code", text: "real Python" }),
+          " · ",
+          h("a", { href: EVIDENCE, target: "_blank", rel: "noopener", text: "evidence index" }),
+          ".")));
 
   const TEMPLATES_UI = [
     { id: "notify_and_ticket", label: "Notify + ticket only", why: "Quieter human choice: Slack + one GitHub issue + DataHub receipt." },
@@ -704,22 +876,28 @@
         h("td", { class: "us" }, r.us + " ", r.usGate ? h("span", { class: "gate", text: r.usGate }) : null)));
     }
     return h("section", { class: "sec", id: "why-not-chatbot" },
-      h("p", { class: "sec-eyebrow", text: "WHY NOT JUST USE CHATGPT" }),
-      h("h2", { class: "sec-title", text: "Same problem, three different outcomes" }),
+      h("p", { class: "sec-eyebrow", text: "SAME INCIDENT, THREE OUTCOMES" }),
+      h("h2", { class: "sec-title", text: "Catalog rule vs self-approving AI vs LedgerLens" }),
+      h("p", { class: "sec-note" },
+        "Situation table (complement to ",
+        h("a", { href: "#vs-plan-mode", text: "AI plan mode vs us" }),
+        "). We win on ",
+        h("b", { text: "bounded coordination" }),
+        ", not on inventing root cause."),
       h("div", { class: "cmp-wrap" },
-        h("table", { class: "cmp-table cmp3" },
+        h("table", { class: "cmp-table cmp3", "data-testid": "table-situations" },
           h("thead", {}, h("tr", {},
             h("th", { text: "Situation" }),
             h("th", { text: "Fixed catalog rule" }),
-            h("th", { text: "Chat-style AI that self-approves" }),
+            h("th", { text: "AI plan mode that self-approves" }),
             h("th", { class: "us", text: "LedgerLens" }))),
           tbody)),
       h("p", { class: "sec-foot" },
-        "We once ran a carefully limited live rehearsal (GitHub ",
+        "One supervised live chain (GitHub ",
         h("a", { href: "https://github.com/tomyimkc/ledgerlens/issues/29", target: "_blank", rel: "noopener", text: "#29" }),
         ", Slack, PagerDuty, Jira) — ",
         h("a", { href: EVIDENCE, target: "_blank", rel: "noopener", text: "evidence E-16" }),
-        ". That shows adapters work; it does not mean every incident is solved."));
+        ". Proves adapters + gate once; not sustained production or full recovery."));
   };
 
   const buildSetup = () => {
@@ -802,6 +980,7 @@
       orient.append(h("nav", { class: "toc-links", "aria-label": "On this page" },
         h("a", { href: "#ai-or-not", text: "Does it use AI?" }),
         h("a", { href: "#unique", text: "What is unique?" }),
+        h("a", { href: "#vs-plan-mode", text: "vs AI plan mode" }),
         h("a", { href: "#alternate-plan", text: "Disagree with AI?" }),
         h("a", { href: "#how-repo-works", text: "Step by step" }),
         h("a", { href: "#real-code", text: "Real code" }),
@@ -936,6 +1115,7 @@
       buildWhat(),
       buildAiSplit(),
       buildUnique(),
+      buildVsPlanMode(),
       buildAlternatePlan(),
       buildRepoHow(),
       buildRealCode(),

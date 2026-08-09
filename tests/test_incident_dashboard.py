@@ -293,7 +293,12 @@ def test_router_mounts_under_custom_prefix_with_its_own_assets() -> None:
     assert "data-alt-status" in script.text
     # Guard against the class of object-literal bugs that silently kill the whole page.
     assert '"data-alt-status",' not in script.text  # bare key without value
-
+    # Judge-facing differentiation tables (authority binding, not smarter plans).
+    assert "vs-plan-mode" in script.text
+    assert "table-vs-plan-mode" in script.text
+    assert "table-claim-layers" in script.text
+    assert "planning is not authority" in script.text.lower() or "Planning is not authority" in script.text
+    assert "AI plan mode" in script.text
 
 def test_untrusted_backend_text_is_escaped_and_secret_fields_are_redacted() -> None:
     fixture = copy.deepcopy(ReplayIncidentBackend().snapshot())
