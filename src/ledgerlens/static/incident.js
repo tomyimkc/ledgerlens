@@ -1083,6 +1083,7 @@
     }
     const orient = root.querySelector(".orient");
     if (orient && !orient.querySelector(".toc-links")) {
+      const home = (apiBase || "").replace(/\/api\/?$/, "") || "";
       orient.append(h("nav", { class: "toc-links", "aria-label": "On this page" },
         h("a", { href: "#ai-or-not", text: "AI-native?" }),
         h("a", { href: "#unique", text: "What is unique?" }),
@@ -1091,8 +1092,8 @@
         h("a", { href: "#tool-belt", text: "Your tools" }),
         h("a", { href: "#alternate-plan", text: "Revise plan" }),
         h("a", { href: "#gate-demo", text: "Live proof" }),
-        h("a", { href: (apiBase || "").replace(/\/api\/?$/, "") + "/agent-io", text: "Agent I/O" }),
-        h("a", { href: "#get-started", text: "Try it" })));
+        h("a", { href: "#get-started", text: "Try it" }),
+        h("a", { class: "toc-page", href: home + "/agent-io", text: "Agent I/O page →" })));
     }
   };
 

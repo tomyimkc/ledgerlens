@@ -355,6 +355,15 @@ def test_agent_io_page_and_trace_endpoint() -> None:
     assert page.status_code == 200
     assert "Agent I/O" in page.text or "agent I/O" in page.text.lower()
     assert "agent-io.js" in page.text
+    # Bidirectional demo navigation
+    assert "page-switcher" in page.text
+    assert 'href="/incident"' in page.text or 'href="/incident/"' in page.text
+    assert "Overview" in page.text
+
+    main = client.get("/incident")
+    assert main.status_code == 200
+    assert "page-switcher" in main.text
+    assert "/incident/agent-io" in main.text
 
     css = client.get("/incident/assets/agent-io.css")
     js = client.get("/incident/assets/agent-io.js")

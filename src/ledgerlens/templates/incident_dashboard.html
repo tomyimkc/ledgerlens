@@ -16,11 +16,24 @@
     data-mode="{{ state.mode }}"
     data-availability="{{ state.availability }}"
     data-autonomous-execution="{{ 'true' if state.automation.enabled else 'false' }}"
+    data-base-path="{{ base_path }}"
   >
     <a class="skip-link" href="#command-center">Skip to command center</a>
 
+    <nav class="page-switcher" aria-label="Demo pages">
+      <a class="page-switcher-item is-current" href="{{ base_path }}" aria-current="page">
+        <span class="page-switcher-k">Demo</span>
+        Overview
+      </a>
+      <a class="page-switcher-item" href="{{ base_path }}/agent-io">
+        <span class="page-switcher-k">Demo</span>
+        Agent I/O
+      </a>
+      <span class="page-switcher-hint">Switch pages anytime</span>
+    </nav>
+
     <header class="command-header">
-      <div class="brand-lockup">
+      <a class="brand-lockup brand-link" href="{{ base_path }}">
         <span class="brand-sigil" aria-hidden="true">
           <i></i><i></i><i></i>
         </span>
@@ -28,7 +41,7 @@
           <strong>LedgerLens</strong>
           <span>Safe data-incident helper for DataHub teams</span>
         </div>
-      </div>
+      </a>
 
       <div class="header-context">
         {% if state.incident %}
@@ -68,11 +81,11 @@
           <a class="tnav-btn" href="#alternate-plan">Revise plan</a>
           <a class="tnav-btn" href="#real-code">Real code</a>
           <a class="tnav-btn" href="#gate-demo">Live proof</a>
-          <a class="tnav-btn" href="{{ base_path }}/agent-io">Agent I/O</a>
+          <a class="tnav-btn tnav-page" href="{{ base_path }}/agent-io">Agent I/O →</a>
           <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens" target="_blank" rel="noopener">GitHub</a>
           <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens#readme" target="_blank" rel="noopener">README</a>
         </nav>
-        <span class="topbar-note">Safe public demo · no real tickets or pages are sent from this page</span>
+        <span class="topbar-note">Safe public demo · no real tickets or pages · <a href="{{ base_path }}/agent-io">Agent I/O page</a></span>
       </div>
     {% elif state.availability != "ready" %}
       <aside class="live-warning" role="alert" data-testid="live-unconfigured">
@@ -660,9 +673,13 @@
 
     <div class="command-toast" data-command-toast role="status" aria-live="polite"></div>
 
-    <footer>
-      <span>LedgerLens Incident Commander</span>
-      <span>Evidence → policy → authorization → receipts → inherited memory</span>
+    <footer class="site-footer-nav">
+      <div class="footer-links">
+        <a href="{{ base_path }}" aria-current="page">Overview</a>
+        <a href="{{ base_path }}/agent-io">Agent I/O →</a>
+        <a href="https://github.com/tomyimkc/ledgerlens" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <span>LedgerLens Incident Commander · Evidence → policy → authorization → receipts</span>
       <span>{{ state.observed_at or "No live observation time" }}</span>
     </footer>
   </body>
