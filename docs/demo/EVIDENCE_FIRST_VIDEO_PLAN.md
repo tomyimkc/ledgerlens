@@ -6,6 +6,11 @@
 
 **Delivery:** 1920×1080, 30 fps, H.264/AAC, burned English captions, selectable English captions
 
+**Public title:** `LedgerLens — Policy-Sealed Incident Commander (DataHub Agent Hackathon)`
+
+The word **Autonomous** must not appear in the public title. It conflicts with the demonstrated
+authority boundary: AI drafts and critiques; deterministic policy authorizes the exact plan.
+
 ## Editorial thesis
 
 The demo separates evidence classes instead of blending them into one product claim:
@@ -53,10 +58,11 @@ canClaimAGI: false
 - Public GitHub issue (E-16 rehearsal): `https://github.com/tomyimkc/ledgerlens/issues/29`
 - Public Jira issue (E-16 rehearsal): `https://tomyimkc.atlassian.net/browse/KAN-2`
 - Published receipt files on the public `main` branch:
-  - `benchmarks/incident_commander/live-incident-rehearsal-receipt.json` (E-16, four providers)
+  - `benchmarks/incident_commander/public-live-incident-rehearsal-receipt.json` (E-16, four providers)
   - `benchmarks/incident_commander/real-pipeline-ablation-receipt.json` (E-15, real gate)
-  - `benchmarks/incident_commander/datahub-live-writeback-receipt.json`
-  - `benchmarks/incident_commander/ai-verification-receipt.json`
+  - `benchmarks/incident_commander/public-datahub-live-writeback-receipt.json`
+  - `benchmarks/incident_commander/public-ai-verification-receipt.json`
+  - `benchmarks/incident_commander/live-evidence-ladder.json`
   - `benchmarks/incident_commander/context-ablation-receipt.json`
 
 The capture script downloads the public receipt bytes, records their SHA-256 digests, and saves

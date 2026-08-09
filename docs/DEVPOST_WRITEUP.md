@@ -117,7 +117,9 @@ four synthetic provider receipts, recorded fixture write-back, ready next-agent 
 deterministic authority, and `ai_can_authorize: false`.
 
 A scheduled and manually dispatchable GitHub workflow checks that public contract without
-repository secrets and uploads a sanitized smoke receipt.
+repository secrets and uploads a sanitized smoke receipt. A second bounded continuity workflow
+takes time-separated samples of the fixture, Seal Lab, and Context Cut and aggregates them into a
+sanitized receipt. It executes no provider tool and is not an uptime or reliability claim.
 
 ### Supervised authenticated DataHub proof
 
@@ -186,6 +188,8 @@ comment, and attribution consent, and refuses to invent testimonials.
 - Completed and tore down a supervised authenticated public DataHub reachability proof.
 - Built a deterministic 120-asset, 24-scenario DataHub-context ON/OFF benchmark.
 - Deployed a stable public fixture replay with automated credential-free smoke monitoring.
+- Added a Live Evidence Ladder that digest-binds the bounded provider and DataHub receipts,
+  discloses that they were separate runs, and links a repeated no-provider-tool hosted sample.
 - Prepared a consent-safe external evaluation kit and aggregation tool.
 - Opened upstream DataHub MCP provenance/audit-context issue #159 and PR #160 with focused tests;
   PR #160 remains open, not merged.
@@ -208,8 +212,11 @@ change.
 ## What's next
 
 - Complete two consented formative reviews and publish only allowed aggregate information.
-- Execute Slack, PagerDuty, or Jira only if scoped competition credentials are supplied; otherwise
-  preserve the tested-but-not-live wording.
+- Record a single integrated DataHub read → sealed provider action → write-back → MCP read-back
+  receipt only on an owner-controlled instance; otherwise preserve the existing separate-run
+  disclosure.
+- Rename the public video from the stale “Autonomous” title to the Policy-Sealed title and verify
+  the watch page and Devpost embed in a clean browser.
 - Respond to upstream review on DataHub MCP PR #160 without bypassing maintainers.
 - Add the public under-three-minute video URL, then cut the final `v0.2.1` release from the actual
   merged commit.

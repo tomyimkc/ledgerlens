@@ -1,0 +1,86 @@
+name: Hosted evidence continuity
+
+on:
+  schedule:
+    - cron: "29 15 * * *"
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: "Credential-free public samples (2-12)"
+        required: false
+        default: "5"
+      interval_seconds:
+        description: "Seconds between samples (0-600)"
+        required: false
+        default: "45"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ledgerlens-hosted-continuity
+  cancel-in-progress: false
+
+jobs:
+  continuity:
+    name: Sample public policy contract repeatedly
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out exact source revision
+        uses: actions/checkout@v6
+
+      - name: Set up supported Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Collect bounded public samples
+        env:
+          SAMPLE_COUNT: ${{ inputs.samples || '5' }}
+          SAMPLE_INTERVAL: ${{ inputs.interval_seconds || '45' }}
+        run: |
+          python3 scripts/check_hosted_continuity.py \
+            --samples "$SAMPLE_COUNT" \
+            --interval-seconds "$SAMPLE_INTERVAL" \
+            --output artifacts/hosted-continuity/receipt.json
+
+      - name: Publish bounded summary
+        if: always()
+        run: |
+          if [ -f artifacts/hosted-continuity/receipt.json ]; then
+            python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+
+          receipt = json.loads(
+              Path("artifacts/hosted-continuity/receipt.json").read_text(encoding="utf-8")
+          )
+          print("# LedgerLens hosted continuity sample")
+          print()
+          print(f"- Status: **{receipt['status']}**")
+          print(
+              f"- Passing samples: **{receipt['passingSampleCount']}/"
+              f"{receipt['sampleCount']}**"
+          )
+          print(f"- Exact source commit: `{receipt.get('sourceCommit')}`")
+          print("- External mutations: **false**")
+          print("- Provider tools executed: **false**")
+          print()
+          print(
+              "This is a short-window sample of the public fixture and policy labs. "
+              "It is not an uptime SLO, provider-reliability result, production validation, "
+              "or incident-recovery claim."
+          )
+          PY
+          fi
+
+      - name: Upload sanitized continuity receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ledgerlens-hosted-continuity-${{ github.run_id }}
+          path: artifacts/hosted-continuity/receipt.json
+          if-no-files-found: error
+          retention-days: 30

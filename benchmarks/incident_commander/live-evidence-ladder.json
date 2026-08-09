@@ -1,0 +1,72 @@
+{
+  "canClaimAGI": false,
+  "candidateOnly": true,
+  "crossReceiptChecks": {
+    "claimBoundaryPreserved": true,
+    "e07SourceDigest": "sha256:bee48f3d256f165cd96afc5a04c736f5cd2c05fe72509f8d826184471096296a",
+    "e16SourceDigest": "sha256:fd469d820110d02e4e0fb5ee873e552ec716dee09fee4e56cb93f2541fe31f5e",
+    "evidenceChainDigest": "sha256:252acb873bb19a0511e04afd710c94adeede5ac8c793318146b4958458b81308",
+    "integratedSameProcessRun": false,
+    "sameIncidentId": true
+  },
+  "incidentId": "inc-analytics-downstream_availability-01",
+  "layers": [
+    {
+      "deterministicPolicyAuthorized": true,
+      "doesNotProve": "Sustained operation, incident recovery, production reliability, or provider-family independence.",
+      "evidenceClass": "bounded-live-provider-rehearsal",
+      "evidenceId": "E-16",
+      "externalMutations": true,
+      "id": "policy-sealed-provider-run",
+      "label": "Policy-sealed provider run",
+      "networkUsed": true,
+      "observedAt": "2026-08-03T16:35:59.990450Z",
+      "plannerAndVerifiersExecuted": true,
+      "proves": "One supervised invocation planned, verified, authorized, and executed one bounded action against four providers.",
+      "providerActionCount": 4,
+      "providers": [
+        "GitHub",
+        "Jira",
+        "PagerDuty",
+        "Slack"
+      ]
+    },
+    {
+      "doesNotProve": "That the DataHub write occurred in the E-16 process, or that the incident was causal, impactful, or recovered.",
+      "evidenceClass": "bounded-live-datahub-write-read",
+      "evidenceId": "E-07",
+      "externalMutations": true,
+      "id": "datahub-write-read",
+      "label": "DataHub write-back and next-agent read",
+      "networkUsed": true,
+      "observedAt": "2026-07-31T08:40:54.578590+00:00",
+      "proves": "One controlled DataHub document was written and retrieved through the official MCP read surface.",
+      "resultUrn": "urn:li:document:shared-901b860f-66ff-496e-a700-c2fc5e535496",
+      "retrievalVia": "official-datahub-mcp:get_entities",
+      "retrieved": true,
+      "tool": "save_document"
+    },
+    {
+      "doesNotProve": "Provider reliability, an uptime SLO, production readiness, or external validation.",
+      "evidenceClass": "repeated-public-contract-sample",
+      "evidenceId": "E-21",
+      "externalMutations": false,
+      "id": "hosted-continuity",
+      "label": "Repeated public contract sample",
+      "networkUsed": true,
+      "proves": "A credential-free workflow can repeatedly sample the deployed fixture, Seal Lab refusal, and DataHub Context Cut contract.",
+      "providerToolsExecuted": false,
+      "workflowUrl": "https://github.com/tomyimkc/ledgerlens/actions/workflows/hosted-continuity.yml"
+    }
+  ],
+  "openGap": {
+    "incidentRecovery": false,
+    "independentValidation": false,
+    "integratedLiveDataHubReadActWriteSameRun": false,
+    "label": "Not yet proven",
+    "nextSafeTest": "On an owner-controlled DataHub instance, execute one supervised read -> sealed provider action -> DataHub write-back -> MCP read-back sequence and preserve it as one receipt.",
+    "productionReliability": false,
+    "sustainedProviderOperation": false
+  },
+  "schemaVersion": "ledgerlens.live-evidence-ladder.v1"
+}

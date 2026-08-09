@@ -12,6 +12,9 @@
 - **Public project URL:** `https://tomyimkc-ledgerlens-incident-commander.hf.space/`
 - **Space page:** `https://huggingface.co/spaces/tomyimkc/ledgerlens-incident-commander`
 - **Public video URL:** `https://youtu.be/D0SVpDWOrUw`
+- **Required public video title:** `LedgerLens — Policy-Sealed Incident Commander (DataHub Agent Hackathon)`
+- **Video-title status:** account-authorized rename still required; do not use “Autonomous” in the
+  final judge-facing title
 - **Current public baseline:** `v0.2.0` at merged commit
   `00063e40bfc785f13e6db938e0795928e4f843ba`
 - **Final release target:** `v0.2.1` — **pending the final merged submission revision; not yet published**
@@ -69,6 +72,12 @@ fixed, removes ownership or lineage facts, and re-runs the current deterministic
 context authorizes; the cuts deny because per-tool evidence contracts are no longer satisfied.
 The planner and verifiers are not re-run, and no provider tool executes (evidence E-20).
 
+The public **Live Evidence Ladder** then separates three network-touching claims instead of
+compressing them into “production”: E-16 is one four-provider rehearsal, E-07 is a separate
+DataHub write/read receipt, and E-21 is a short-window repeated sample of the deployed fixture and
+policy labs. The ladder exposes that E-16 and E-07 share an incident identity but were not one
+process, and names the still-missing combined read → act → write-back receipt.
+
 Separate evidence receipts establish narrower live facts:
 
 - **one authorized run executed a bounded action against all four providers** — a real OpenAI GPT-5.6
@@ -81,6 +90,9 @@ Separate evidence receipts establish narrower live facts:
 - one recorded model plan, held fixed across four synthetic DataHub context variants, is authorized
   with the full map and denied when ownership, lineage, or most catalog facts are removed; the
   public request re-runs current policy only, not the models or tools (evidence E-20);
+- a credential-free workflow repeatedly samples the public fixture, Seal Lab refusal, and Context
+  Cut decisions and uploads one sanitized aggregate receipt; this is not a provider reliability or
+  uptime claim (evidence E-21);
 - DataHub OSS v1.6.0 accepted an authorized `save_document` write-back and the official MCP
   `get_entities` path retrieved the resulting document;
 - a supervised authenticated public DataHub reachability proof returned 401 without gateway
@@ -113,7 +125,7 @@ contribution separately, so the bonus cannot obscure a weakness in judge access 
 | Core criterion | LedgerLens judge evidence |
 |---|---|
 | Meaningful Use of DataHub Tools and Write-Back | DataHub-grounded incident context, ownership, schema, documentation, quality signal, lineage-based blast radius, per-tool evidence contracts, Context Cut authorization proof (E-20), official MCP reads, controlled `save_document` write-back, and next-agent retrieval |
-| Technical Execution and End-to-End Functionality | Typed state machine, planner/verifier contracts, fail-closed policy, signed provider authorization, idempotency, replay UI, strict mypy, deterministic tests, secret scan, hosted smoke, readiness gates, a real-pipeline benchmark over the production gate (E-15), current-policy Context Cut replay (E-20), and one authorized run that executed against all four providers (E-16) |
+| Technical Execution and End-to-End Functionality | Typed state machine, planner/verifier contracts, fail-closed policy, signed provider authorization, idempotency, replay UI, strict mypy, deterministic tests, secret scan, repeated hosted contract sampling (E-21), readiness gates, a real-pipeline benchmark over the production gate (E-15), current-policy Context Cut replay (E-20), and one authorized run that executed against all four providers (E-16) |
 | Originality and Extension Beyond Built-ins | Evidence-bound deterministic authorization over the same MCP surface DataHub's Agent Context Kit wraps — a reviewed-plan-fingerprint gate plus tool-specific catalog-fact contracts that neither DataHub's Actions Framework nor an unrestricted LLM agent provides |
 | Real-World Usefulness | Coordinates accountable response work and durable handoff while refusing to invent cause, impact, recovery, or resolution |
 | Submission Quality and Reproducibility | Public Apache-2.0 repository, one-command replay, public Space, exact receipts, context ablation, architecture/security docs, and fail-closed automation |
@@ -132,16 +144,19 @@ scope from a filename.
   `https://tomyimkc-ledgerlens-incident-commander.hf.space/`
 - Hosted replay source: `deploy/hf-space/`
 - Hosted smoke checker: `scripts/check_hosted_incident_demo.py`
+- Repeated hosted continuity checker: `scripts/check_hosted_continuity.py`
+- Live Evidence Ladder:
+  `benchmarks/incident_commander/live-evidence-ladder.json`
 - AI verification:
-  `benchmarks/incident_commander/ai-verification-receipt.json`
+  `benchmarks/incident_commander/public-ai-verification-receipt.json`
 - Live four-provider rehearsal (E-16):
-  `benchmarks/incident_commander/live-incident-rehearsal-receipt.json`
+  `benchmarks/incident_commander/public-live-incident-rehearsal-receipt.json`
 - Real-pipeline context ablation (E-15):
   `benchmarks/incident_commander/real-pipeline-ablation-receipt.json`
 - Live GitHub action:
   `benchmarks/incident_commander/github-live-action-receipt.json`
 - Live DataHub write-back:
-  `benchmarks/incident_commander/datahub-live-writeback-receipt.json`
+  `benchmarks/incident_commander/public-datahub-live-writeback-receipt.json`
 - DataHub context ON/OFF (scripted schema demo):
   `benchmarks/incident_commander/context-ablation-receipt.json`
 - Read-without-running examples: `examples/README.md`
@@ -179,8 +194,10 @@ The public replay currently exposes a secret-free contract:
 - next-agent memory reaches `ready`;
 - authorization reports `authority: deterministic-policy` and `ai_can_authorize: false`.
 
-The repository includes a daily and manually dispatchable hosted smoke workflow. It requires no
-repository secret and uploads only a sanitized JSON receipt.
+The repository includes daily and manually dispatchable hosted smoke and continuity workflows.
+They require no repository secret. The continuity workflow takes five time-separated samples by
+default and uploads only a sanitized aggregate JSON receipt. It does not execute provider tools
+and is not an uptime or production-reliability claim.
 
 The supervised public DataHub proof was temporary by design. The tunnel, gateway, relay, and
 remote stack were stopped; volumes and private receipts were preserved. There is no durable public
@@ -215,6 +232,8 @@ it was captured against. The hosted public smoke also passed against the live fi
 - [x] Publish the external evaluation kit without inventing results.
 - [x] Describe Slack, PagerDuty, and Jira as executed once as a bounded rehearsal (E-16), not as sustained or production operation.
 - [x] Open upstream issue #159 and PR #160; state that PR #160 remains open, not merged.
+- [ ] Rename the public YouTube video to **LedgerLens — Policy-Sealed Incident Commander (DataHub
+      Agent Hackathon)** and verify the Devpost embed reflects it.
 - [ ] Publish final `v0.2.1` from the final merged submission revision.
 - [ ] Record the real final release SHA after the tag is cut.
 - [ ] Complete owner account/team/eligibility review.

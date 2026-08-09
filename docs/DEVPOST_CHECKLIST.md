@@ -98,6 +98,12 @@ verification actions.
 - [x] Public authorization reports deterministic authority and `ai_can_authorize: false`.
 - [x] A scheduled/manual hosted smoke workflow requires no repository secret.
 - [x] Hosted smoke uploads only a sanitized JSON receipt.
+- [x] A separate continuity workflow samples the public fixture, Seal Lab, and Context Cut
+      repeatedly without provider tools or repository secrets.
+- [x] The continuity receipt states that it is not an uptime SLO, provider-reliability result,
+      production validation, or independent review.
+- [x] The public Live Evidence Ladder keeps E-16, E-07, and E-21 separate and discloses that
+      E-16 and E-07 were not one process.
 - [x] Temporary authenticated DataHub reachability proof is documented with teardown.
 - [x] Documentation states that no durable public DataHub judge URL exists.
 - [ ] Owner keeps the Hugging Face Space free and reachable through August 31, 2026.
@@ -135,6 +141,8 @@ verification actions.
 - [x] No reviewer score, testimonial, endorsement, or official competition score is invented.
 - [x] Public project URL is recorded.
 - [x] Public video URL is recorded: `https://youtu.be/D0SVpDWOrUw`.
+- [ ] Public video title is **LedgerLens — Policy-Sealed Incident Commander (DataHub Agent
+      Hackathon)**; the stale “Autonomous” wording is gone.
 
 ## Public video verification
 
@@ -146,6 +154,7 @@ verification actions.
 - [x] A YouTube URL is attached to the published Devpost project.
 - [ ] Video link works in a clean/incognito browser.
 - [ ] Captions are legible at 1080p.
+- [ ] YouTube watch page and Devpost embed both show the Policy-Sealed title.
 
 ## Final release and submission — owner boundary
 

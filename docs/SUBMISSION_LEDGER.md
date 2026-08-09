@@ -37,13 +37,15 @@ externalValidation: false
 | E-04 | Policy gate rejects unsafe/unsupported work | `tests/test_verification.py` |
 | E-05 | Authorization bound to exact reviewed plan | `tests/test_incident_dashboard.py` |
 | E-06 | GitHub adapter executed a bounded action | `benchmarks/incident_commander/github-live-action-receipt.json` |
-| E-07 | Controlled DataHub OSS write-back + MCP read-back | `benchmarks/incident_commander/datahub-live-writeback-receipt.json` |
-| E-08 | Planner + two verifiers produced a policy-authorized plan | `benchmarks/incident_commander/ai-verification-receipt.json` |
+| E-07 | Controlled DataHub OSS write-back + MCP read-back | `benchmarks/incident_commander/public-datahub-live-writeback-receipt.json` |
+| E-08 | Planner + two verifiers produced a policy-authorized plan | `benchmarks/incident_commander/public-ai-verification-receipt.json` |
 | E-11 | Real, still-open upstream contribution | issue #159, PR #160 |
 | E-12 | External-review kit ready, no result claimed | `docs/EXTERNAL_EVALUATION.md` |
 | **E-15** | **Real** `PolicyGate`/`VerifierPanel` authorizes only fact-grounded actions | `benchmarks/incident_commander/real-pipeline-ablation-receipt.json` |
-| **E-16** | One run executed a bounded action against **all four providers** | `benchmarks/incident_commander/live-incident-rehearsal-receipt.json` |
+| **E-16** | One run executed a bounded action against **all four providers** | `benchmarks/incident_commander/public-live-incident-rehearsal-receipt.json` |
 | **E-19** | Interactive server-side Seal Lab refuses controlled plan/scope drift | public Space, `/incident/api/seal-lab` |
+| **E-20** | DataHub Context Cut withdraws authority when required facts disappear | public Space, `/incident/api/context-cut/full-map` |
+| **E-21** | Repeated credential-free samples check the deployed fixture and policy labs | `.github/workflows/hosted-continuity.yml` |
 
 ## 3. Produced live artifacts (bounded rehearsal, 2026-08-03)
 
@@ -58,8 +60,10 @@ operation, incident causality, or recovery.
 | PagerDuty | Events API v2 event (dedup_key = incident id) |
 | Jira | issue [KAN-2](https://tomyimkc.atlassian.net/browse/KAN-2) |
 
-Receipt: `benchmarks/incident_commander/live-incident-rehearsal-receipt.json` — sanitized;
-verified to contain no credential and no PII.
+Judge-facing receipt:
+`benchmarks/incident_commander/public-live-incident-rehearsal-receipt.json` — a
+presentation-safe derivative bound to the archived source receipt by SHA-256. It contains no
+credential or PII and is explicitly not a new run.
 
 ## 4. Campaign PR log
 

@@ -11,6 +11,8 @@
     "publicApp": "https://tomyimkc-ledgerlens-incident-commander.hf.space/",
     "spacePage": "https://huggingface.co/spaces/tomyimkc/ledgerlens-incident-commander",
     "videoUrl": "https://youtu.be/D0SVpDWOrUw",
+    "requiredVideoTitle": "LedgerLens — Policy-Sealed Incident Commander (DataHub Agent Hackathon)",
+    "videoTitleRenamePending": true,
     "publicBaseline": "v0.2.0@00063e40bfc785f13e6db938e0795928e4f843ba",
     "finalRelease": "v0.2.1 (not yet published)"
   },
@@ -39,19 +41,21 @@
     {"id": "E-01", "claim": "Credential-free judge replay", "artifact": "https://tomyimkc-ledgerlens-incident-commander.hf.space/", "scope": "public fixture only"},
     {"id": "E-02", "claim": "DataHub context central (scripted schema demo)", "artifact": "benchmarks/incident_commander/context-ablation-receipt.json", "scope": "scripted responders; schema/contract demo, not model capability"},
     {"id": "E-06", "claim": "GitHub adapter executed a bounded action", "artifact": "benchmarks/incident_commander/github-live-action-receipt.json", "scope": "one bounded action"},
-    {"id": "E-07", "claim": "Controlled DataHub OSS write-back + MCP read-back", "artifact": "benchmarks/incident_commander/datahub-live-writeback-receipt.json", "scope": "local OSS; not recovery/causality"},
-    {"id": "E-08", "claim": "Planner + two verifiers produced a policy-authorized plan", "artifact": "benchmarks/incident_commander/ai-verification-receipt.json", "scope": "no provider action; not provider-family independence"},
+    {"id": "E-07", "claim": "Controlled DataHub OSS write-back + MCP read-back", "artifact": "benchmarks/incident_commander/public-datahub-live-writeback-receipt.json", "scope": "presentation-safe derivative bound to archived source digest; local OSS; not recovery/causality"},
+    {"id": "E-08", "claim": "Planner + two verifiers produced a policy-authorized plan", "artifact": "benchmarks/incident_commander/public-ai-verification-receipt.json", "scope": "presentation-safe derivative bound to archived source digest; no provider action; not provider-family independence"},
     {"id": "E-11", "claim": "Real, still-open upstream contribution", "artifact": "https://github.com/acryldata/mcp-server-datahub/pull/160", "scope": "open, unmerged"},
     {"id": "E-12", "claim": "External-review kit ready, no result claimed", "artifact": "docs/EXTERNAL_EVALUATION.md", "scope": "infrastructure only"},
     {"id": "E-15", "claim": "Real PolicyGate/VerifierPanel authorizes only fact-grounded actions", "artifact": "benchmarks/incident_commander/real-pipeline-ablation-receipt.json", "scope": "deterministic stub planner; proves fail-closed gate, not uplift"},
-    {"id": "E-16", "claim": "One run executed a bounded action against all four providers", "artifact": "benchmarks/incident_commander/live-incident-rehearsal-receipt.json", "scope": "one bounded rehearsal action per provider; not sustained/production"},
+    {"id": "E-16", "claim": "One run executed a bounded action against all four providers", "artifact": "benchmarks/incident_commander/public-live-incident-rehearsal-receipt.json", "scope": "presentation-safe derivative bound to archived source digest; one bounded rehearsal action per provider; not sustained/production"},
     {"id": "E-17", "claim": "Published commands reproduce from a clean clone", "artifact": "benchmarks/results/clean-clone-2026-08-03.json", "scope": "offline gates only"},
     {"id": "E-19", "claim": "Interactive Seal Lab refuses controlled plan and target drift", "artifact": "/incident/api/seal-lab", "scope": "public fixture context; tools held; no external mutations"},
-    {"id": "E-20", "claim": "Interactive DataHub Context Cut withdraws authority when required owner or lineage facts are removed", "artifact": "/incident/api/context-cut/full-map", "scope": "recorded model plan held fixed; synthetic context cuts; live deterministic policy replay; planner/verifiers not rerun; no tools"}
+    {"id": "E-20", "claim": "Interactive DataHub Context Cut withdraws authority when required owner or lineage facts are removed", "artifact": "/incident/api/context-cut/full-map", "scope": "recorded model plan held fixed; synthetic context cuts; live deterministic policy replay; planner/verifiers not rerun; no tools"},
+    {"id": "E-21", "claim": "Repeated credential-free samples check the deployed fixture and policy labs", "artifact": ".github/workflows/hosted-continuity.yml", "scope": "short-window public contract sample; no provider tools; not uptime, reliability, production validation, or independent review"}
   ],
   "producedLiveArtifacts": {
     "date": "2026-08-03",
-    "receipt": "benchmarks/incident_commander/live-incident-rehearsal-receipt.json",
+    "receipt": "benchmarks/incident_commander/public-live-incident-rehearsal-receipt.json",
+    "archivedSourceReceipt": "benchmarks/incident_commander/live-incident-rehearsal-receipt.json",
     "providers": {
       "github": "https://github.com/tomyimkc/ledgerlens/issues/29",
       "slack": "webhook message (no browsable URL by design)",
@@ -69,6 +73,7 @@
   },
   "ownerOnly": [
     "Cut and publish v0.2.1 from the final merged submission commit; record the real SHA.",
+    "Rename the YouTube video to the required Policy-Sealed title and verify the Devpost embed.",
     "Re-check Devpost account/team/eligibility and the public project/video URLs in a clean browser.",
     "Optional: supervised live-DataHub session against the owner's own instance.",
     "Optional: two consented external reviews via docs/EXTERNAL_EVALUATION.md.",

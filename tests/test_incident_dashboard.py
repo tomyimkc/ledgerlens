@@ -47,6 +47,18 @@ def test_fixture_dashboard_has_full_command_surface_and_explicit_claim_boundary(
         assert expected in response.text or expected.replace("&amp;", "&") in response.text
 
 
+def test_fixture_dashboard_leads_with_policy_sealed_language_and_live_evidence_link() -> None:
+    response = _fixture_client().get("/incident")
+
+    assert response.status_code == 200
+    assert "<title>LedgerLens · Policy-Sealed Incident Commander</title>" in response.text
+    assert "DataHub grounds the plan. Deterministic policy seals exactly what may run." in (
+        response.text
+    )
+    assert 'href="#live-evidence">Live Evidence</a>' in response.text
+    assert "Autonomous Data Incident Commander" not in response.text
+
+
 def test_fixture_state_is_deterministic_and_distinguishes_evidence_classes() -> None:
     client = _fixture_client()
 
@@ -98,6 +110,21 @@ def test_context_cut_rejects_unknown_scenario_without_falling_back() -> None:
     assert response.status_code == 400
     assert response.json()["ok"] is False
     assert "unknown context-cut scenario" in response.json()["detail"]
+
+
+def test_live_evidence_ladder_keeps_separate_runs_and_open_gap_visible() -> None:
+    client = _fixture_client()
+
+    response = client.get("/incident/api/live-evidence-ladder")
+
+    assert response.status_code == 200
+    ladder = response.json()["ladder"]
+    assert [layer["evidenceId"] for layer in ladder["layers"]] == ["E-16", "E-07", "E-21"]
+    assert ladder["crossReceiptChecks"]["sameIncidentId"] is True
+    assert ladder["crossReceiptChecks"]["integratedSameProcessRun"] is False
+    assert ladder["openGap"]["integratedLiveDataHubReadActWriteSameRun"] is False
+    assert ladder["candidateOnly"] is True
+    assert ladder["canClaimAGI"] is False
 
 
 def test_live_mode_never_substitutes_fixture_or_provider_success_state() -> None:

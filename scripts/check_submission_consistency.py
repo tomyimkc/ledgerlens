@@ -14,6 +14,7 @@ Run: ``python scripts/check_submission_consistency.py`` (also wired into ``make 
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
@@ -33,11 +34,23 @@ DOCS = (
 SPACE_URL = "https://tomyimkc-ledgerlens-incident-commander.hf.space/"
 SPACE_HOST = "tomyimkc-ledgerlens-incident-commander.hf.space"
 E16_RECEIPT = "benchmarks/incident_commander/live-incident-rehearsal-receipt.json"
+E07_RECEIPT = "benchmarks/incident_commander/datahub-live-writeback-receipt.json"
+E08_RECEIPT = "benchmarks/incident_commander/ai-verification-receipt.json"
+LADDER = "benchmarks/incident_commander/live-evidence-ladder.json"
+PUBLIC_DERIVATIVES = {
+    "benchmarks/incident_commander/public-ai-verification-receipt.json": E08_RECEIPT,
+    "benchmarks/incident_commander/public-live-incident-rehearsal-receipt.json": E16_RECEIPT,
+    "benchmarks/incident_commander/public-datahub-live-writeback-receipt.json": E07_RECEIPT,
+}
 CATALOG = "fixtures/incident_commander/catalog.json"
 
 
 def _read(root: Path, rel: str) -> str:
     return (root / rel).read_text(encoding="utf-8")
+
+
+def _sha256(root: Path, rel: str) -> str:
+    return "sha256:" + hashlib.sha256((root / rel).read_bytes()).hexdigest()
 
 
 def _check_e16_date_matches_receipt(root: Path, errors: list[str]) -> None:
@@ -99,6 +112,56 @@ def _check_space_url(root: Path, errors: list[str]) -> None:
             errors.append(f"{rel}: references the Space host but not the canonical URL {SPACE_URL}")
 
 
+def _check_public_evidence_derivatives(root: Path, errors: list[str]) -> None:
+    """Public receipt views must remain bound to their committed raw evidence."""
+    forbidden = re.compile(r"api\.020s\.com|\b020s:|\bautonomous\b", re.IGNORECASE)
+    for derivative_rel, source_rel in PUBLIC_DERIVATIVES.items():
+        derivative = json.loads(_read(root, derivative_rel))
+        expected_digest = _sha256(root, source_rel)
+        if derivative.get("publicDerivative") is not True:
+            errors.append(f"{derivative_rel}: publicDerivative must be true")
+        if derivative.get("sourceReceipt") != source_rel:
+            errors.append(
+                f"{derivative_rel}: sourceReceipt must be {source_rel}, "
+                f"found {derivative.get('sourceReceipt')!r}"
+            )
+        if derivative.get("sourceReceiptDigest") != expected_digest:
+            errors.append(f"{derivative_rel}: sourceReceiptDigest does not match {source_rel}")
+        if derivative.get("candidateOnly") is not True:
+            errors.append(f"{derivative_rel}: candidateOnly must be true")
+        if derivative.get("canClaimAGI") is not False:
+            errors.append(f"{derivative_rel}: canClaimAGI must be false")
+        if forbidden.search(_read(root, derivative_rel)):
+            errors.append(f"{derivative_rel}: stale public presentation wording remains")
+
+
+def _check_live_evidence_ladder(root: Path, errors: list[str]) -> None:
+    ladder = json.loads(_read(root, LADDER))
+    layers = ladder.get("layers")
+    evidence_ids = (
+        [layer.get("evidenceId") for layer in layers if isinstance(layer, dict)]
+        if isinstance(layers, list)
+        else []
+    )
+    if evidence_ids != ["E-16", "E-07", "E-21"]:
+        errors.append(f"{LADDER}: evidence ladder order must be E-16, E-07, E-21")
+    checks = ladder.get("crossReceiptChecks")
+    if not isinstance(checks, dict):
+        errors.append(f"{LADDER}: crossReceiptChecks must be an object")
+        return
+    if checks.get("e16SourceDigest") != _sha256(root, E16_RECEIPT):
+        errors.append(f"{LADDER}: E-16 source digest drifted")
+    if checks.get("e07SourceDigest") != _sha256(root, E07_RECEIPT):
+        errors.append(f"{LADDER}: E-07 source digest drifted")
+    if checks.get("integratedSameProcessRun") is not False:
+        errors.append(f"{LADDER}: must disclose that E-16 and E-07 were separate runs")
+    if ladder.get("candidateOnly") is not True or ladder.get("canClaimAGI") is not False:
+        errors.append(f"{LADDER}: claim boundary drifted")
+    static_ladder = json.loads(_read(root, "src/ledgerlens/static/live-evidence-ladder.json"))
+    if static_ladder != ladder:
+        errors.append(f"{LADDER}: packaged static copy is stale")
+
+
 MANIFEST = "docs/submission-manifest.json"
 
 
@@ -135,6 +198,8 @@ def evaluate(root: Path) -> list[str]:
     _check_benchmark_counts(root, errors)
     _check_shared_constants(root, errors)
     _check_space_url(root, errors)
+    _check_public_evidence_derivatives(root, errors)
+    _check_live_evidence_ladder(root, errors)
     _check_manifest(root, errors)
     return errors
 

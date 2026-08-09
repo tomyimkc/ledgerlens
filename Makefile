@@ -16,8 +16,9 @@ DATAHUB_DEMO_PASSWORD ?= datahub
 	live-smoke docker-build docker-demo video-tools capture-demo grok-assets render-video \
 	montage-demo verify-video clean-generated incident-demo incident-demo-headless \
 	incident-demo-manual incident-benchmark incident-benchmark-real-pipeline \
-	incident-catalog-bundle ai-rehearsal context-cut-trace judge-check submission-consistency \
-	hosted-smoke non-video-readiness
+	incident-catalog-bundle ai-rehearsal context-cut-trace public-evidence-receipts \
+	live-evidence-ladder judge-check submission-consistency hosted-smoke hosted-continuity \
+	non-video-readiness
 
 help: ## Show available targets.
 	@awk 'BEGIN {FS = ":.*## "; printf "LedgerLens targets:\\n\\n"} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-20s %s\\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -89,9 +90,21 @@ ai-rehearsal: ## Run the native OpenAI/Anthropic planner + verifier panel withou
 context-cut-trace: ## Rebuild the no-network DataHub Context Cut from recorded Agent I/O.
 	uv run python scripts/build_context_cut_trace.py --force
 
+live-evidence-ladder: ## Rebuild the deterministic E-16/E-07/E-21 evidence index.
+	uv run python scripts/build_live_evidence_ladder.py
+
+public-evidence-receipts: ## Rebuild presentation-safe derivatives of historical receipts.
+	uv run python scripts/build_public_evidence_receipts.py
+
 hosted-smoke: ## Verify the public fixture replay and write a sanitized receipt.
 	uv run python scripts/check_hosted_incident_demo.py \
 		--output artifacts/hosted-smoke/receipt.json
+
+hosted-continuity: ## Sample the public fixture/policy contract repeatedly; no provider tools.
+	uv run python scripts/check_hosted_continuity.py \
+		--samples 3 \
+		--interval-seconds 5 \
+		--output artifacts/hosted-continuity/receipt.json
 
 non-video-readiness: ## Fail closed on missing non-video evidence, CI, or submission contracts.
 	uv run python scripts/check_non_video_readiness.py
@@ -114,8 +127,9 @@ run-all-incidents-live: ## OWNER-ONLY: back every demo incident with a real run 
 build-live-receipts-index: ## Publish committed real-run receipts into the demo (src/ledgerlens/static/live-receipts.json).
 	uv run python scripts/build_live_receipts_index.py
 
-judge-check: context-cut-trace lint format-check typecheck test secret-scan public-check incident-benchmark \
-	incident-benchmark-real-pipeline non-video-readiness submission-consistency ## Run judge-facing quality and evidence gates.
+judge-check: context-cut-trace public-evidence-receipts live-evidence-ladder lint format-check \
+	typecheck test secret-scan public-check incident-benchmark incident-benchmark-real-pipeline \
+	non-video-readiness submission-consistency ## Run judge-facing quality and evidence gates.
 
 benchmark: ## Record a deterministic fixture benchmark receipt.
 	uv run python scripts/run_benchmark.py \

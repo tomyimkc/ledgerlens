@@ -9,6 +9,7 @@ judge-facing evidence and the internal working notes. Start with the evidence in
 |---|---|
 | [EVIDENCE_INDEX.md](EVIDENCE_INDEX.md) | **Canonical evidence map.** Every checkable claim, how to check it, the artifact, and its explicit limitation. Read this first. |
 | [WINNER_READINESS.md](WINNER_READINESS.md) | Candid, adversarially re-audited self-scorecard — including the gaps that are still open and owner-only. |
+| [../benchmarks/incident_commander/live-evidence-ladder.json](../benchmarks/incident_commander/live-evidence-ladder.json) | Machine-readable E-16/E-07/E-21 evidence ladder: source digests, separate-run disclosure, and explicit missing proof. |
 
 ## Judge-facing evidence
 

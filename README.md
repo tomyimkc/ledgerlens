@@ -20,7 +20,10 @@ refused on fingerprint mismatch (same DataHub context), a split verifier quorum 
 and an off-allowlist target is refused by the production `PolicyGate`. The adjacent DataHub
 Context Cut holds one recorded model plan fixed, removes ownership or lineage facts, and re-runs
 current policy so judges can see that catalog evidence is load-bearing for authorization. The
-planner is not re-run and no tool executes in that proof.
+planner is not re-run and no tool executes in that proof. A third judge artifact, the **Live
+Evidence Ladder**, keeps the real four-provider rehearsal, the separate DataHub write/read receipt,
+and repeated hosted contract samples visibly distinct instead of collapsing them into a
+“production” claim.
 
 ### The problem, concretely
 
@@ -73,6 +76,8 @@ demo video under three minutes. LedgerLens's release plan keeps judge access fre
 - [Upstream DataHub MCP PR #160](https://github.com/acryldata/mcp-server-datahub/pull/160)
 - [Judge-ready submission package](docs/DEVPOST_SUBMISSION.md)
 - [Canonical evidence index](docs/EVIDENCE_INDEX.md)
+- [Live Evidence Ladder](benchmarks/incident_commander/live-evidence-ladder.json)
+- [Repeated hosted evidence workflow](.github/workflows/hosted-continuity.yml)
 - [Non-video winner-readiness scorecard](docs/WINNER_READINESS.md)
 - [Submission data ledger](docs/SUBMISSION_LEDGER.md)
 - [Supervised live DataHub public proof](docs/LIVE_DATAHUB_PUBLIC.md)

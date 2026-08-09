@@ -376,7 +376,9 @@ Incident Commander surface.
   not production security.
 - The live write-back receipt proves a DataHub document mutation and retrieval, not incident
   causality or recovery.
-- Slack, PagerDuty, and Jira have not been executed live.
+- E-16 separately records one bounded supervised action against Slack, PagerDuty, and Jira.
+  Those provider actions did not occur inside this DataHub public-proof session and do not
+  establish sustained or production operation.
 - The recommended public proof should be supervised and removed after the video/judge window.
 
 ## Official service references

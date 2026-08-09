@@ -23,8 +23,17 @@ REQUIRED_FILES = (
     "docker-compose.yml",
     ".github/workflows/ci.yml",
     ".github/workflows/hosted-smoke.yml",
+    ".github/workflows/hosted-continuity.yml",
     "scripts/check_hosted_incident_demo.py",
+    "scripts/check_hosted_continuity.py",
+    "scripts/build_public_evidence_receipts.py",
+    "scripts/build_live_evidence_ladder.py",
     "scripts/check_non_video_readiness.py",
+    "benchmarks/incident_commander/public-ai-verification-receipt.json",
+    "benchmarks/incident_commander/public-live-incident-rehearsal-receipt.json",
+    "benchmarks/incident_commander/public-datahub-live-writeback-receipt.json",
+    "benchmarks/incident_commander/live-evidence-ladder.json",
+    "src/ledgerlens/static/live-evidence-ladder.json",
     "docs/EVIDENCE_INDEX.md",
     "docs/WINNER_READINESS.md",
     "docs/BENCHMARKS.md",
@@ -138,6 +147,12 @@ def main() -> int:
     require("make demo" in readme, "README: deterministic demo command missing", errors)
     require("docs/EVIDENCE_INDEX.md" in readme, "README: evidence index link missing", errors)
     require("docs/WINNER_READINESS.md" in readme, "README: winner-readiness link missing", errors)
+    require("Live Evidence Ladder" in readme, "README: live evidence ladder missing", errors)
+    require(
+        ".github/workflows/hosted-continuity.yml" in readme,
+        "README: hosted continuity workflow link missing",
+        errors,
+    )
 
     submission = _read_required_text("docs/DEVPOST_SUBMISSION.md", errors)
     require(
@@ -146,6 +161,11 @@ def main() -> int:
     require(
         "docs/WINNER_READINESS.md" in submission,
         "Devpost submission: winner-readiness link missing",
+        errors,
+    )
+    require(
+        "Live Evidence Ladder" in submission,
+        "Devpost submission: live evidence ladder missing",
         errors,
     )
 
