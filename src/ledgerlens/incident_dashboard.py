@@ -1723,7 +1723,8 @@ def create_incident_router(
             _STATIC_ROOT / "incident.css",
             media_type="text/css",
             headers={
-                "Cache-Control": "public, max-age=300",
+                # Demo copy iterates quickly on the hosted Space; avoid sticky 5m CDN/browser cache.
+                "Cache-Control": "no-store",
                 "X-Content-Type-Options": "nosniff",
             },
         )
@@ -1734,7 +1735,7 @@ def create_incident_router(
             _STATIC_ROOT / "incident.js",
             media_type="text/javascript",
             headers={
-                "Cache-Control": "public, max-age=300",
+                "Cache-Control": "no-store",
                 "X-Content-Type-Options": "nosniff",
             },
         )
