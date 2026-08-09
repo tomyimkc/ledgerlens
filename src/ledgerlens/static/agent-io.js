@@ -67,7 +67,7 @@
       callsEl.append(
         h("p", {
           class: "sec-note",
-          text: "No LLM calls in this trace yet. Run scripts/run_agent_io_trace.py --force with a 020s key.",
+          text: "No LLM calls in this trace yet. Run scripts/run_agent_io_trace.py --force with OPENAI_API_KEY or ANTHROPIC_API_KEY.",
         })
       );
       return;

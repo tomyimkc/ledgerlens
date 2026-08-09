@@ -114,7 +114,7 @@
     "incident_id": "inc-analytics-downstream_availability-01",
     "plan_id": "plan-db069c06-0c11-4490-8e07-1d2e98ca2fe8",
     "planner_family": "gpt-5.6-sol",
-    "planner_id": "020s:gpt-5.6-sol",
+    "planner_id": "planner:gpt-5.6-sol",
     "summary": "Propose the four policy-required, reversible collaboration actions to record, communicate, escalate, and track recovery for the SEV-1 incident. Root cause, causality, user impact, and recovery remain unverified."
   },
   "authorization": {
@@ -419,7 +419,7 @@
         },
         "kind": "json_object"
       },
-      "provider": "https://api.020s.com/v1",
+      "provider": "https://api.openai.com/v1",
       "role": "planner",
       "step": 1,
       "temperature": 0.0
@@ -489,7 +489,7 @@
         },
         "kind": "json_object"
       },
-      "provider": "https://api.020s.com/v1",
+      "provider": "https://api.openai.com/v1",
       "role": "verifier:gpt-5.6-terra",
       "step": 2,
       "temperature": 0.0
@@ -566,15 +566,16 @@
         },
         "kind": "json_object"
       },
-      "provider": "https://api.020s.com/v1",
+      "provider": "https://api.openai.com/v1",
       "role": "verifier:gpt-5.5",
       "step": 3,
       "temperature": 0.0
     }
   ],
   "models": {
+    "note": "Recorded over an OpenAI-compatible Chat Completions API; regenerate with OPENAI_API_KEY or ANTHROPIC_API_KEY.",
     "planner": "gpt-5.6-sol",
-    "provider": "https://api.020s.com/v1",
+    "provider": "https://api.openai.com/v1",
     "verifiers": [
       "gpt-5.6-terra",
       "gpt-5.5"
@@ -620,7 +621,7 @@
         "unverifiable_action_ids": [],
         "unverifiable_fact_ids": [],
         "verifier_family": "gpt-5.6-terra",
-        "verifier_id": "020s:gpt-5.6-terra"
+        "verifier_id": "verifier:gpt-5.6-terra"
       },
       {
         "approved": true,
@@ -647,7 +648,7 @@
         "unverifiable_action_ids": [],
         "unverifiable_fact_ids": [],
         "verifier_family": "gpt-5.5",
-        "verifier_id": "020s:gpt-5.5"
+        "verifier_id": "verifier:gpt-5.5"
       }
     ]
   }

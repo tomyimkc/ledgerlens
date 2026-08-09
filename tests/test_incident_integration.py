@@ -115,8 +115,8 @@ def _context(incident: Incident) -> IncidentContext:
 
 
 class Planner:
-    planner_id = "020s:gpt-5.6-sol"
-    family = "gpt-5.6-sol"
+    planner_id = "planner:gpt-4o"
+    family = "gpt-4o"
 
     def plan(self, context: IncidentContext) -> ActionPlan:
         return ActionPlan(
@@ -220,8 +220,8 @@ def test_autonomous_dashboard_executes_the_frozen_orchestrator_plan_once() -> No
         planner=Planner(),
         verifier_panel=VerifierPanel(
             (
-                Verifier("020s:gpt-5.6-terra", "gpt-5.6-terra"),
-                Verifier("020s:gpt-5.5", "gpt-5.5"),
+                Verifier("verifier:gpt-4o-mini", "gpt-4o-mini"),
+                Verifier("verifier:gpt-4-turbo", "gpt-4-turbo"),
             )
         ),
         policy_gate=_policy(),

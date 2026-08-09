@@ -438,6 +438,6 @@ class _FakeAuth(_FakeDumpable):
 
 
 class _FakeSettings:
-    planner_model = "gpt-5.6-sol"
-    verifier_model_ids = ("gpt-5.6-terra", "gpt-5.5")
-    llm_base_url = "https://api.020s.test/v1"
+    planner_model = "gpt-4o"
+    verifier_model_ids = ("gpt-4o-mini", "gpt-4-turbo")
+    llm_base_url = "https://api.openai.test/v1"

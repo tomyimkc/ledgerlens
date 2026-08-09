@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from ledgerlens.config import Settings
+from ledgerlens.config import LlmProvider, Settings
 
 
 def test_safe_defaults_are_read_only(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -15,11 +15,13 @@ def test_safe_defaults_are_read_only(monkeypatch: pytest.MonkeyPatch) -> None:
         "DATAHUB_TOKEN",
         "DATAHUB_MCP_URL",
         "DATAHUB_MCP_COMMAND",
-        "SOPHIA_020S_KEY",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
         "LEDGERLENS_LLM_API_KEY",
         "LEDGERLENS_LLM_ENABLED",
         "LEDGERLENS_LLM_BASE_URL",
         "LEDGERLENS_LLM_MODEL",
+        "LEDGERLENS_LLM_PROVIDER",
         "LEDGERLENS_MUTATIONS_ENABLED",
         "LEDGERLENS_INCIDENT_COMMANDER_ENABLED",
         "LEDGERLENS_AUTONOMOUS_EXECUTION_ENABLED",
@@ -33,25 +35,28 @@ def test_safe_defaults_are_read_only(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv(key, raising=False)
     settings = Settings(_env_file=None)
     assert settings.datahub_gms_url == "http://localhost:8080"
-    assert settings.llm_base_url == "https://api.020s.com/v1"
-    assert settings.llm_model == "gpt-5.6-sol"
+    assert settings.llm_base_url == "https://api.openai.com/v1"
+    assert settings.llm_model == "gpt-4o"
+    assert settings.llm_provider is LlmProvider.OPENAI
     assert settings.llm_enabled is False
     assert settings.mutations_enabled is False
     assert settings.incident_commander_enabled is False
     assert settings.autonomous_execution_enabled is False
     assert settings.ai_verification_enabled is False
-    assert settings.planner_model == "gpt-5.6-sol"
-    assert settings.verifier_model_ids == ("gpt-5.6-terra", "gpt-5.5")
+    assert settings.planner_model == "gpt-4o"
+    assert settings.verifier_model_ids == ("gpt-4o-mini", "gpt-4-turbo")
     assert settings.verifier_quorum == 2
     assert settings.verifier_min_confidence == 0.85
     assert settings.llm_api_key is None
+    assert settings.openai_api_key is None
+    assert settings.anthropic_api_key is None
 
 
 def test_environment_aliases_and_shell_free_mcp_argv(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DATAHUB_GMS_URL", "http://datahub:8080/")
     monkeypatch.setenv("DATAHUB_GMS_TOKEN", "datahub-secret")
     monkeypatch.setenv("DATAHUB_MCP_COMMAND", "uvx mcp-server-datahub --transport stdio")
-    monkeypatch.setenv("LEDGERLENS_LLM_API_KEY", "top-secret")
+    monkeypatch.setenv("OPENAI_API_KEY", "top-secret")
     monkeypatch.setenv("LEDGERLENS_LLM_ENABLED", "true")
     settings = Settings(_env_file=None)
     assert settings.datahub_gms_url == "http://datahub:8080"
@@ -67,18 +72,24 @@ def test_environment_aliases_and_shell_free_mcp_argv(monkeypatch: pytest.MonkeyP
     assert "datahub-secret" not in repr(settings)
 
 
-def test_legacy_sophia_key_alias_still_accepted(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_openai_and_anthropic_keys_resolve_by_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.delenv("LEDGERLENS_LLM_API_KEY", raising=False)
-    monkeypatch.setenv("SOPHIA_020S_KEY", "legacy-key")
+    monkeypatch.setenv("OPENAI_API_KEY", "openai-secret")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "anthropic-secret")
     settings = Settings(_env_file=None)
-    assert settings.require_llm_api_key() == "legacy-key"
+    assert settings.api_key_for_provider(LlmProvider.OPENAI) == "openai-secret"
+    assert settings.api_key_for_provider(LlmProvider.ANTHROPIC) == "anthropic-secret"
+    assert settings.base_url_for_provider(LlmProvider.ANTHROPIC) == "https://api.anthropic.com"
 
 
 def test_llm_enabled_requires_a_key(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LEDGERLENS_LLM_ENABLED", "true")
-    monkeypatch.delenv("SOPHIA_020S_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("LEDGERLENS_LLM_API_KEY", raising=False)
-    with pytest.raises(ValidationError, match="requires LEDGERLENS_LLM_API_KEY"):
+    with pytest.raises(ValidationError, match="OPENAI_API_KEY"):
         Settings(_env_file=None)
 
 
@@ -112,15 +123,14 @@ def test_verifier_quorum_cannot_exceed_configured_models(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("LEDGERLENS_AI_VERIFICATION_ENABLED", "true")
-    monkeypatch.setenv("LEDGERLENS_VERIFIER_MODELS", "gpt-5.5")
+    monkeypatch.setenv("LEDGERLENS_VERIFIER_MODELS", "gpt-4o-mini")
     monkeypatch.setenv("LEDGERLENS_VERIFIER_QUORUM", "2")
     with pytest.raises(ValidationError, match="quorum exceeds"):
         Settings(_env_file=None)
 
 
 def test_any_https_llm_endpoint_is_accepted(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Bring your own LLM: a custom OpenAI-compatible endpoint is allowed.
-    monkeypatch.setenv("LEDGERLENS_LLM_API_KEY", "byo-key")
+    monkeypatch.setenv("OPENAI_API_KEY", "byo-key")
     monkeypatch.setenv("LEDGERLENS_LLM_BASE_URL", "https://api.openai.com/v1")
     monkeypatch.setenv("LEDGERLENS_LLM_MODEL", "gpt-4o")
     settings = Settings(_env_file=None)
@@ -129,7 +139,7 @@ def test_any_https_llm_endpoint_is_accepted(monkeypatch: pytest.MonkeyPatch) -> 
 
 
 def test_llm_key_is_not_sent_over_plaintext_http(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("LEDGERLENS_LLM_API_KEY", "byo-key")
+    monkeypatch.setenv("OPENAI_API_KEY", "byo-key")
     monkeypatch.setenv("LEDGERLENS_LLM_BASE_URL", "http://api.example.com/v1")
     with pytest.raises(ValidationError, match="only be sent over https"):
         Settings(_env_file=None)

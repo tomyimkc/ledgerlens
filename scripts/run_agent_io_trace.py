@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Run planner (sol) + verifiers (terra, …) via 020s and write a public agent I/O trace.
+"""Run OpenAI (or Anthropic) planner + verifiers and write a public agent I/O trace.
 
 Captures system prompts, user prompts, tool catalog context, model JSON outputs, and
 the deterministic policy decision — without external mutations and without API keys.
 
 Usage:
-  export LEDGERLENS_LLM_API_KEY=…   # or SOPHIA_020S_KEY
-  # optional: LEDGERLENS_LLM_BASE_URL=https://api.020s.com/v1
-  # optional: LEDGERLENS_PLANNER_MODEL=gpt-5.6-sol
-  # optional: LEDGERLENS_VERIFIER_MODELS=gpt-5.6-terra,gpt-5.5
+  export OPENAI_API_KEY=…            # or ANTHROPIC_API_KEY for Claude
+  # optional: LEDGERLENS_LLM_PROVIDER=openai|anthropic
+  # optional: LEDGERLENS_PLANNER_MODEL=gpt-4o
+  # optional: LEDGERLENS_VERIFIER_MODELS=gpt-4o-mini,gpt-4o
   uv run python scripts/run_agent_io_trace.py --force
 """
 
@@ -30,7 +30,7 @@ from ledgerlens.catalog_runtime import (
 from ledgerlens.config import Settings
 from ledgerlens.incident_integration import OrchestratorIncidentBackend
 from ledgerlens.incident_models import Incident, IncidentContext
-from ledgerlens.runtime_factory import build_020s_ai_roles, build_policy_gate
+from ledgerlens.runtime_factory import build_ai_roles, build_policy_gate
 
 DEFAULT_INCIDENT = "inc-analytics-downstream_availability-01"
 DEFAULT_OUTPUT = Path("src/ledgerlens/static/agent-io-trace.json")
@@ -268,30 +268,45 @@ def main() -> int:
         print(f"refusing to overwrite existing trace: {args.output}", file=sys.stderr)
         return 2
 
-    llm_key = os.getenv("LEDGERLENS_LLM_API_KEY") or os.getenv("SOPHIA_020S_KEY")
-    if not llm_key:
-        print("LEDGERLENS_LLM_API_KEY or SOPHIA_020S_KEY is required", file=sys.stderr)
+    openai_key = os.getenv("OPENAI_API_KEY") or os.getenv("LEDGERLENS_OPENAI_API_KEY")
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY") or os.getenv("LEDGERLENS_ANTHROPIC_API_KEY")
+    generic_key = os.getenv("LEDGERLENS_LLM_API_KEY")
+    if not (openai_key or anthropic_key or generic_key):
+        print(
+            "OPENAI_API_KEY, ANTHROPIC_API_KEY, or LEDGERLENS_LLM_API_KEY is required",
+            file=sys.stderr,
+        )
         return 2
 
     catalog = load_incident_catalog()
     incident = incident_from_catalog(catalog, args.incident_id)
     provider = CatalogContextProvider(catalog)
-    settings = Settings.model_validate(
-        {
-            "ai_verification_enabled": True,
-            "llm_api_key": llm_key,
-            "llm_base_url": os.getenv("LEDGERLENS_LLM_BASE_URL", "https://api.020s.com/v1"),
-            "llm_model": os.getenv("LEDGERLENS_LLM_MODEL", "gpt-5.6-sol"),
-            "planner_model": os.getenv("LEDGERLENS_PLANNER_MODEL", "gpt-5.6-sol"),
-            "verifier_models": os.getenv(
-                "LEDGERLENS_VERIFIER_MODELS",
-                "gpt-5.6-terra,gpt-5.5",
-            ),
-            "verifier_quorum": 2,
-            "verifier_min_confidence": 0.85,
-            "llm_timeout_seconds": float(os.getenv("LEDGERLENS_LLM_TIMEOUT_SECONDS", "90")),
-        }
-    )
+    llm_provider = os.getenv("LEDGERLENS_LLM_PROVIDER", "openai")
+    settings_kwargs: dict[str, Any] = {
+        "ai_verification_enabled": True,
+        "llm_provider": llm_provider,
+        "llm_base_url": os.getenv("LEDGERLENS_LLM_BASE_URL", "https://api.openai.com/v1"),
+        "llm_model": os.getenv("LEDGERLENS_LLM_MODEL", "gpt-4o"),
+        "planner_model": os.getenv("LEDGERLENS_PLANNER_MODEL", "gpt-4o"),
+        "verifier_models": os.getenv(
+            "LEDGERLENS_VERIFIER_MODELS",
+            "gpt-4o-mini,gpt-4-turbo",
+        ),
+        "verifier_quorum": 2,
+        "verifier_min_confidence": 0.85,
+        "llm_timeout_seconds": float(os.getenv("LEDGERLENS_LLM_TIMEOUT_SECONDS", "90")),
+    }
+    if openai_key:
+        settings_kwargs["openai_api_key"] = openai_key
+    if anthropic_key:
+        settings_kwargs["anthropic_api_key"] = anthropic_key
+    if generic_key:
+        settings_kwargs["llm_api_key"] = generic_key
+    if os.getenv("LEDGERLENS_PLANNER_PROVIDER"):
+        settings_kwargs["planner_provider"] = os.environ["LEDGERLENS_PLANNER_PROVIDER"]
+    if os.getenv("LEDGERLENS_VERIFIER_PROVIDER"):
+        settings_kwargs["verifier_provider"] = os.environ["LEDGERLENS_VERIFIER_PROVIDER"]
+    settings = Settings.model_validate(settings_kwargs)
     action_targets = {
         "github.issue.create": ["tomyimkc/ledgerlens"],
         "slack.message.post": ["#inc-data-platform"],
@@ -299,7 +314,7 @@ def main() -> int:
         "jira.issue.create": ["DATAOPS"],
     }
     llm_records: list[dict[str, Any]] = []
-    roles = build_020s_ai_roles(
+    roles = build_ai_roles(
         settings,
         action_targets=action_targets,
         record_llm_io=True,
@@ -371,11 +386,7 @@ def main() -> int:
         "schemaVersion": "1.0",
         "kind": "agent-io-trace",
         "generatedAt": datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
-        "status": (
-            "authorized"
-            if authorized
-            else ("failed-closed" if error else "blocked")
-        ),
+        "status": ("authorized" if authorized else ("failed-closed" if error else "blocked")),
         "networkUsed": True,
         "externalMutations": False,
         "models": {
@@ -386,9 +397,7 @@ def main() -> int:
         "incidentId": incident.incident_id,
         "flow": flow,
         "llmCalls": _sanitize_records(llm_records, max_context_chars=args.max_context_chars),
-        "agentPlan": (
-            prepared.plan.model_dump(mode="json", by_alias=True) if prepared else None
-        ),
+        "agentPlan": (prepared.plan.model_dump(mode="json", by_alias=True) if prepared else None),
         "verification": (
             prepared.verification.model_dump(mode="json", by_alias=True) if prepared else None
         ),

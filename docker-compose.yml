@@ -38,8 +38,10 @@ services:
       DATAHUB_MCP_COMMAND: "${DATAHUB_MCP_COMMAND:-mcp-server-datahub}"
       DATAHUB_GMS_TOKEN: "${DATAHUB_GMS_TOKEN:-}"
       LEDGERLENS_LLM_ENABLED: "${LEDGERLENS_LLM_ENABLED:-false}"
-      LEDGERLENS_LLM_BASE_URL: "https://api.020s.com/v1"
-      LEDGERLENS_LLM_MODEL: "${LEDGERLENS_LLM_MODEL:-gpt-5.6-sol}"
+      LEDGERLENS_LLM_BASE_URL: "https://api.openai.com/v1"
+      LEDGERLENS_LLM_MODEL: "${LEDGERLENS_LLM_MODEL:-gpt-4o}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
       LEDGERLENS_MUTATIONS_ENABLED: "false"
     ports:
       - "127.0.0.1:8001:8000"

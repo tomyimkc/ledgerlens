@@ -41,15 +41,14 @@
 
     <main class="agent-io-main">
       <section class="sec agent-io-hero">
-        <p class="sec-eyebrow">LIVE MODEL TRACE · 020s COMPATIBLE</p>
+        <p class="sec-eyebrow">LIVE MODEL TRACE · OPENAI / ANTHROPIC</p>
         <h1>See what the agent is told — and what it answers</h1>
         <p class="sec-note">
           This page shows a recorded (or live-generated) run of the
-          <strong>planner</strong> (e.g. <code>gpt-5.6-sol</code>) and
-          <strong>verifier</strong> models (e.g. <code>gpt-5.6-terra</code>) over the
-          OpenAI-compatible 020s endpoint. You get system + user prompts, tool-catalog
-          context, JSON outputs, then the <strong>deterministic policy gate</strong>
-          (not the model) deciding authorize vs deny.
+          <strong>planner</strong> (e.g. <code>gpt-4o</code> or Claude) and
+          <strong>verifier</strong> models over native OpenAI or Anthropic APIs.
+          You get system + user prompts, tool-catalog context, JSON outputs, then the
+          <strong>deterministic policy gate</strong> (not the model) deciding authorize vs deny.
         </p>
         <p class="sec-note pitch-line">
           No GitHub / Slack / PagerDuty / Jira / DataHub mutations in this trace.
@@ -102,11 +101,18 @@
 
       <section class="sec" id="how-to-run">
         <p class="sec-eyebrow">REGENERATE LOCALLY</p>
-        <h2 class="sec-title">Test-run with sol / terra on 020s</h2>
-        <pre class="code-block">export LEDGERLENS_LLM_API_KEY=…          # or SOPHIA_020S_KEY
-export LEDGERLENS_LLM_BASE_URL=https://api.020s.com/v1
-export LEDGERLENS_PLANNER_MODEL=gpt-5.6-sol
-export LEDGERLENS_VERIFIER_MODELS=gpt-5.6-terra,gpt-5.5
+        <h2 class="sec-title">Test-run with OpenAI or Anthropic</h2>
+        <pre class="code-block"># OpenAI (default)
+export OPENAI_API_KEY=…
+export LEDGERLENS_LLM_PROVIDER=openai
+export LEDGERLENS_PLANNER_MODEL=gpt-4o
+export LEDGERLENS_VERIFIER_MODELS=gpt-4o-mini,gpt-4-turbo
+
+# Or Anthropic
+# export ANTHROPIC_API_KEY=…
+# export LEDGERLENS_LLM_PROVIDER=anthropic
+# export LEDGERLENS_PLANNER_MODEL=claude-sonnet-4-20250514
+# export LEDGERLENS_VERIFIER_MODELS=claude-3-5-haiku-latest,claude-sonnet-4-20250514
 
 uv run python scripts/run_agent_io_trace.py --force
 # writes src/ledgerlens/static/agent-io-trace.json
