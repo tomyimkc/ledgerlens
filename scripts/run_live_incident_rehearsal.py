@@ -434,7 +434,8 @@ def main() -> int:
         issuer="ledgerlens-live-rehearsal",
     )
     executor = build_action_executor(credentials, authorizer)
-    roles = build_020s_ai_roles(settings)
+    # Agent-visible tool catalog matches policy targets (flexible selection, sealed authority).
+    roles = build_020s_ai_roles(settings, action_targets=targets)
     executed = False
     result = None
     try:

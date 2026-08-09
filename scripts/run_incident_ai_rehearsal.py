@@ -176,7 +176,14 @@ def main() -> int:
             "llm_timeout_seconds": 60,
         }
     )
-    roles = build_020s_ai_roles(settings)
+    action_targets = {
+        "github.issue.create": ["tomyimkc/ledgerlens"],
+        "slack.message.post": ["#inc-data-platform"],
+        "pagerduty.event.trigger": ["pagerduty:events-v2"],
+        "jira.issue.create": ["DATAOPS"],
+    }
+    # Planner agent receives the same tool catalog policy will enforce.
+    roles = build_020s_ai_roles(settings, action_targets=action_targets)
     prepared = None
     exit_code = 0
     try:
@@ -186,12 +193,7 @@ def main() -> int:
             planner=roles.planner,
             verifier_panel=roles.verifier_panel,
             policy_gate=build_policy_gate(
-                {
-                    "github.issue.create": ["tomyimkc/ledgerlens"],
-                    "slack.message.post": ["#inc-data-platform"],
-                    "pagerduty.event.trigger": ["pagerduty:events-v2"],
-                    "jira.issue.create": ["DATAOPS"],
-                },
+                action_targets,
                 minimum_plan_confidence=0.8,
                 minimum_verifier_confidence=0.85,
                 quorum=2,

@@ -620,6 +620,16 @@
       list);
   };
 
+  const FLEX_VS_FIXED = [
+    ["Which tools to call on this incident", "AI planner agent (selects from catalog)", "Yes — flexible within allowlist"],
+    ["Tool targets (repo, channel, project)", "AI proposes; must be in catalog targets", "Yes — among registered destinations"],
+    ["Message / issue wording", "AI fills parameters", "Yes — content is model-driven"],
+    ["Orchestration phases (sense→plan→gate→act)", "Code state machine", "No — skeleton stays fail-closed"],
+    ["May this exact plan run?", "Deterministic policy gate", "No — not model judgment"],
+    ["How GitHub/Slack/… I/O works", "Adapter code you ship", "No — agents cannot invent clients"],
+    ["Add a brand-new system (e.g. webhook)", "register_tool_spec + adapter + allowlist", "Yes — after you register it once"],
+  ];
+
   const buildToolBelt = () => {
     const grid = h("div", { class: "tool-belt-grid", "data-testid": "tool-belt" });
     for (const t of TOOL_BELT) {
@@ -634,10 +644,27 @@
       h("p", { class: "sec-eyebrow", text: "AI-NATIVE TOOL USE" }),
       h("h2", { class: "sec-title", text: "Enable AI + integrate your tools" }),
       h("p", { class: "sec-note" },
-        "This is the agentic product surface: a ",
-        h("b", { text: "tool belt" }),
-        " the planner can select from, plus a policy that only runs what you allowlisted. ",
-        "You bring the model. You register tools and targets. LedgerLens does not hard-code “only these four vendors forever” in the architecture — adapters are the extension point."),
+        "Some parts of the repo look “hard-coded” on purpose. ",
+        h("b", { text: "Adapters and the gate are code" }),
+        " (safe I/O + authority). ",
+        h("b", { text: "Which tools to call" }),
+        " is agent work: the planner LLM receives an ",
+        h("b", { text: "agent tool catalog" }),
+        " and chooses flexibly among allowlisted tools — it does not invent new systems out of thin air."),
+      h("h3", { class: "table-title", text: "What the agent chooses vs what stays in code" }),
+      dataTable(
+        ["Capability", "Who decides", "Flexible via AI?"],
+        FLEX_VS_FIXED.map((r) => r.slice()),
+        { testId: "table-flex-vs-fixed", tableClass: "cmp3" }
+      ),
+      h("p", { class: "sec-note" },
+        "Catalog implementation: ",
+        fileLink("src/ledgerlens/tool_catalog.py", "tool_catalog.py"),
+        " · planner injects ",
+        h("code", { text: "agentToolCatalog" }),
+        " into the model context (",
+        fileLink("src/ledgerlens/ai_roles.py", "ai_roles.py"),
+        "). Live rehearsals pass the same target map into the planner and the policy gate."),
       h("div", { class: "tool-enable", "data-testid": "enable-ai" },
         h("h3", { class: "table-title", text: "1. Enable the agent brain (your LLM)" }),
         h("pre", { class: "code-block", text: [

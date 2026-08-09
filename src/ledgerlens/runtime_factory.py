@@ -11,6 +11,7 @@ from ledgerlens.ai_roles import JsonIncidentPlanner, JsonPlanVerifier
 from ledgerlens.config import Settings
 from ledgerlens.incident_models import ActionRisk
 from ledgerlens.model_runtime import OpenAICompatibleJsonClient, close_clients
+from ledgerlens.tool_catalog import TOOL_SPECS, AgentToolCatalog, build_agent_tool_catalog
 from ledgerlens.verification import (
     ActionAllowance,
     PolicyConfig,
@@ -36,8 +37,15 @@ def build_020s_ai_roles(
     settings: Settings,
     *,
     transports: Mapping[str, httpx.BaseTransport] | None = None,
+    action_targets: Mapping[str, Sequence[str]] | None = None,
+    tool_catalog: AgentToolCatalog | None = None,
 ) -> AIRoleBundle:
-    """Create one planner and a distinct-model verifier panel from the configured LLM."""
+    """Create one planner and a distinct-model verifier panel from the configured LLM.
+
+    Pass ``action_targets`` (same map as ``build_policy_gate``) so the planner agent
+    receives an explicit tool catalog and can flexibly choose among allowlisted tools
+    instead of free-form inventing action types.
+    """
 
     if not settings.ai_verification_enabled:
         raise ValueError("LEDGERLENS_AI_VERIFICATION_ENABLED must be true")
@@ -63,10 +71,14 @@ def build_020s_ai_roles(
         )
         for model_id in model_ids
     )
+    catalog = tool_catalog
+    if catalog is None and action_targets is not None:
+        catalog = build_agent_tool_catalog(action_targets)
     planner = JsonIncidentPlanner(
         planner_client,
         planner_id=f"020s:{settings.planner_model}",
         family=settings.planner_model,
+        tool_catalog=catalog,
     )
     verifiers = tuple(
         JsonPlanVerifier(
@@ -103,46 +115,20 @@ def build_policy_gate(
 ) -> PolicyGate:
     """Build exact target/parameter allowlists for the supported action fanout."""
 
-    specs: dict[str, tuple[frozenset[str], frozenset[str]]] = {
-        "github.issue.create": (
-            frozenset({"owner", "repository", "title", "body", "labels", "assignees"}),
-            frozenset({"owner", "repository", "title"}),
-        ),
-        "slack.message.post": (
-            frozenset({"text", "channel", "blocks", "thread_ts"}),
-            frozenset({"text"}),
-        ),
-        "pagerduty.event.trigger": (
-            frozenset(
-                {
-                    "summary",
-                    "source",
-                    "severity",
-                    "dedup_key",
-                    "component",
-                    "group",
-                    "event_class",
-                    "custom_details",
-                }
-            ),
-            frozenset({"summary", "source", "severity"}),
-        ),
-        "jira.issue.create": (
-            frozenset({"project_key", "summary", "description", "issue_type", "labels"}),
-            frozenset({"project_key", "summary"}),
-        ),
-    }
     allowances = []
     for action_type, action_targets in sorted(targets.items()):
-        if action_type not in specs:
-            raise ValueError(f"unsupported policy action type: {action_type}")
-        allowed_keys, required_keys = specs[action_type]
+        base = TOOL_SPECS.get(action_type)
+        if base is None:
+            raise ValueError(
+                f"unsupported policy action type: {action_type}. "
+                "Register it with ledgerlens.tool_catalog.register_tool_spec first."
+            )
         allowances.append(
             ActionAllowance(
                 action_type=action_type,
                 targets=frozenset(action_targets),
-                allowed_parameter_keys=allowed_keys,
-                required_parameter_keys=required_keys,
+                allowed_parameter_keys=frozenset(base["allowed_parameter_keys"]),
+                required_parameter_keys=frozenset(base["required_parameter_keys"]),
                 maximum_risk=maximum_risk,
                 automatable=True,
             )
