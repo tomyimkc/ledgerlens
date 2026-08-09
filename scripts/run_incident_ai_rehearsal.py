@@ -19,7 +19,7 @@ from ledgerlens.catalog_runtime import (
 from ledgerlens.config import Settings
 from ledgerlens.incident_integration import OrchestratorIncidentBackend
 from ledgerlens.incident_models import Incident, IncidentContext
-from ledgerlens.runtime_factory import build_020s_ai_roles, build_policy_gate
+from ledgerlens.runtime_factory import build_ai_roles, build_policy_gate
 
 DEFAULT_INCIDENT = "inc-analytics-downstream_availability-01"
 DEFAULT_OUTPUT = Path("benchmarks/incident_commander/ai-verification-receipt.json")
@@ -28,8 +28,8 @@ DEFAULT_OUTPUT = Path("benchmarks/incident_commander/ai-verification-receipt.jso
 def _arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Call one 020s planner and two verifier model variants, then run the "
-            "deterministic policy gate. No provider or DataHub mutation is executed."
+            "Call one planner and two verifier model variants (OpenAI and/or Anthropic), "
+            "then run the deterministic policy gate. No provider or DataHub mutation is executed."
         )
     )
     parser.add_argument("--incident-id", default=DEFAULT_INCIDENT)
@@ -155,28 +155,45 @@ def main() -> int:
     if args.output.exists() and not args.force:
         print(f"refusing to overwrite existing receipt: {args.output}", file=sys.stderr)
         return 2
-    llm_key = os.getenv("LEDGERLENS_LLM_API_KEY") or os.getenv("SOPHIA_020S_KEY")
-    if not llm_key:
-        print("LEDGERLENS_LLM_API_KEY is required", file=sys.stderr)
+    openai_key = os.getenv("OPENAI_API_KEY") or os.getenv("LEDGERLENS_OPENAI_API_KEY")
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY") or os.getenv("LEDGERLENS_ANTHROPIC_API_KEY")
+    generic_key = os.getenv("LEDGERLENS_LLM_API_KEY")
+    if not (openai_key or anthropic_key or generic_key):
+        print(
+            "OPENAI_API_KEY, ANTHROPIC_API_KEY, or LEDGERLENS_LLM_API_KEY is required",
+            file=sys.stderr,
+        )
         return 2
 
     catalog = load_incident_catalog()
     incident = incident_from_catalog(catalog, args.incident_id)
     provider = CatalogContextProvider(catalog)
-    settings = Settings.model_validate(
-        {
-            "ai_verification_enabled": True,
-            "llm_api_key": llm_key,
-            "llm_base_url": os.getenv("LEDGERLENS_LLM_BASE_URL", "https://api.020s.com/v1"),
-            "llm_model": os.getenv("LEDGERLENS_LLM_MODEL", "gpt-5.6-sol"),
-            "planner_model": os.getenv("LEDGERLENS_PLANNER_MODEL", "gpt-5.6-sol"),
-            "verifier_models": "gpt-5.6-terra,gpt-5.5",
-            "verifier_quorum": 2,
-            "verifier_min_confidence": 0.85,
-            "llm_timeout_seconds": 60,
-        }
-    )
-    roles = build_020s_ai_roles(settings)
+    settings_kwargs = {
+        "ai_verification_enabled": True,
+        "llm_provider": os.getenv("LEDGERLENS_LLM_PROVIDER", "openai"),
+        "llm_base_url": os.getenv("LEDGERLENS_LLM_BASE_URL", "https://api.openai.com/v1"),
+        "llm_model": os.getenv("LEDGERLENS_LLM_MODEL", "gpt-4o"),
+        "planner_model": os.getenv("LEDGERLENS_PLANNER_MODEL", "gpt-4o"),
+        "verifier_models": os.getenv("LEDGERLENS_VERIFIER_MODELS", "gpt-4o-mini,gpt-4-turbo"),
+        "verifier_quorum": 2,
+        "verifier_min_confidence": 0.85,
+        "llm_timeout_seconds": 60,
+    }
+    if openai_key:
+        settings_kwargs["openai_api_key"] = openai_key
+    if anthropic_key:
+        settings_kwargs["anthropic_api_key"] = anthropic_key
+    if generic_key:
+        settings_kwargs["llm_api_key"] = generic_key
+    settings = Settings.model_validate(settings_kwargs)
+    action_targets = {
+        "github.issue.create": ["tomyimkc/ledgerlens"],
+        "slack.message.post": ["#inc-data-platform"],
+        "pagerduty.event.trigger": ["pagerduty:events-v2"],
+        "jira.issue.create": ["DATAOPS"],
+    }
+    # Planner agent receives the same tool catalog policy will enforce.
+    roles = build_ai_roles(settings, action_targets=action_targets)
     prepared = None
     exit_code = 0
     try:
@@ -186,12 +203,7 @@ def main() -> int:
             planner=roles.planner,
             verifier_panel=roles.verifier_panel,
             policy_gate=build_policy_gate(
-                {
-                    "github.issue.create": ["tomyimkc/ledgerlens"],
-                    "slack.message.post": ["#inc-data-platform"],
-                    "pagerduty.event.trigger": ["pagerduty:events-v2"],
-                    "jira.issue.create": ["DATAOPS"],
-                },
+                action_targets,
                 minimum_plan_confidence=0.8,
                 minimum_verifier_confidence=0.85,
                 quorum=2,

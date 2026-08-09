@@ -217,7 +217,7 @@ def title_frame(destination: Path) -> None:
     text(
         draw,
         (92, 278),
-        "Autonomous Data Incident Commander",
+        "Policy-Sealed Data Incident Commander",
         size=44,
         color=CYAN,
         bold=True,
@@ -231,10 +231,10 @@ def title_frame(destination: Path) -> None:
         max_width=1500,
     )
     labels = [
-        ("LIVE HOST", "fixture replay", TEAL),
-        ("LIVE GITHUB", "issue created + closed", GREEN),
+        ("LIVE HOST", "fixture replay + deny hero", TEAL),
+        ("LIVE ACTIONS", "4 providers · one each", GREEN),
         ("LIVE DATAHUB", "document write + retrieval", CYAN),
-        ("BENCHMARK", "synthetic + deterministic", AMBER),
+        ("REAL GATE", "context ON/OFF ablation", AMBER),
     ]
     x = 90
     for heading, detail, color in labels:
@@ -284,16 +284,68 @@ def fixture_execution_frame(destination: Path) -> None:
     image.save(destination)
 
 
+def deny_hero_frame(destination: Path) -> None:
+    """Hero moment: real Space gate-demo (reviewed authorized → drifted plan denied)."""
+    image = background()
+    source = SHOTS / "03c-gate-deny-hero.png"
+    if not source.is_file():
+        source = SHOTS / "03b-authorization-gate.png"
+    header(
+        image,
+        eyebrow="HERO MOMENT · REAL GATE",
+        title_value="Plan drifts after review → DENIED",
+        subtitle=(
+            "Same DataHub context. One Slack action appended after review. "
+            "Fingerprint mismatch fails closed; AI cannot open the gate."
+        ),
+        evidence_badge="PLAN-EXACT DENY",
+        badge_color=RED,
+    )
+    rounded_panel(image, (80, 238, 1840, 880))
+    captured = Image.open(source).convert("RGB")
+    captured = ImageOps.fit(
+        captured,
+        (1700, 580),
+        method=Image.Resampling.LANCZOS,
+        centering=(0.5, 0.35),
+    )
+    mask = Image.new("L", captured.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle(
+        (0, 0, captured.width, captured.height),
+        radius=20,
+        fill=255,
+    )
+    image.paste(captured, (110, 268), mask)
+    draw = ImageDraw.Draw(image)
+    text(
+        draw,
+        (110, 870),
+        "Reviewed plan → authorized    ·    Executed plan (+1 action) "
+        "→ DENIED on fingerprint checks",
+        size=26,
+        color=RED,
+        bold=True,
+        max_width=1700,
+    )
+    claim_strip(image, "AI ADVISORY ONLY · DETERMINISTIC POLICY AUTHORIZES THE EXACT PLAN")
+    image.save(destination)
+
+
 def github_frame(destination: Path) -> None:
+    """Prefer E-16 four-provider rehearsal; fall back to single GitHub receipt."""
+    four_path = RECEIPTS / "live-incident-rehearsal-receipt.json"
+    if four_path.is_file():
+        four_provider_frame(destination)
+        return
     receipt = receipt_payload("github-live-action-receipt.json")
     image = background()
     header(
         image,
-        eyebrow="PUBLISHED RECEIPT 1 OF 3",
-        title_value="Real GitHub issue creation and closure",
+        eyebrow="PUBLISHED LIVE RECEIPT",
+        title_value="Real GitHub issue creation",
         subtitle=(
-            "The signed adapter created public issue #3, received HTTP 201, "
-            "and closed it as completed."
+            "The signed adapter created a public GitHub issue and recorded the "
+            "provider receipt with explicit limitations."
         ),
         evidence_badge="LIVE EXTERNAL MUTATION",
         badge_color=GREEN,
@@ -303,13 +355,15 @@ def github_frame(destination: Path) -> None:
     issue = ImageOps.fit(issue, (955, 625), Image.Resampling.LANCZOS, centering=(0.5, 0.18))
     image.paste(issue, (110, 275))
     draw = ImageDraw.Draw(image)
+    remote = str(receipt.get("providerReceipt", {}).get("remote_url") or "")
+    issue_label = remote.rsplit("/", 1)[-1] if remote else "?"
     value_card(draw, (1130, 250, 1840, 410), "PROVIDER RESULT", "executed · HTTP 201", color=GREEN)
-    value_card(draw, (1130, 435, 1470, 590), "ISSUE", "#3", color=CYAN, value_size=52)
+    value_card(draw, (1130, 435, 1470, 590), "ISSUE", f"#{issue_label}", color=CYAN, value_size=52)
     value_card(
         draw,
         (1500, 435, 1840, 590),
         "CLOSURE",
-        receipt["closure"]["state"],
+        str((receipt.get("closure") or {}).get("state") or "recorded"),
         color=GREEN,
         value_size=42,
     )
@@ -324,13 +378,56 @@ def github_frame(destination: Path) -> None:
     text(
         draw,
         (1155, 815),
-        "LIMIT: proves issue creation and closure, not incident causality or recovery.",
+        "LIMIT: proves adapter path, not incident causality or recovery.",
         size=25,
         color=AMBER,
         bold=True,
         max_width=640,
     )
-    claim_strip(image, "REAL GITHUB RECEIPT · SLACK / PAGERDUTY / JIRA NOT CLAIMED LIVE")
+    claim_strip(image, "REAL PROVIDER RECEIPT · ONE BOUNDED ACTION · NOT SUSTAINED OPS")
+    image.save(destination)
+
+
+def four_provider_frame(destination: Path) -> None:
+    receipt = receipt_payload("live-incident-rehearsal-receipt.json")
+    image = background()
+    header(
+        image,
+        eyebrow="E-16 · ONE AUTHORIZED RUN",
+        title_value="Four live providers, one action each",
+        subtitle=(
+            "GitHub #29, Slack, PagerDuty, and Jira KAN-2 — one bounded rehearsal "
+            "action per adapter after deterministic authorization."
+        ),
+        evidence_badge="LIVE BOUNDED REHEARSAL",
+        badge_color=GREEN,
+    )
+    rounded_panel(image, (80, 245, 1095, 930))
+    issue = Image.open(SHOTS / "07-github-issue.png").convert("RGB")
+    issue = ImageOps.fit(issue, (955, 625), Image.Resampling.LANCZOS, centering=(0.5, 0.18))
+    image.paste(issue, (110, 275))
+    draw = ImageDraw.Draw(image)
+    providers = [
+        ("GitHub", "#29", GREEN),
+        ("Slack", "webhook 200", TEAL),
+        ("PagerDuty", "event 202", CYAN),
+        ("Jira", "KAN-2", AMBER),
+    ]
+    y = 250
+    for name, detail, color in providers:
+        value_card(draw, (1130, y, 1840, y + 130), name.upper(), detail, color=color, value_size=36)
+        y += 145
+    text(
+        draw,
+        (110, 890),
+        "LIMIT: one rehearsal action per provider — not sustained ops, causality, or recovery.",
+        size=24,
+        color=AMBER,
+        bold=True,
+        max_width=1700,
+    )
+    status = str(receipt.get("status") or "executed")
+    claim_strip(image, f"STATUS: {status.upper()} · FOUR PROVIDERS · EXTERNAL MUTATIONS: TRUE")
     image.save(destination)
 
 
@@ -339,7 +436,7 @@ def datahub_frame(destination: Path) -> None:
     image = background()
     header(
         image,
-        eyebrow="PUBLISHED RECEIPT 2 OF 3",
+        eyebrow="PUBLISHED LIVE DATAHUB RECEIPT",
         title_value="Controlled DataHub write-back, then MCP retrieval",
         subtitle=(
             "The allowlisted save_document call produced a document URN "
@@ -385,7 +482,7 @@ def datahub_frame(destination: Path) -> None:
         (112, 846),
         (
             "Catalog persistence is not incident recovery. "
-            "Slack, PagerDuty, and Jira were not executed live."
+            "Provider fanout is evidenced separately (E-16); this receipt is write-back only."
         ),
         size=28,
         color=INK,
@@ -403,7 +500,7 @@ def ai_frame(destination: Path) -> None:
     image = background()
     header(
         image,
-        eyebrow="PUBLISHED RECEIPT 3 OF 3",
+        eyebrow="PUBLISHED AI REHEARSAL RECEIPT",
         title_value="AI advises; deterministic policy authorizes",
         subtitle=(
             "The live rehearsal records one planner, two verifier variants, "
@@ -475,6 +572,11 @@ def ai_frame(destination: Path) -> None:
 
 
 def benchmark_frame(destination: Path) -> None:
+    """Prefer E-15 real-pipeline ablation; fall back to older context-ablation receipt."""
+    real_path = RECEIPTS / "real-pipeline-ablation-receipt.json"
+    if real_path.is_file():
+        real_pipeline_frame(destination)
+        return
     receipt = receipt_payload("context-ablation-receipt.json")
     comparison = receipt["comparison"]
     image = background()
@@ -532,6 +634,79 @@ def benchmark_frame(destination: Path) -> None:
         bold=True,
     )
     claim_strip(image, "PASS IS A HARNESS RESULT · NOT PRODUCTION SAFETY OR AGI EVIDENCE")
+    image.save(destination)
+
+
+def real_pipeline_frame(destination: Path) -> None:
+    receipt = receipt_payload("real-pipeline-ablation-receipt.json")
+    on_arm = receipt["arms"]["datahub-context-on"]["metrics"]
+    off_arm = receipt["arms"]["datahub-context-off"]["metrics"]
+    image = background()
+    header(
+        image,
+        eyebrow="E-15 · PRODUCTION POLICY GATE",
+        title_value="Real gate: context ON authorizes, OFF refuses",
+        subtitle=(
+            "Same production PolicyGate/VerifierPanel path with a deterministic stub planner. "
+            "Proves the fail-closed gate — not model uplift."
+        ),
+        evidence_badge="REAL PIPELINE ABLATION",
+        badge_color=AMBER,
+    )
+    draw = ImageDraw.Draw(image)
+    value_card(
+        draw,
+        (80, 255, 920, 460),
+        "CONTEXT ON · PLAN AUTH RATE",
+        f"{float(on_arm['planAuthorizationRate']):.0%}",
+        color=GREEN,
+        value_size=72,
+    )
+    value_card(
+        draw,
+        (960, 255, 1840, 460),
+        "CONTEXT OFF · PLAN AUTH RATE",
+        f"{float(off_arm['planAuthorizationRate']):.0%}",
+        color=RED,
+        value_size=72,
+    )
+    value_card(
+        draw,
+        (80, 490, 920, 680),
+        "ON VERIFIER APPROVAL",
+        f"{float(on_arm.get('verifierApprovalRate', 0)):.0%}",
+        color=TEAL,
+        value_size=48,
+    )
+    value_card(
+        draw,
+        (960, 490, 1840, 680),
+        "OFF VERIFIER APPROVAL",
+        f"{float(off_arm.get('verifierApprovalRate', 0)):.0%}",
+        color=AMBER,
+        value_size=48,
+    )
+    text(
+        draw,
+        (90, 740),
+        str(
+            receipt.get("whatThisMeasures") or "Fail-closed production gate under context ablation."
+        ),
+        size=28,
+        color=INK,
+        bold=True,
+        max_width=1740,
+    )
+    text(
+        draw,
+        (90, 860),
+        "LIMIT: offline · synthetic scenarios · not external validation · not proven model uplift.",
+        size=26,
+        color=AMBER,
+        bold=True,
+        max_width=1740,
+    )
+    claim_strip(image, "REAL POLICY GATE · DETERMINISTIC STUB PLANNER · NO AGI CLAIM")
     image.save(destination)
 
 
@@ -596,19 +771,26 @@ def main() -> int:
         raise SystemExit("Missing capture inputs:\n" + "\n".join(missing))
     FRAMES.mkdir(parents=True, exist_ok=True)
 
+    # Prefer pipeline hero capture when present.
+    live_source = (
+        SHOTS / "01b-pipeline-flow.png"
+        if (SHOTS / "01b-pipeline-flow.png").is_file()
+        else SHOTS / "01-space-hero.png"
+    )
+
     title_frame(FRAMES / "00-title.png")
     screenshot_frame(
-        SHOTS / "01-space-hero.png",
+        live_source,
         FRAMES / "01-live-space.png",
         eyebrow="PUBLIC HUGGING FACE SPACE",
-        title_value="Live host, deterministic fixture replay",
+        title_value="Live host — project functioning",
         subtitle=(
-            "Reachable public product surface with external mutations disabled "
-            "and the replay boundary visible."
+            "Reachable public Incident Commander with external mutations disabled "
+            "and the replay boundary visible on every panel."
         ),
         evidence_badge="LIVE HOST · FIXTURE",
-        claim_label="MODE: FIXTURE · EXTERNAL MUTATIONS: FALSE",
-        crop_y=0.08,
+        claim_label="MODE: FIXTURE · EXTERNAL MUTATIONS: FALSE · PRODUCT IN ACTION",
+        crop_y=0.12,
     )
     screenshot_frame(
         SHOTS / "02-space-context.png",
@@ -635,12 +817,13 @@ def main() -> int:
         claim_label="MODEL VARIANTS: ADVISORY · DETERMINISTIC POLICY: AUTHORIZING",
         crop_y=0.38,
     )
-    fixture_execution_frame(FRAMES / "04-fixture-execution.png")
-    github_frame(FRAMES / "05-github-live.png")
-    datahub_frame(FRAMES / "06-datahub-live.png")
-    ai_frame(FRAMES / "07-ai-verification.png")
-    benchmark_frame(FRAMES / "08-benchmark.png")
-    close_frame(FRAMES / "09-close.png")
+    deny_hero_frame(FRAMES / "04-deny-hero.png")
+    fixture_execution_frame(FRAMES / "05-fixture-execution.png")
+    github_frame(FRAMES / "06-four-provider-live.png")
+    datahub_frame(FRAMES / "07-datahub-live.png")
+    ai_frame(FRAMES / "08-ai-verification.png")
+    benchmark_frame(FRAMES / "09-benchmark.png")
+    close_frame(FRAMES / "10-close.png")
     print(f"Evidence-first frames written to {FRAMES}")
     return 0
 

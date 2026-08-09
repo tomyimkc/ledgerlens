@@ -15,6 +15,7 @@ from ledgerlens.incident_models import (
     IncidentContext,
     PlannedAction,
 )
+from ledgerlens.tool_catalog import AgentToolCatalog
 from ledgerlens.verification import VerifierAssessment
 
 
@@ -53,7 +54,13 @@ class _PlannerResponse(BaseModel):
 
 
 class JsonIncidentPlanner:
-    """Construct a typed action plan from model JSON without trusting identity fields."""
+    """Agent planner: LLM selects tools from a catalog; identity fields are local.
+
+    When ``tool_catalog`` is provided, the model sees an explicit tool belt (action
+    types, targets, parameter keys) and is instructed to choose only among those
+    tools. Flexibility is *which* allowlisted tools to call — not inventing new
+    capabilities. Deterministic policy still authorizes the sealed plan.
+    """
 
     def __init__(
         self,
@@ -63,21 +70,32 @@ class JsonIncidentPlanner:
         family: str,
         clock: Callable[[], datetime] | None = None,
         id_factory: Callable[[str], str] | None = None,
+        tool_catalog: AgentToolCatalog | None = None,
     ) -> None:
         self.model = model
         self.planner_id = planner_id
         self.family = family
+        self.tool_catalog = tool_catalog
         self._clock = clock or (lambda: datetime.now(UTC))
         self._id_factory = id_factory or (lambda prefix: f"{prefix}-{uuid4()}")
 
     def plan(self, context: IncidentContext) -> ActionPlan:
+        catalog = self.tool_catalog
+        catalog_block = ""
+        if catalog:
+            catalog_block = (
+                " You are a tool-using agent: select only action_type and target values "
+                "from agentToolCatalog.tools. Do not invent tools or targets outside "
+                "that catalog. Prefer the smallest useful set of reversible tools."
+            )
         raw = self.model.complete_json(
             system=(
-                "You are the planning component of a data-incident commander. "
+                "You are the planning agent of a data-incident commander. "
                 "Return JSON only. Use only supplied fact IDs. Never execute tools, "
                 "invent owners, infer unsupported blast radius, or raise claim ceilings. "
-                "Prefer reversible, idempotent operational actions. When "
-                "incidentContext.metadata.automationPolicy is supplied, treat its "
+                "Prefer reversible, idempotent operational tool calls."
+                f"{catalog_block} "
+                "When incidentContext.metadata.automationPolicy is supplied, treat its "
                 "requiredActions as an exact action-type, target, and parameter contract: "
                 "include every required action exactly once and do not invent additional "
                 "actions or targets."
@@ -90,9 +108,16 @@ class JsonIncidentPlanner:
                 "parameters (object), rationale (string), evidence_fact_ids (array of "
                 "supplied fact-ID strings), risk (one of low, medium, high, critical), "
                 "and requires_human_approval (JSON boolean). "
-                "Allowed action types and targets are enforced later by deterministic policy."
+                + (
+                    "Choose tools only from agentToolCatalog; targets must be in "
+                    "allowed_targets for that tool. "
+                    if catalog
+                    else "Allowed action types and targets are enforced later by "
+                    "deterministic policy. "
+                )
+                + "You do not authorize execution — you only propose a tool plan."
             ),
-            context=context.model_dump(mode="json", by_alias=True),
+            context=self._planner_context(context),
             temperature=0.0,
         )
         candidate = _PlannerResponse.model_validate(raw)
@@ -120,6 +145,15 @@ class JsonIncidentPlanner:
             summary=candidate.summary,
             actions=actions,
         )
+
+    def _planner_context(self, context: IncidentContext) -> dict[str, Any]:
+        payload = context.model_dump(mode="json", by_alias=True)
+        if self.tool_catalog:
+            return {
+                "incidentContext": payload,
+                "agentToolCatalog": self.tool_catalog.to_agent_dict(),
+            }
+        return payload
 
 
 class JsonPlanVerifier:

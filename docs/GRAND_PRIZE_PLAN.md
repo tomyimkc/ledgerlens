@@ -2,7 +2,7 @@
 
 ## Objective
 
-Present LedgerLens as an **Autonomous Data Incident Commander** that uses DataHub as both the
+Present LedgerLens as a **Policy-Sealed Data Incident Commander** that uses DataHub as both the
 operational context and durable receipt/memory layer while preserving provenance, uncertainty, and
 deterministic authority boundaries.
 

@@ -1,4 +1,4 @@
-"""Deterministic LedgerLens policy with optional 020s phrasing."""
+"""Deterministic LedgerLens policy with optional LLM phrasing."""
 
 from __future__ import annotations
 
@@ -44,8 +44,8 @@ class PhraseModel(Protocol):
         """Phrase immutable grounded facts without adding claims."""
 
 
-class OpenAICompatible020s:
-    """Minimal client for any OpenAI-compatible LLM at the configured base URL."""
+class OpenAICompatiblePhraseClient:
+    """Minimal OpenAI Chat Completions client for optional narrative phrasing."""
 
     def __init__(
         self,
@@ -54,11 +54,11 @@ class OpenAICompatible020s:
         transport: httpx.BaseTransport | None = None,
         client: httpx.Client | None = None,
     ) -> None:
-        key = settings.require_llm_api_key()
+        key = settings.api_key_for_provider(settings.llm_provider)
         self.model = settings.llm_model
         self._owns_client = client is None
         self._client = client or httpx.Client(
-            base_url=settings.llm_base_url,
+            base_url=settings.base_url_for_provider(settings.llm_provider),
             timeout=httpx.Timeout(
                 settings.llm_timeout_seconds,
                 connect=min(settings.llm_timeout_seconds, 5.0),
@@ -105,10 +105,14 @@ class OpenAICompatible020s:
             payload = response.json()
             text = payload["choices"][0]["message"]["content"]
         except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
-            raise AgentModelError("020s phrasing request failed") from exc
+            raise AgentModelError("LLM phrasing request failed") from exc
         if not isinstance(text, str) or not text.strip():
-            raise AgentModelError("020s returned an empty phrase")
+            raise AgentModelError("LLM returned an empty phrase")
         return text.strip()
+
+
+# Back-compat alias (no longer vendor-branded).
+OpenAICompatible020s = OpenAICompatiblePhraseClient
 
 
 class LedgerLensAgent:
@@ -135,7 +139,9 @@ class LedgerLensAgent:
         mcp_client: DataHubMCPClient,
         datahub_client: DataHubClient,
     ) -> LedgerLensAgent:
-        model: PhraseModel | None = OpenAICompatible020s(settings) if settings.llm_enabled else None
+        model: PhraseModel | None = (
+            OpenAICompatiblePhraseClient(settings) if settings.llm_enabled else None
+        )
         return cls(mcp_client, datahub_client, phrase_model=model)
 
     def explain_finding(self, urn: str) -> JsonObject:

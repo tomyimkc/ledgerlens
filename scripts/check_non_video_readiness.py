@@ -12,9 +12,8 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 
 DEFERRED_BLOCKERS = (
-    "Public under-three-minute video URL.",
-    "Final v0.2.1 tag and commit, cut only after the public video URL is recorded.",
-    "Owner Devpost account/team review, final Submit action, and saved submission receipt.",
+    "Final v0.2.1 tag and commit from the final merged submission state.",
+    "Owner clean-browser review of Devpost team/eligibility, public video, and project URLs.",
     "Two consented formative external reviews; no result is claimed before they exist.",
     "A live DataHub read/write-back inside the same rehearsal run; the four-provider "
     "fanout is produced (E-16), but the in-run DataHub segment needs the owner's instance.",
@@ -225,7 +224,7 @@ def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
     _require_text(
         writeup,
         (
-            "Autonomous Data Incident Commander",
+            "Policy-Sealed Data Incident Commander",
             "deterministic authorization",
             "next-agent handoff",
             "DataHub write-back",
@@ -241,7 +240,7 @@ def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
         submission,
         (
             "v0.2.1",
-            "pending public video URL",
+            "https://youtu.be/D0SVpDWOrUw",
             "EVIDENCE_INDEX.md",
             "docs/WINNER_READINESS.md",
             "live-public-proof-2026-07-31.json",

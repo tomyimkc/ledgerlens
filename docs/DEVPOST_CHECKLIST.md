@@ -11,8 +11,8 @@ Operational deadline with a 24-hour buffer:
 - **August 10, 2026 at 5:00 AM HKT**
 
 The repository automation can complete and verify code, evidence, documentation, and outreach.
-The owner must complete account, team, eligibility, public-video, final-release, and final-submit
-actions.
+The owner must complete the final account/team/eligibility review, release, and clean-browser
+verification actions.
 
 ## Project identity
 
@@ -22,8 +22,8 @@ actions.
 - [ ] Eligibility restrictions have been reviewed.
 - [ ] Contest-period project eligibility has been confirmed by the owner.
 - [x] Category is **Agents That Do Real Work**.
-- [x] Project name is **LedgerLens — Autonomous Data Incident Commander**.
-- [x] Tagline is “Turn DataHub context into authorized incident work—with receipts.”
+- [x] Project name is **LedgerLens — Policy-Sealed Incident Commander**.
+- [x] Tagline leads with DataHub grounding, exact-plan policy authority, and receipts.
 
 ## Meaningful DataHub use
 
@@ -37,7 +37,7 @@ actions.
 - [x] The fixture, local-live, and temporary-public DataHub result classes are clearly separated.
 - [x] Ingestion and observation timestamps are not called validation timestamps.
 
-## Autonomous incident-command execution
+## Policy-sealed incident-command execution
 
 - [x] The visible chain is trigger → DataHub context → bounded plan → AI advisory verification →
       deterministic authorization → receipted actions → DataHub write-back → next-agent handoff.
@@ -47,7 +47,8 @@ actions.
 - [x] GitHub, Slack, PagerDuty, and Jira adapters implement preview/execute separation,
       authorization binding, idempotency, bounded retries, and sanitized receipts.
 - [x] A live GitHub create-and-close action receipt is published.
-- [x] Slack, PagerDuty, and Jira remain explicitly described as implemented but not executed live.
+- [x] Slack, PagerDuty, and Jira are described as one bounded supervised rehearsal (E-16), not
+      sustained or production operation.
 - [x] DataHub write-back and next-agent handoff occur only after authorization.
 
 ## Public repository and CI
@@ -67,7 +68,7 @@ actions.
 - [x] `make demo-ui` uses only supported CLI flags.
 - [x] `make non-video-readiness` fails closed on evidence, claim, CI, product-copy, or release
       drift.
-- [ ] Final `v0.2.1` release tag is published after the public video URL is recorded.
+- [ ] Final `v0.2.1` release tag is published from the final merged submission revision.
 
 ## Functional and evidence verification
 
@@ -120,7 +121,7 @@ actions.
 
 ## Devpost text and evidence
 
-- [x] English project description reflects the Autonomous Data Incident Commander.
+- [x] English project description reflects the Policy-Sealed Data Incident Commander.
 - [x] “How we built it” names DataHub OSS and the official MCP Server.
 - [x] AI verification is separated from deterministic authorization.
 - [x] Real GitHub and DataHub receipts are linked.
@@ -133,16 +134,16 @@ actions.
 - [x] No planned feature is described as already working.
 - [x] No reviewer score, testimonial, endorsement, or official competition score is invented.
 - [x] Public project URL is recorded.
-- [ ] Public video URL is recorded.
+- [x] Public video URL is recorded: `https://youtu.be/D0SVpDWOrUw`.
 
-## Video — deliberately deferred in this non-video pass
+## Public video verification
 
 - [ ] Final public runtime is below three minutes.
 - [ ] Narration and captions are in English.
 - [ ] Product functionality is shown through real UI/terminal capture.
 - [ ] Any generated footage is clearly labeled and does not imitate product functionality.
 - [ ] No private path, credential, account detail, notification, or extension is visible.
-- [ ] Video is public on YouTube, Vimeo, or Youku.
+- [x] A YouTube URL is attached to the published Devpost project.
 - [ ] Video link works in a clean/incognito browser.
 - [ ] Captions are legible at 1080p.
 
@@ -153,11 +154,11 @@ actions.
 - [x] Live DataHub smoke receipt path is recorded.
 - [x] Supervised public-proof receipt path is recorded.
 - [x] Public project URL is recorded.
-- [ ] Public video URL is recorded.
+- [x] Public video URL is recorded.
 - [ ] Final merged commit SHA is recorded without invention.
-- [ ] Final `v0.2.1` release tag is cut after the video URL is available.
+- [ ] Final `v0.2.1` release tag is cut from the final merged submission revision.
 - [ ] Owner reviews account, team, eligibility, and complete submission copy.
-- [ ] Owner clicks final Submit.
+- [x] Devpost project is currently in published state.
 - [ ] Submission receipt is saved.
 - [ ] Receipt timestamp is before the operational deadline.
 - [ ] Final Devpost page works in an incognito browser.

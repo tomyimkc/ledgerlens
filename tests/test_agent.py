@@ -13,7 +13,7 @@ import pytest
 from ledgerlens.agent import (
     AgentGroundingError,
     LedgerLensAgent,
-    OpenAICompatible020s,
+    OpenAICompatiblePhraseClient,
 )
 from ledgerlens.config import Settings
 from ledgerlens.datahub_client import AuditMetadata, AuditStamp
@@ -214,7 +214,7 @@ def test_report_writes_json_and_markdown(tmp_path: Path) -> None:
     assert "receipts/evidence.json" in markdown
 
 
-def test_020s_client_is_network_mocked_and_does_not_expose_key() -> None:
+def test_phrase_client_is_network_mocked_and_does_not_expose_key() -> None:
     seen: dict[str, Any] = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -228,10 +228,11 @@ def test_020s_client_is_network_mocked_and_does_not_expose_key() -> None:
     settings = Settings(
         _env_file=None,
         llm_enabled=True,
-        llm_api_key="secret-020s-key",
+        openai_api_key="secret-openai-key",
+        llm_model="gpt-4o",
     )
-    model = OpenAICompatible020s(settings, transport=httpx.MockTransport(handler))
+    model = OpenAICompatiblePhraseClient(settings, transport=httpx.MockTransport(handler))
     assert model.phrase({"urn": URN_A, "candidateOnly": True}) == "Safe grounded summary."
-    assert seen["authorization"] == "Bearer secret-020s-key"
-    assert seen["body"]["model"] == "gpt-5.6-sol"
-    assert "secret-020s-key" not in json.dumps(seen["body"])
+    assert seen["authorization"] == "Bearer secret-openai-key"
+    assert seen["body"]["model"] == "gpt-4o"
+    assert "secret-openai-key" not in json.dumps(seen["body"])

@@ -78,6 +78,38 @@ def allocate_cue_durations(cues: list[str], scene_seconds: float) -> list[float]
     return allocated
 
 
+def polish_voice(input_wav: Path, output_wav: Path) -> None:
+    """Warm + denoise macOS `say` output so it reads less robotic on playback."""
+    # highpass: room rumble · lowpass: digital hiss · acompressor: even level ·
+    # equalizer: slight presence · loudnorm: broadcast-ish target without clipping
+    af = (
+        "highpass=f=90,"
+        "lowpass=f=10500,"
+        "acompressor=threshold=-20dB:ratio=2.2:attack=12:release=180:makeup=2,"
+        "equalizer=f=320:t=q:w=1.0:g=-1.5,"
+        "equalizer=f=2800:t=q:w=1.2:g=1.8,"
+        "loudnorm=I=-16:TP=-1.5:LRA=9"
+    )
+    run(
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-y",
+            "-i",
+            str(input_wav),
+            "-af",
+            af,
+            "-ar",
+            "48000",
+            "-ac",
+            "1",
+            str(output_wav),
+        ]
+    )
+
+
 def build_narration(
     timeline: dict[str, Any],
     work: Path,
@@ -103,8 +135,19 @@ def build_narration(
             text_path = stem.with_suffix(".txt")
             aiff_path = stem.with_suffix(".aiff")
             spoken_path = stem.with_name(stem.name + "-spoken.wav")
+            polished_path = stem.with_name(stem.name + "-polished.wav")
             fitted_path = stem.with_suffix(".wav")
-            text_path.write_text(cue + "\n", encoding="utf-8")
+            # Soften TTS cadence: short pauses around punctuation help natural delivery.
+            spoken = (
+                cue.replace(" — ", ". ")
+                .replace("–", ". ")
+                .replace("…", ". ")
+                .replace("  ", " ")
+                .strip()
+            )
+            if not spoken.endswith((".", "!", "?")):
+                spoken += "."
+            text_path.write_text(spoken + "\n", encoding="utf-8")
             run([say, "-v", voice, "-r", str(rate), "-f", str(text_path), "-o", str(aiff_path)])
             run(
                 [
@@ -122,8 +165,10 @@ def build_narration(
                     str(spoken_path),
                 ]
             )
-            spoken_duration = duration(spoken_path)
-            target_spoken = max(0.5, allocation - 0.35)
+            polish_voice(spoken_path, polished_path)
+            spoken_duration = duration(polished_path)
+            # Leave a short natural pause at the end of each cue (less machine-gun TTS).
+            target_spoken = max(0.55, allocation - 0.45)
             filters: list[str] = []
             if spoken_duration > target_spoken:
                 filters.append(atempo_chain(spoken_duration / target_spoken))
@@ -136,7 +181,7 @@ def build_narration(
                     "error",
                     "-y",
                     "-i",
-                    str(spoken_path),
+                    str(polished_path),
                     "-af",
                     ",".join(filters),
                     "-ar",
@@ -153,6 +198,7 @@ def build_narration(
             cursor = end
             cue_number += 1
 
+    narration_raw = work / "narration-raw.wav"
     narration = work / "narration.wav"
     concat_path = cue_audio / "concat.txt"
     concat_path.write_text("\n".join(concat_lines) + "\n", encoding="utf-8")
@@ -171,9 +217,11 @@ def build_narration(
             str(concat_path),
             "-c",
             "copy",
-            str(narration),
+            str(narration_raw),
         ]
     )
+    # Final pass: gentle master loudness after cue-level polish.
+    polish_voice(narration_raw, narration)
     captions = work / "captions.srt"
     captions.write_text("\n".join(srt_blocks), encoding="utf-8")
     return narration, captions
@@ -257,8 +305,9 @@ def build_video(timeline: dict[str, Any], out: Path, work: Path) -> Path:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUT)
-    parser.add_argument("--voice", default="Daniel")
-    parser.add_argument("--rate", type=int, default=148)
+    # Samantha (US) reads less robotic than British Daniel for product demos.
+    parser.add_argument("--voice", default="Samantha")
+    parser.add_argument("--rate", type=int, default=162)
     args = parser.parse_args()
 
     for tool in ("ffmpeg", "ffprobe"):
@@ -292,9 +341,10 @@ def main() -> int:
             "--duration",
             f"{total:.6f}",
             "--font-size",
-            "42",
+            "36",
+            # Keep captions in the lower third but leave room if a small PIP is used.
             "--bottom-margin",
-            "145",
+            "72",
         ],
         capture=True,
     )

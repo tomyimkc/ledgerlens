@@ -117,10 +117,25 @@ def main() -> int:
         actual = recorded.get(key, {}).get("evidenceClass")
         if actual != expected:
             errors.append(f"{key} evidence class must be {expected}; got {actual}")
+    # Optional but preferred classes for the post-E-15/E-16 cut.
+    preferred = {
+        "fourProviderLive": "live-bounded-four-provider-rehearsal",
+        "realPipelineGate": "production-policy-gate-ablation",
+        "denyHero": "plan-exact-authorization-deny-demo",
+    }
+    for key, expected in preferred.items():
+        if key not in recorded:
+            continue
+        actual = recorded.get(key, {}).get("evidenceClass")
+        if actual != expected:
+            errors.append(f"{key} evidence class must be {expected}; got {actual}")
     if recorded.get("benchmark", {}).get("liveDataHub") is not False:
         errors.append("benchmark must remain explicitly non-live")
     if recorded.get("aiVerification", {}).get("providerFamilyIndependenceClaimed") is not False:
         errors.append("AI receipt must not claim provider-family independence")
+    # Deny hero is required for the contest "functioning + differentiator" cut.
+    if "denyHero" not in recorded:
+        errors.append("denyHero evidence is required (plan-exact deny on real gate)")
 
     receipt = {
         "schemaVersion": "1.0",

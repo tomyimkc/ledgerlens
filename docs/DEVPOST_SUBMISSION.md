@@ -2,8 +2,8 @@
 
 ## Submission identity
 
-- **Project:** LedgerLens — Autonomous Data Incident Commander
-- **Tagline:** Turn DataHub context into authorized incident work—with receipts.
+- **Project:** LedgerLens — Policy-Sealed Incident Commander
+- **Tagline:** DataHub grounds the plan; deterministic policy authorizes the exact work; receipts preserve the handoff.
 - **Category:** Agents That Do Real Work
 - **Repository:** `https://github.com/tomyimkc/ledgerlens`
 - **License:** Apache-2.0
@@ -11,10 +11,10 @@
 - **Judge-access requirement:** free access through August 31, 2026
 - **Public project URL:** `https://tomyimkc-ledgerlens-incident-commander.hf.space/`
 - **Space page:** `https://huggingface.co/spaces/tomyimkc/ledgerlens-incident-commander`
-- **Public video URL:** `OWNER INPUT REQUIRED`
+- **Public video URL:** `https://youtu.be/D0SVpDWOrUw`
 - **Current public baseline:** `v0.2.0` at merged commit
   `00063e40bfc785f13e6db938e0795928e4f843ba`
-- **Final release target:** `v0.2.1` — **pending public video URL; not yet published**
+- **Final release target:** `v0.2.1` — **pending the final merged submission revision; not yet published**
 - **Final release commit:** not assigned; do not invent a SHA before the final tag is cut
 - **Upstream issue:** `https://github.com/acryldata/mcp-server-datahub/issues/159`
 - **Upstream PR:** `https://github.com/acryldata/mcp-server-datahub/pull/160` —
@@ -32,7 +32,7 @@ Data incidents rarely fail because teams lack another chatbot. They fail because
 reconstruct ownership, lineage, runbooks, criticality, evidence, and previous actions across
 separate systems while an alert clock is running.
 
-LedgerLens is an **Autonomous Data Incident Commander** built around DataHub. It runs one visible
+LedgerLens is a **Policy-Sealed Data Incident Commander** built around DataHub. It runs one visible
 workflow:
 
 ```text
@@ -107,7 +107,7 @@ contribution separately, so the bonus cannot obscure a weakness in judge access 
 | Core criterion | LedgerLens judge evidence |
 |---|---|
 | Meaningful Use of DataHub Tools and Write-Back | DataHub-grounded incident context, ownership, schema, documentation, quality signal, lineage-based blast radius, official MCP reads, controlled `save_document` write-back, and next-agent retrieval |
-| Technical Execution and End-to-End Functionality | Typed state machine, planner/verifier contracts, fail-closed policy, signed provider authorization, idempotency, replay UI, strict mypy, 283 deterministic tests, secret scan, hosted smoke, readiness gates, a real-pipeline benchmark over the production gate (E-15), and one authorized run that executed against all four providers (E-16) |
+| Technical Execution and End-to-End Functionality | Typed state machine, planner/verifier contracts, fail-closed policy, signed provider authorization, idempotency, replay UI, strict mypy over 37 source files, 316 deterministic tests, secret scan, hosted smoke, readiness gates, a real-pipeline benchmark over the production gate (E-15), and one authorized run that executed against all four providers (E-16) |
 | Originality and Extension Beyond Built-ins | Evidence-bound deterministic authorization over the same MCP surface DataHub's Agent Context Kit wraps — a reviewed-plan-fingerprint gate that neither DataHub's Actions Framework nor an unrestricted LLM agent provides |
 | Real-World Usefulness | Coordinates accountable response work and durable handoff while refusing to invent cause, impact, recovery, or resolution |
 | Submission Quality and Reproducibility | Public Apache-2.0 repository, one-command replay, public Space, exact receipts, context ablation, architecture/security docs, and fail-closed automation |
@@ -200,16 +200,16 @@ public-package checks, both DataHub-context benchmarks, and the readiness guard.
 after any final release-only edit rather than copying the count; the receipt records the exact commit
 it was captured against. The hosted public smoke also passed against the live fixture URL.
 
-## Final owner/video boundary
+## Final owner boundary
 
-- [ ] Add the public under-three-minute video URL.
+- [x] Add the public under-three-minute video URL.
 - [x] Add and verify the public project URL.
 - [x] Keep the hosted replay explicitly labeled fixture/replay.
 - [x] Publish the supervised live-public DataHub proof and teardown receipt.
 - [x] Publish the external evaluation kit without inventing results.
 - [x] Describe Slack, PagerDuty, and Jira as executed once as a bounded rehearsal (E-16), not as sustained or production operation.
 - [x] Open upstream issue #159 and PR #160; state that PR #160 remains open, not merged.
-- [ ] Publish final `v0.2.1` only after the public video URL is recorded.
+- [ ] Publish final `v0.2.1` from the final merged submission revision.
 - [ ] Record the real final release SHA after the tag is cut.
 - [ ] Complete owner account/team/eligibility review.
-- [ ] Click final Submit and save the submission receipt.
+- [x] Devpost project is in published state; re-check the final page before the deadline.

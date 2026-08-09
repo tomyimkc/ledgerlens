@@ -281,7 +281,43 @@ def test_router_mounts_under_custom_prefix_with_its_own_assets() -> None:
     assert css.status_code == 200
     assert "--signal: #0f766e" in css.text
     assert script.status_code == 200
-    assert "Evaluating deterministic gate" in script.text
+    assert "how-repo-works" in script.text or "agentic-flow" in script.text
+    assert "get_entities" in script.text
+    assert "save_document" in script.text
+    # Demo UI must parse and wire interactive controls + link real source.
+    assert "buildAlternatePlan" in script.text or "alternate-plan" in script.text
+    assert "plan_fingerprint" in script.text
+    assert "evaluate_authorization" in script.text
+    assert "github.com/tomyimkc/ledgerlens" in script.text
+    assert "/blob/main/" in script.text
+    assert "data-alt-status" in script.text
+    # Guard against the class of object-literal bugs that silently kill the whole page.
+    assert '"data-alt-status",' not in script.text  # bare key without value
+    # Differentiation tables (authority binding, not smarter plans).
+    assert "vs-plan-mode" in script.text
+    assert "table-vs-plan-mode" in script.text
+    assert "table-claim-layers" in script.text
+    assert "table-scope-limits" in script.text
+    assert (
+        "planning is not authority" in script.text.lower()
+        or "Planning is not authority" in script.text
+    )
+    assert "AI plan mode" in script.text
+    assert "/seal-lab" in script.text
+    assert "INTERACTIVE FIXTURE" in script.text
+    assert "Copy redacted proof JSON" in script.text
+    assert '.topbar .tnav-btn[href^="#"] { display: none; }' in css.text
+    assert 'body.js .topbar .tnav-btn[href^="#"] { display: inline-flex; }' in css.text
+    # Agentic / tool-use framing (not fixed 8-step BPMN product language).
+    assert "AGENTIC FLOW" in script.text or "agentic-flow" in script.text
+    assert "tool-belt" in script.text
+    assert "LEDGERLENS_LLM_ENABLED" in script.text
+    assert "Eight steps from data looks wrong" not in script.text
+    # Do not ship meta “how hard a judge can push” framing on the public demo.
+    assert "How hard a judge can push" not in script.text
+    assert "FOR SKEPTICAL JUDGES" not in script.text
+    assert "where we can win" not in script.text.lower()
+    assert "bleed if careless" not in script.text.lower()
 
 
 def test_untrusted_backend_text_is_escaped_and_secret_fields_are_redacted() -> None:
@@ -321,6 +357,109 @@ def test_plan_exact_and_quorum_demos_reject_via_the_real_gate() -> None:
     assert "Verifier policy checks are complete" in quorum["split"]["failedConditions"]
 
 
+def test_interactive_seal_lab_runs_controlled_mutations_on_the_server() -> None:
+    client = _fixture_client()
+
+    reviewed = client.post(
+        "/incident/api/seal-lab",
+        json={"scenario": "reviewed-plan"},
+    ).json()["lab"]
+    assert reviewed["serverEvaluated"] is True
+    assert reviewed["externalMutations"] is False
+    assert reviewed["context"]["changed"] is False
+    assert reviewed["result"]["decision"] == "authorized"
+    assert (
+        reviewed["result"]["reviewedPlanFingerprint"]
+        == reviewed["result"]["evaluatedPlanFingerprint"]
+    )
+
+    appended = client.post(
+        "/incident/api/seal-lab",
+        json={"scenario": "append-tool-call"},
+    ).json()["lab"]
+    assert appended["result"]["decision"] == "denied"
+    assert (
+        appended["result"]["reviewedPlanFingerprint"]
+        != appended["result"]["evaluatedPlanFingerprint"]
+    )
+    assert "Plan fingerprint is intact" in appended["result"]["failedConditions"]
+
+    objected = client.post(
+        "/incident/api/seal-lab",
+        json={"scenario": "verifier-objection"},
+    ).json()["lab"]
+    assert objected["result"]["decision"] == "denied"
+    assert "Verifier policy checks are complete" in objected["result"]["failedConditions"]
+
+    escaped = client.post(
+        "/incident/api/seal-lab",
+        json={"scenario": "off-allowlist-target"},
+    ).json()["lab"]
+    assert escaped["result"]["decision"] == "denied"
+    assert any("target_not_allowlisted" in code for code in escaped["result"]["failedConditions"])
+    assert escaped["result"]["gate"] == "verification.PolicyGate"
+    assert escaped["candidateOnly"] is True
+    assert escaped["canClaimAGI"] is False
+
+
+def test_interactive_seal_lab_rejects_unknown_scenarios() -> None:
+    client = _fixture_client()
+
+    response = client.post(
+        "/incident/api/seal-lab",
+        json={"scenario": "turn-off-the-gate"},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["ok"] is False
+    assert "turn-off-the-gate" not in response.json()["allowedScenarios"]
+
+
+def test_agent_io_page_and_trace_endpoint() -> None:
+    client = _fixture_client()
+
+    page = client.get("/incident/agent-io")
+    assert page.status_code == 200
+    assert "Agent I/O" in page.text or "agent I/O" in page.text.lower()
+    assert "agent-io.js" in page.text
+    # Bidirectional demo navigation — several paths back to overview
+    assert "page-switcher" in page.text
+    assert 'href="/incident"' in page.text
+    assert "Overview" in page.text
+    assert "Back to overview" in page.text or "← Overview" in page.text
+    assert "RECORDED MODEL TRACE" in page.text
+    assert "LIVE MODEL TRACE" not in page.text
+    # Trailing-slash variant must not 307 to a broken Location
+    page_slash = client.get("/incident/agent-io/", follow_redirects=False)
+    assert page_slash.status_code == 200
+
+    main = client.get("/incident")
+    assert main.status_code == 200
+    assert "page-switcher" in main.text
+    assert "/incident/agent-io" in main.text
+    main_slash = client.get("/incident/", follow_redirects=False)
+    assert main_slash.status_code == 200
+
+    css = client.get("/incident/assets/agent-io.css")
+    js = client.get("/incident/assets/agent-io.js")
+    assert css.status_code == 200
+    assert js.status_code == 200
+    assert "llm-call" in js.text or "data-llm-calls" in js.text
+
+    # Trace file may or may not be present depending on whether a live run was committed.
+    trace = client.get("/incident/api/agent-io-trace")
+    assert trace.status_code in {200, 404}
+    body = trace.json()
+    if trace.status_code == 200:
+        assert body["ok"] is True
+        assert body["trace"]["kind"] == "agent-io-trace"
+        assert "llmCalls" in body["trace"]
+        assert body["trace"].get("externalMutations") is False
+        assert body["trace"].get("canClaimAGI") is False
+    else:
+        assert body["ok"] is False
+
+
 def test_live_receipts_endpoint_returns_a_mapping() -> None:
     client = _fixture_client()
 
@@ -348,3 +487,190 @@ def test_allowlist_scope_demo_rejects_off_allowlist_target_via_the_real_gate() -
     assert demo["approved"]["decision"] == "authorized"
     assert demo["denied"]["decision"] == "denied"
     assert any("target_not_allowlisted" in code for code in demo["denied"]["failedConditions"])
+
+
+def test_plan_templates_are_listed_and_allowlisted() -> None:
+    client = _fixture_client()
+
+    response = client.get("/incident/api/plan-templates")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is True
+    ids = {item["id"] for item in body["templates"]}
+    assert "full_fanout" in ids
+    assert "notify_and_ticket" in ids
+    assert "ticket_only" in ids
+    assert "notify_only" in ids
+    assert "github.issue.create" in body["allowed_actions"]
+    assert all(item["step_count"] >= 1 for item in body["templates"])
+
+
+def test_revise_plan_via_template_reseals_and_wipes_grant() -> None:
+    """Disagree with the AI plan: swap template, old grant dies, new seal required."""
+    client = _fixture_client()
+    original = client.get("/incident/api/state").json()["state"]
+    original_hash = original["authorization"]["plan_hash"]
+    assert original["capabilities"]["revise_plan"] is True
+
+    # Authorize the AI default plan first.
+    granted = client.post(
+        "/incident/api/authorize",
+        json={
+            "actor": "incident-commander@example.com",
+            "plan_hash": original_hash,
+            "confirmation": original["authorization"]["expected_confirmation"],
+            "acknowledge_claim_boundary": True,
+        },
+    )
+    assert granted.status_code == 200
+    assert granted.json()["state"]["authorization"]["decision"] == "authorized"
+
+    # Human picks a quieter alternate plan instead of total deny.
+    revised = client.post(
+        "/incident/api/plan/revise",
+        json={"template_id": "notify_and_ticket"},
+    )
+    assert revised.status_code == 200
+    body = revised.json()
+    assert body["ok"] is True
+    assert body["grant_wiped"] is True
+    state = body["state"]
+    new_hash = state["authorization"]["plan_hash"]
+    assert new_hash != original_hash
+    assert body["plan_hash"] == new_hash
+    assert state["authorization"]["decision"] == "pending"
+    assert "grant_id" not in state["authorization"]
+    assert len(state["planner"]["steps"]) == 3
+    assert {step["action"] for step in state["planner"]["steps"]} == {
+        "slack.message.post",
+        "github.issue.create",
+        "datahub.incident.writeback",
+    }
+    assert {action["provider"] for action in state["actions"]} == {"Slack", "GitHub"}
+    assert all(action["status"] == "held" for action in state["actions"])
+    assert state["writeback"]["status"] == "held"
+    assert state["memory"]["status"] == "draft"
+    assert any(event["label"] == "Plan revised" for event in state["events"])
+
+    # Old grant cannot execute against the new seal.
+    execute = client.post("/incident/api/execute")
+    assert execute.status_code == 409
+
+    # Old confirmation phrase (bound to old hash) is denied.
+    stale = client.post(
+        "/incident/api/authorize",
+        json={
+            "actor": "incident-commander@example.com",
+            "plan_hash": original_hash,
+            "confirmation": original["authorization"]["expected_confirmation"],
+            "acknowledge_claim_boundary": True,
+        },
+    )
+    assert stale.status_code == 409
+
+    # Fresh authorize + execute succeeds for the alternate plan.
+    auth = state["authorization"]
+    ok = client.post(
+        "/incident/api/authorize",
+        json={
+            "actor": "incident-commander@example.com",
+            "plan_hash": auth["plan_hash"],
+            "confirmation": auth["expected_confirmation"],
+            "acknowledge_claim_boundary": True,
+        },
+    )
+    assert ok.status_code == 200
+    executed = client.post("/incident/api/execute")
+    assert executed.status_code == 200
+    final = executed.json()["state"]
+    assert {action["provider"] for action in final["actions"]} == {"Slack", "GitHub"}
+    assert all(action["status"] == "succeeded" for action in final["actions"])
+    assert final["writeback"]["status"] == "recorded"
+    assert final["memory"]["status"] == "ready"
+
+
+def test_put_plan_with_custom_steps_and_rejects_unsafe_actions() -> None:
+    client = _fixture_client()
+    original_hash = client.get("/incident/api/state").json()["state"]["authorization"]["plan_hash"]
+
+    custom = client.put(
+        "/incident/api/plan",
+        json={
+            "objective": "Human-only quiet ticket",
+            "scope": "Single tracker + write-back",
+            "steps": [
+                {
+                    "action": "github.issue.create",
+                    "title": "Open one issue",
+                    "target": "data-platform/operations",
+                    "reversible": True,
+                    "reason": "Minimal human plan.",
+                },
+                {
+                    "action": "datahub.incident.writeback",
+                    "title": "Write receipt",
+                    "target": "analytics.payments_daily",
+                    "reversible": True,
+                    "reason": "Catalog handoff.",
+                },
+            ],
+        },
+    )
+    assert custom.status_code == 200
+    state = custom.json()["state"]
+    assert state["authorization"]["plan_hash"] != original_hash
+    assert state["planner"]["objective"] == "Human-only quiet ticket"
+    assert len(state["planner"]["steps"]) == 2
+    assert len(state["actions"]) == 1
+    assert state["actions"][0]["provider"] == "GitHub"
+
+    denied_action = client.put(
+        "/incident/api/plan",
+        json={
+            "steps": [
+                {
+                    "action": "shell.rm.rf",
+                    "title": "Danger",
+                    "target": "/",
+                    "reversible": True,
+                }
+            ]
+        },
+    )
+    assert denied_action.status_code == 400
+    assert "not allowlisted" in denied_action.json()["detail"].lower()
+
+    denied_irreversible = client.put(
+        "/incident/api/plan",
+        json={
+            "steps": [
+                {
+                    "action": "github.issue.create",
+                    "title": "Issue",
+                    "target": "data-platform/operations",
+                    "reversible": False,
+                }
+            ]
+        },
+    )
+    assert denied_irreversible.status_code == 400
+    assert "reversible" in denied_irreversible.json()["detail"].lower()
+
+    unknown_template = client.post(
+        "/incident/api/plan/revise",
+        json={"template_id": "does_not_exist"},
+    )
+    assert unknown_template.status_code == 400
+
+
+def test_live_mode_refuses_plan_revision_without_backend() -> None:
+    client = TestClient(create_incident_app(fixture_mode=False))
+
+    response = client.post(
+        "/incident/api/plan/revise",
+        json={"template_id": "notify_and_ticket"},
+    )
+
+    assert response.status_code in {400, 503}
+    assert response.json()["ok"] is False

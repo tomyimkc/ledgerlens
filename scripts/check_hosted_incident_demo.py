@@ -184,6 +184,68 @@ def validate_trigger(payload: object) -> list[str]:
     return errors
 
 
+def validate_seal_lab(payload: object) -> list[str]:
+    """Validate one server-evaluated plan-drift refusal."""
+
+    errors: list[str] = []
+    response = _as_mapping(payload, "seal-lab response", errors)
+    _expect(errors, response.get("ok") is True, "seal-lab.ok must be true")
+    lab = _as_mapping(response.get("lab"), "seal-lab.lab", errors)
+    result = _as_mapping(lab.get("result"), "seal-lab.lab.result", errors)
+    _expect(
+        errors,
+        lab.get("scenario") == "append-tool-call",
+        "seal-lab scenario must be append-tool-call",
+    )
+    _expect(
+        errors,
+        lab.get("serverEvaluated") is True,
+        "seal-lab must be evaluated by the server",
+    )
+    _expect(
+        errors,
+        lab.get("externalMutations") is False,
+        "seal-lab.externalMutations must be false",
+    )
+    _expect(
+        errors,
+        lab.get("authority") == "deterministic-policy",
+        "seal-lab.authority must be deterministic-policy",
+    )
+    _expect(
+        errors,
+        lab.get("ai_can_authorize") is False,
+        "seal-lab.ai_can_authorize must be false",
+    )
+    _expect(
+        errors,
+        lab.get("candidateOnly") is True,
+        "seal-lab.candidateOnly must be true",
+    )
+    _expect(
+        errors,
+        lab.get("canClaimAGI") is False,
+        "seal-lab.canClaimAGI must be false",
+    )
+    _expect(
+        errors,
+        result.get("decision") == "denied",
+        "seal-lab plan drift must be denied",
+    )
+    _expect(
+        errors,
+        result.get("reviewedPlanFingerprint") != result.get("evaluatedPlanFingerprint"),
+        "seal-lab reviewed and evaluated fingerprints must differ",
+    )
+    failures = result.get("failedConditions")
+    _expect(
+        errors,
+        isinstance(failures, list) and "Plan fingerprint is intact" in failures,
+        "seal-lab must report the plan-fingerprint failure",
+    )
+    return errors
+
+
 def normalize_base_url(value: str) -> str:
     """Return a credential-free HTTP(S) origin."""
 
@@ -274,6 +336,8 @@ def build_receipt(base_url: str, errors: list[str]) -> dict[str, Any]:
             "memoryStatus": "ready" if passed else None,
             "authorizationAuthority": "deterministic-policy" if passed else None,
             "aiCanAuthorize": False if passed else None,
+            "sealLabPlanDriftDecision": "denied" if passed else None,
+            "sealLabExternalMutations": False if passed else None,
         },
         "candidateOnly": True,
         "canClaimAGI": False,
@@ -334,6 +398,16 @@ def main() -> int:
                 delay=args.retry_delay,
             )
             errors.extend(validate_trigger(trigger))
+            seal_lab = request_with_retries(
+                base_url,
+                "/incident/api/seal-lab",
+                method="POST",
+                payload={"scenario": "append-tool-call"},
+                timeout=args.timeout,
+                attempts=args.attempts,
+                delay=args.retry_delay,
+            )
+            errors.extend(validate_seal_lab(seal_lab))
         except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:
             errors.append(f"hosted request failed: {type(error).__name__}: {error}")
 

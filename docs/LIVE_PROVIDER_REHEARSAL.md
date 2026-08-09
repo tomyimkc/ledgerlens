@@ -97,7 +97,7 @@ Any OpenAI-compatible endpoint works. Set the key, and optionally the base URL a
 export LEDGERLENS_LLM_API_KEY="..."
 export LEDGERLENS_LLM_BASE_URL="https://api.openai.com/v1"   # optional; your endpoint
 export LEDGERLENS_LLM_MODEL="gpt-4o"                          # optional; your model
-# the legacy SOPHIA_020S_KEY name is still accepted
+# OPENAI_API_KEY or ANTHROPIC_API_KEY
 ```
 
 ## Run it

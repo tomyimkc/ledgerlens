@@ -1,6 +1,6 @@
 # LedgerLens evidence index
 
-LedgerLens is an **Autonomous Data Incident Commander**: it turns a DataHub-observed incident into a bounded response plan, deterministic authorization decision, receipted work, controlled DataHub write-back, and a handoff for the next responder.
+LedgerLens is a **Policy-Sealed Data Incident Commander**: it turns a DataHub-observed incident into a bounded response plan, deterministic authorization decision, receipted work, controlled DataHub write-back, and a handoff for the next responder.
 
 Start with the [public fixture replay](https://tomyimkc-ledgerlens-incident-commander.hf.space/). It needs no account, token, or provider credential. The replay is deliberately synthetic; it never contacts DataHub or a provider. Its receipts start with `fixture://`.
 
@@ -28,6 +28,7 @@ For candid rubric gaps and the non-video scorecard, see the [winner-readiness sc
 | E-17 | The published commands reproduce from a clean clone with no undeclared inputs. | Inspect the committed receipt; or regenerate it with `make reproduce-clean-clone`; or clone fresh and run `make setup && make judge-check`. | `benchmarks/results/clean-clone-2026-08-03.json`, `scripts/reproduce_clean_clone.py` | Reproduces the deterministic offline gates only (committed receipt is commit `987bd7d`, 283 tests; regenerate for the current tip); it does not exercise live DataHub, providers, or the hosted Space, and is not a production or independent-validation claim. | Submission quality |
 | E-18 | The upstream contribution's own lint/type/test gates reproduce on a fresh clone of the pinned commit. | Run `make reproduce-upstream-mcp-pr` (clones the public fork, verifies the branch HEAD matches the pinned commit, and runs its checks). | `scripts/reproduce_upstream_mcp_pr.py`, `benchmarks/upstream_mcp_contribution/README.md` | Records only that PR #160's checks reproduce at pinned commit `fe49bac`; it is **not** upstream CI, maintainer review, or a merge/acceptance claim. PR #160 is open and unmerged. The receipt is generated on demand (clones external code) and is not in CI. | Open-source bonus |
 | E-16 | A single run executed the whole chain — plan, verify, authorize, and one bounded action against **all four providers** — into one linked receipt. | Open the linked receipt; it records the real OpenAI GPT-5.6 plan, quorum verification, deterministic authorization, and each provider receipt. | `benchmarks/incident_commander/live-incident-rehearsal-receipt.json`, `scripts/run_live_incident_rehearsal.py`, `tests/test_live_incident_rehearsal.py`, `docs/LIVE_PROVIDER_REHEARSAL.md` | **Produced 2026-08-03** on a supervised run: real OpenAI GPT-5.6 planner (`gpt-5.6-sol`) + two verifiers reached quorum, the deterministic gate authorized, and all four adapters executed live — GitHub issue [#29](https://github.com/tomyimkc/ledgerlens/issues/29), a Slack post, a PagerDuty event, and Jira issue [KAN-2](https://tomyimkc.atlassian.net/browse/KAN-2). Each is one bounded rehearsal action, not sustained reliability; distinct model variants do not establish provider-family independence; no causality or recovery is established. | Technical execution; real-world usefulness |
+| E-19 | A judge can tamper with a reviewed plan and see the server-side gate authorize or refuse it. | Open the public Space's **Seal Lab**; try the reviewed plan, appended tool call, verifier objection, and off-allowlist target. | `/incident/api/seal-lab`, `tests/test_incident_dashboard.py`, `scripts/check_hosted_incident_demo.py` | Public fixture context and controlled mutations; tools stay held and `externalMutations: false`. Demonstrates implemented gate behavior, not production safety or incident recovery. | Technical execution; originality; submission quality |
 
 ## Evidence layers
 
@@ -41,11 +42,16 @@ Keep these layers distinct when describing LedgerLens:
 ## Judge path
 
 1. Open the [public fixture replay](https://tomyimkc-ledgerlens-incident-commander.hf.space/).
-2. Trigger one replay and verify: DataHub context → bounded plan → verifier review → deterministic policy → synthetic receipts → write-back → next-agent handoff.
-3. Confirm that every public replay receipt is `fixture://` and that cause, impact, and recovery remain unknown.
-4. Use E-02 and E-07 to inspect the separate DataHub context and write-back evidence.
-5. Use E-06 to distinguish the one recorded GitHub execution from the implemented-but-not-live provider adapters.
-6. Run `make judge-check` for the primary local verification path.
+2. Open the **Seal Lab** and append one unreviewed tool call. Confirm the reviewed and evaluated
+   fingerprints differ and the server returns **DENIED** before tools run (E-19).
+3. Trigger one replay and verify: DataHub context → bounded plan → verifier review → deterministic
+   policy → synthetic receipts → write-back → next-agent handoff.
+4. Confirm that every public replay receipt is `fixture://` and that cause, impact, and recovery
+   remain unknown.
+5. Use E-02 and E-07 to inspect the separate DataHub context and write-back evidence.
+6. Use E-16 for the separate one-shot four-provider rehearsal; do not generalize it into sustained
+   operation.
+7. Run `make judge-check` for the primary local verification path.
 
 ## Release identity
 
@@ -53,4 +59,6 @@ The current public baseline is [`v0.2.0`](https://github.com/tomyimkc/ledgerlens
 
 ## What this evidence does not establish
 
-LedgerLens does not claim production incident outcomes, production readiness, independent validation, provider-family independence, user impact, lower recovery time, live Slack/PagerDuty/Jira execution, upstream acceptance, or general model uplift.
+LedgerLens does not claim production incident outcomes, production readiness, independent
+validation, provider-family independence, user impact, lower recovery time, sustained or
+production Slack/PagerDuty/Jira operation, upstream acceptance, or general model uplift.

@@ -68,7 +68,7 @@ checks, supersession traversal, and queue ordering.
 
 Supported runtime variables include:
 
-- `SOPHIA_020S_KEY`
+- `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `LEDGERLENS_LLM_API_KEY`
 - `DATAHUB_GMS_TOKEN`
 - `DATAHUB_GMS_URL`
 - `DATAHUB_MCP_URL`

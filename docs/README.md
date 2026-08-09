@@ -1,6 +1,6 @@
 # LedgerLens documentation index
 
-LedgerLens is an **Autonomous Data Incident Commander** for DataHub. This folder holds the
+LedgerLens is a **Policy-Sealed Data Incident Commander** for DataHub. This folder holds the
 judge-facing evidence and the internal working notes. Start with the evidence index.
 
 ## Start here

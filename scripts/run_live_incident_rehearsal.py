@@ -13,7 +13,7 @@ Safety:
   required credential is present in the environment. Absent either, it fails closed.
 * Credentials are read only from the environment, never printed, and never written into the
   receipt (each adapter already sanitizes its own receipt).
-* The planner and verifiers are the real 020s roles; the policy gate is the production gate.
+* The planner and verifiers are the real LLM roles; the policy gate is the production gate.
   No model authorizes itself.
 
 Scope this script covers today: the real four-provider fanout — the three provider receipts
@@ -69,7 +69,7 @@ from ledgerlens.incident_integration import (  # noqa: E402
     OrchestratorIncidentBackend,
 )
 from ledgerlens.incident_models import Incident, IncidentContext  # noqa: E402
-from ledgerlens.runtime_factory import build_020s_ai_roles, build_policy_gate  # noqa: E402
+from ledgerlens.runtime_factory import build_ai_roles, build_policy_gate  # noqa: E402
 
 DEFAULT_INCIDENT = "inc-analytics-downstream_availability-01"
 DEFAULT_OUTPUT = Path("benchmarks/incident_commander/live-incident-rehearsal-receipt.json")
@@ -184,7 +184,7 @@ def _automation_policy(
 ) -> dict[str, Any]:
     """Map any incident onto the four real collaboration action types.
 
-    Mirrors ``scripts/run_incident_ai_rehearsal.py`` so the 020s planner proposes only
+    Mirrors ``scripts/run_incident_ai_rehearsal.py`` so the planner proposes only
     bounded collaboration actions, never a production mutation. The Jira project key and
     issue-type name vary by workspace (and are localized), so both are parameterized.
     """
@@ -370,7 +370,7 @@ def assemble_receipt(
 def _arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Run one linked live incident rehearsal: real 020s planner + verifiers + policy "
+            "Run one linked live incident rehearsal: real LLM planner + verifiers + policy "
             "gate, then real GitHub/Slack/PagerDuty/Jira fanout, into one receipt."
         )
     )
@@ -393,7 +393,11 @@ def main() -> int:
     if args.output.exists() and not args.force:
         print(f"refusing to overwrite existing receipt: {args.output}", file=sys.stderr)
         return 2
-    llm_key = os.getenv("LEDGERLENS_LLM_API_KEY") or os.getenv("SOPHIA_020S_KEY")
+    llm_key = (
+        os.getenv("OPENAI_API_KEY")
+        or os.getenv("LEDGERLENS_LLM_API_KEY")
+        or os.getenv("ANTHROPIC_API_KEY")
+    )
     if not llm_key:
         print("LEDGERLENS_LLM_API_KEY is required", file=sys.stderr)
         return 2
@@ -420,10 +424,10 @@ def main() -> int:
         {
             "ai_verification_enabled": True,
             "llm_api_key": llm_key,
-            "llm_base_url": os.getenv("LEDGERLENS_LLM_BASE_URL", "https://api.020s.com/v1"),
-            "llm_model": os.getenv("LEDGERLENS_LLM_MODEL", "gpt-5.6-sol"),
-            "planner_model": os.getenv("LEDGERLENS_PLANNER_MODEL", "gpt-5.6-sol"),
-            "verifier_models": "gpt-5.6-terra,gpt-5.5",
+            "llm_base_url": os.getenv("LEDGERLENS_LLM_BASE_URL", "https://api.openai.com/v1"),
+            "llm_model": os.getenv("LEDGERLENS_LLM_MODEL", "gpt-4o"),
+            "planner_model": os.getenv("LEDGERLENS_PLANNER_MODEL", "gpt-4o"),
+            "verifier_models": "gpt-4o-mini,gpt-4o",
             "verifier_quorum": 2,
             "verifier_min_confidence": 0.85,
             "llm_timeout_seconds": 60,
@@ -434,7 +438,8 @@ def main() -> int:
         issuer="ledgerlens-live-rehearsal",
     )
     executor = build_action_executor(credentials, authorizer)
-    roles = build_020s_ai_roles(settings)
+    # Agent-visible tool catalog matches policy targets (flexible selection, sealed authority).
+    roles = build_ai_roles(settings, action_targets=targets)
     executed = False
     result = None
     try:

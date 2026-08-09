@@ -1,16 +1,23 @@
-"""Factories for autonomous 020s planner/verifier roles and deterministic policy."""
+"""Factories for LLM planner/verifier roles and deterministic policy."""
 
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from typing import Any
 
 import httpx
 
 from ledgerlens.ai_roles import JsonIncidentPlanner, JsonPlanVerifier
 from ledgerlens.config import Settings
 from ledgerlens.incident_models import ActionRisk
-from ledgerlens.model_runtime import OpenAICompatibleJsonClient, close_clients
+from ledgerlens.model_runtime import (
+    JsonObject,
+    RecordingJsonClient,
+    close_clients,
+    create_json_client,
+)
+from ledgerlens.tool_catalog import TOOL_SPECS, AgentToolCatalog, build_agent_tool_catalog
 from ledgerlens.verification import (
     ActionAllowance,
     PolicyConfig,
@@ -26,53 +33,95 @@ class AIRoleBundle:
 
     planner: JsonIncidentPlanner
     verifier_panel: VerifierPanel
-    clients: tuple[OpenAICompatibleJsonClient, ...]
+    clients: tuple[Any, ...]
 
     def close(self) -> None:
         close_clients(self.clients)
 
 
-def build_020s_ai_roles(
+def build_ai_roles(
     settings: Settings,
     *,
     transports: Mapping[str, httpx.BaseTransport] | None = None,
+    action_targets: Mapping[str, Sequence[str]] | None = None,
+    tool_catalog: AgentToolCatalog | None = None,
+    record_llm_io: bool = False,
+    llm_io_records: list[JsonObject] | None = None,
 ) -> AIRoleBundle:
-    """Create one planner and a distinct-model verifier panel from the configured LLM."""
+    """Create one planner and a verifier panel using OpenAI and/or Anthropic natives.
+
+    Pass ``action_targets`` (same map as ``build_policy_gate``) so the planner agent
+    receives an explicit tool catalog.
+
+    Set ``record_llm_io=True`` to capture system/user prompts and JSON outputs for
+    demo traces — no API keys stored.
+    """
 
     if not settings.ai_verification_enabled:
         raise ValueError("LEDGERLENS_AI_VERIFICATION_ENABLED must be true")
-    key = settings.require_llm_api_key()
     model_ids = settings.verifier_model_ids
     if settings.planner_model in model_ids:
         raise ValueError("planner model must not also be a verifier model")
+
     transport_map = dict(transports or {})
-    planner_client = OpenAICompatibleJsonClient(
-        base_url=settings.llm_base_url,
-        api_key=key,
+    records: list[JsonObject] = llm_io_records if llm_io_records is not None else []
+
+    planner_provider = settings.resolved_planner_provider()
+    verifier_provider = settings.resolved_verifier_provider()
+    planner_base = settings.base_url_for_provider(planner_provider)
+    verifier_base = settings.base_url_for_provider(verifier_provider)
+    planner_key = settings.api_key_for_provider(planner_provider)
+    verifier_key = settings.api_key_for_provider(verifier_provider)
+
+    planner_inner = create_json_client(
+        provider=planner_provider,
+        base_url=planner_base,
+        api_key=planner_key,
         model=settings.planner_model,
         timeout_seconds=settings.llm_timeout_seconds,
         transport=transport_map.get(settings.planner_model),
     )
-    verifier_clients = tuple(
-        OpenAICompatibleJsonClient(
-            base_url=settings.llm_base_url,
-            api_key=key,
+    planner_client: Any = (
+        RecordingJsonClient(planner_inner, role="planner", records=records)
+        if record_llm_io
+        else planner_inner
+    )
+
+    verifier_inners = tuple(
+        create_json_client(
+            provider=verifier_provider,
+            base_url=verifier_base,
+            api_key=verifier_key,
             model=model_id,
             timeout_seconds=settings.llm_timeout_seconds,
             transport=transport_map.get(model_id),
         )
         for model_id in model_ids
     )
+    verifier_clients: tuple[Any, ...] = (
+        tuple(
+            RecordingJsonClient(client, role=f"verifier:{client.model}", records=records)
+            for client in verifier_inners
+        )
+        if record_llm_io
+        else verifier_inners
+    )
+
+    catalog = tool_catalog
+    if catalog is None and action_targets is not None:
+        catalog = build_agent_tool_catalog(action_targets)
+
     planner = JsonIncidentPlanner(
         planner_client,
-        planner_id=f"020s:{settings.planner_model}",
+        planner_id=f"planner:{settings.planner_model}",
         family=settings.planner_model,
+        tool_catalog=catalog,
     )
     verifiers = tuple(
         JsonPlanVerifier(
             client,
-            verifier_id=f"020s:{model_id}",
-            family=model_id,
+            verifier_id=f"verifier:{getattr(client, 'model', model_id)}",
+            family=str(getattr(client, "model", model_id)),
         )
         for model_id, client in zip(model_ids, verifier_clients, strict=True)
     )
@@ -86,11 +135,17 @@ def build_020s_ai_roles(
             fail_on_verifier_error=True,
         ),
     )
+    owned = (planner_inner, *verifier_inners)
     return AIRoleBundle(
         planner=planner,
         verifier_panel=panel,
-        clients=(planner_client, *verifier_clients),
+        clients=owned,
     )
+
+
+# Back-compat alias for older import sites (name only; no vendor branding in IDs).
+def build_020s_ai_roles(*args: Any, **kwargs: Any) -> AIRoleBundle:
+    return build_ai_roles(*args, **kwargs)
 
 
 def build_policy_gate(
@@ -103,46 +158,20 @@ def build_policy_gate(
 ) -> PolicyGate:
     """Build exact target/parameter allowlists for the supported action fanout."""
 
-    specs: dict[str, tuple[frozenset[str], frozenset[str]]] = {
-        "github.issue.create": (
-            frozenset({"owner", "repository", "title", "body", "labels", "assignees"}),
-            frozenset({"owner", "repository", "title"}),
-        ),
-        "slack.message.post": (
-            frozenset({"text", "channel", "blocks", "thread_ts"}),
-            frozenset({"text"}),
-        ),
-        "pagerduty.event.trigger": (
-            frozenset(
-                {
-                    "summary",
-                    "source",
-                    "severity",
-                    "dedup_key",
-                    "component",
-                    "group",
-                    "event_class",
-                    "custom_details",
-                }
-            ),
-            frozenset({"summary", "source", "severity"}),
-        ),
-        "jira.issue.create": (
-            frozenset({"project_key", "summary", "description", "issue_type", "labels"}),
-            frozenset({"project_key", "summary"}),
-        ),
-    }
     allowances = []
     for action_type, action_targets in sorted(targets.items()):
-        if action_type not in specs:
-            raise ValueError(f"unsupported policy action type: {action_type}")
-        allowed_keys, required_keys = specs[action_type]
+        base = TOOL_SPECS.get(action_type)
+        if base is None:
+            raise ValueError(
+                f"unsupported policy action type: {action_type}. "
+                "Register it with ledgerlens.tool_catalog.register_tool_spec first."
+            )
         allowances.append(
             ActionAllowance(
                 action_type=action_type,
                 targets=frozenset(action_targets),
-                allowed_parameter_keys=allowed_keys,
-                required_parameter_keys=required_keys,
+                allowed_parameter_keys=frozenset(base["allowed_parameter_keys"]),
+                required_parameter_keys=frozenset(base["required_parameter_keys"]),
                 maximum_risk=maximum_risk,
                 automatable=True,
             )

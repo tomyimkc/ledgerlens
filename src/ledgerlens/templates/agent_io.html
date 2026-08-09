@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="LedgerLens agent I/O demo: planner and verifier prompts, JSON outputs, policy gate."
+    >
+    <title>LedgerLens · agent I/O trace</title>
+    <link rel="stylesheet" href="{{ base_path }}/assets/incident.css">
+    <link rel="stylesheet" href="{{ base_path }}/assets/agent-io.css">
+    <script defer src="{{ base_path }}/assets/agent-io.js"></script>
+  </head>
+  <body
+    class="agent-io-page"
+    data-api-base="{{ base_path }}/api"
+    data-trace-url="{{ base_path }}/api/agent-io-trace"
+    data-base-path="{{ base_path }}"
+  >
+    <a class="skip-link" href="#agent-io-main">Skip to content</a>
+
+    {# Absolute paths under the mount prefix — never rely on slash redirects. #}
+    <nav class="page-switcher" aria-label="Demo pages">
+      <a class="page-switcher-item" href="{{ base_path }}" data-nav="overview">
+        <span class="page-switcher-k">Demo</span>
+        Overview
+      </a>
+      <a
+        class="page-switcher-item is-current"
+        href="{{ base_path }}/agent-io"
+        aria-current="page"
+        data-nav="agent-io"
+      >
+        <span class="page-switcher-k">Demo</span>
+        Agent I/O
+      </a>
+      <a class="page-switcher-back" href="{{ base_path }}" data-nav="overview-back">
+        ← Back to overview
+      </a>
+    </nav>
+
+    <header class="command-header">
+      <a class="brand-lockup brand-link" href="{{ base_path }}" data-nav="brand">
+        <span class="brand-sigil" aria-hidden="true"><i></i><i></i><i></i></span>
+        <div>
+          <strong>LedgerLens</strong>
+          <span>Agent I/O · how the model plans and how the gate acts</span>
+        </div>
+      </a>
+      <nav class="header-context agent-io-nav" aria-label="On this page">
+        <a class="tnav-btn tnav-page" href="{{ base_path }}" data-nav="overview-header">
+          ← Overview
+        </a>
+        <a class="tnav-btn" href="#flow">Flow</a>
+        <a class="tnav-btn primary" href="#llm-calls">LLM I/O</a>
+        <a class="tnav-btn" href="#plan-gate">Plan + gate</a>
+        <a class="tnav-btn" href="#how-to-run">Run locally</a>
+        <a
+          class="tnav-btn"
+          href="https://github.com/tomyimkc/ledgerlens"
+          target="_blank"
+          rel="noopener"
+        >GitHub</a>
+      </nav>
+    </header>
+
+    <main class="agent-io-main" id="agent-io-main">
+      <section class="sec agent-io-hero">
+        <p class="sec-eyebrow">RECORDED MODEL TRACE · PROVIDER KEYS NOT PRESENT</p>
+        <p class="crumb">
+          <a href="{{ base_path }}" data-nav="overview-crumb">Overview</a>
+          <span aria-hidden="true">/</span>
+          <span>Agent I/O</span>
+        </p>
+        <h1>See what the agent is told — and what it answers</h1>
+        <p class="sec-note">
+          This public page shows a committed, redacted run of the
+          <strong>planner</strong> and <strong>verifier</strong> models. The trace records
+          the configured native OpenAI or Anthropic client and model IDs for that run.
+          You get system + user prompts, tool-catalog context, JSON outputs, then the
+          <strong>deterministic policy gate</strong> (not the model) deciding authorize vs deny.
+        </p>
+        <p class="sec-note pitch-line">
+          No GitHub / Slack / PagerDuty / Jira / DataHub mutations in this trace.
+          API keys never appear here.
+        </p>
+        <p class="hero-nav-cta">
+          <a class="button button-signal" href="{{ base_path }}" data-nav="overview-cta">
+            ← Back to overview demo
+          </a>
+        </p>
+        <div class="agent-io-meta" data-trace-meta aria-live="polite">Loading trace…</div>
+      </section>
+
+      <section class="sec" id="flow">
+        <p class="sec-eyebrow">FLOW</p>
+        <h2 class="sec-title">How the agent acts (one turn)</h2>
+        <div class="agent-flow" data-agent-flow aria-label="Agent flow diagram"></div>
+        <p class="sec-foot">
+          Sense is tools/catalog. Plan and critique are LLMs. Gate is ordinary Python.
+          Tools stay held in this trace so you can inspect I/O safely.
+        </p>
+      </section>
+
+      <section class="sec" id="llm-calls">
+        <p class="sec-eyebrow">LLM INPUT / OUTPUT</p>
+        <h2 class="sec-title">Every model call: prompt in → JSON out</h2>
+        <p class="sec-note">
+          Expand a card to read the system prompt, user instructions, and the model’s
+          structured reply. Context is summarized for readability; full tool catalog
+          remains visible when present.
+        </p>
+        <div class="llm-call-list" data-llm-calls></div>
+      </section>
+
+      <section class="sec" id="plan-gate">
+        <p class="sec-eyebrow">AFTER THE MODELS</p>
+        <h2 class="sec-title">Sealed plan + policy decision</h2>
+        <div class="plan-gate-grid">
+          <article class="io-card">
+            <div class="io-hd">
+              <span class="io-tag read">AGENT PLAN</span>
+              <strong>What the planner proposed</strong>
+            </div>
+            <pre class="code-block" data-plan-out>…</pre>
+          </article>
+          <article class="io-card">
+            <div class="io-hd">
+              <span class="io-tag write">POLICY GATE</span>
+              <strong>What deterministic code decided</strong>
+            </div>
+            <pre class="code-block" data-gate-out>…</pre>
+          </article>
+        </div>
+      </section>
+
+      <section class="sec" id="how-to-run">
+        <p class="sec-eyebrow">REGENERATE LOCALLY</p>
+        <h2 class="sec-title">Test-run with OpenAI or Anthropic</h2>
+        <pre class="code-block"># OpenAI (default)
+export OPENAI_API_KEY=…
+export LEDGERLENS_LLM_PROVIDER=openai
+export LEDGERLENS_PLANNER_MODEL=gpt-4o
+export LEDGERLENS_VERIFIER_MODELS=gpt-4o-mini,gpt-4-turbo
+
+# Or Anthropic
+# export ANTHROPIC_API_KEY=…
+# export LEDGERLENS_LLM_PROVIDER=anthropic
+# export LEDGERLENS_PLANNER_MODEL=claude-sonnet-4-20250514
+# export LEDGERLENS_VERIFIER_MODELS=claude-3-5-haiku-latest,claude-sonnet-4-20250514
+
+uv run python scripts/run_agent_io_trace.py --force
+# writes src/ledgerlens/static/agent-io-trace.json
+# then refresh this page</pre>
+        <p class="sec-foot">
+          Script: <code>scripts/run_agent_io_trace.py</code> ·
+          Recording client: <code>RecordingJsonClient</code> in
+          <code>model_runtime.py</code>
+        </p>
+      </section>
+
+      <section class="sec page-cross-nav" aria-label="More demo pages">
+        <p class="sec-eyebrow">MORE</p>
+        <h2 class="sec-title">Continue exploring</h2>
+        <div class="cross-nav-cards">
+          <a class="cross-nav-card" href="{{ base_path }}" data-nav="overview-card">
+            <strong>← Overview demo</strong>
+            <span>Agentic flow, tool belt, plan-exact proof, setup</span>
+          </a>
+          <a
+            class="cross-nav-card is-here"
+            href="{{ base_path }}/agent-io"
+            aria-current="page"
+          >
+            <strong>Agent I/O (this page)</strong>
+            <span>Prompts, model JSON, policy decision</span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer-nav">
+      <div class="footer-links">
+        <a href="{{ base_path }}" data-nav="overview-footer">← Overview</a>
+        <a href="{{ base_path }}/agent-io" aria-current="page">Agent I/O</a>
+        <a href="https://github.com/tomyimkc/ledgerlens" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <span>LedgerLens agent I/O · candidateOnly · canClaimAGI=false · no external mutations</span>
+    </footer>
+  </body>
+</html>

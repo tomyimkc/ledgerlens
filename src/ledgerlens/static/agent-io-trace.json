@@ -1,0 +1,655 @@
+{
+  "agentPlan": {
+    "actions": [
+      {
+        "action_id": "action-db19f547-b1bf-43ff-925e-8a191caaae9c",
+        "action_type": "github.issue.create",
+        "evidence_fact_ids": [
+          "incident-id",
+          "incident-severity",
+          "root-asset",
+          "primary-owner",
+          "affected-field",
+          "blast-radius",
+          "runbook"
+        ],
+        "idempotency_key": "idempotency-0c1189b9-94bb-4673-ab44-dc7686af0acc",
+        "parameters": {
+          "body": "LedgerLens evidence-bounded incident record. Root cause, user impact, and recovery remain unverified.",
+          "labels": [
+            "incident",
+            "ledgerlens"
+          ],
+          "owner": "tomyimkc",
+          "repository": "ledgerlens",
+          "title": "inc-analytics-downstream_availability-01: Product Analytics: Critical data product unavailable"
+        },
+        "rationale": "Create an auditable, evidence-bounded incident record without asserting an unverified cause, impact, or recovery.",
+        "requires_human_approval": false,
+        "risk": "low",
+        "target": "tomyimkc/ledgerlens"
+      },
+      {
+        "action_id": "action-78964ee1-fb66-4ce9-a0d6-96fa0d567377",
+        "action_type": "slack.message.post",
+        "evidence_fact_ids": [
+          "incident-id",
+          "incident-severity",
+          "root-asset",
+          "primary-owner",
+          "affected-field",
+          "blast-radius",
+          "runbook"
+        ],
+        "idempotency_key": "idempotency-affcda78-a2a6-4a3e-a890-9899ea687c7e",
+        "parameters": {
+          "channel": "#inc-data-platform",
+          "text": "inc-analytics-downstream_availability-01: recorded DataHub incident context is available. Root cause and recovery remain unverified."
+        },
+        "rationale": "Provide a bounded incident status update in the allowlisted data-platform incident channel.",
+        "requires_human_approval": false,
+        "risk": "low",
+        "target": "#inc-data-platform"
+      },
+      {
+        "action_id": "action-74832f2f-e291-4985-a9d4-ed82c09e10bf",
+        "action_type": "pagerduty.event.trigger",
+        "evidence_fact_ids": [
+          "incident-id",
+          "incident-severity",
+          "root-asset",
+          "primary-owner",
+          "affected-field",
+          "blast-radius",
+          "runbook"
+        ],
+        "idempotency_key": "idempotency-e57a0175-dc8d-4996-ae44-c493ee7a71c8",
+        "parameters": {
+          "custom_details": {
+            "claimBoundary": "Metadata-derived context; causality and recovery unverified."
+          },
+          "dedup_key": "inc-analytics-downstream_availability-01",
+          "severity": "critical",
+          "source": "ledgerlens",
+          "summary": "inc-analytics-downstream_availability-01: Product Analytics: Critical data product unavailable"
+        },
+        "rationale": "Trigger or deduplicate the critical incident event while explicitly preserving the metadata-derived claim boundary.",
+        "requires_human_approval": false,
+        "risk": "low",
+        "target": "pagerduty:events-v2"
+      },
+      {
+        "action_id": "action-af0b763f-4578-4a20-a806-1155991b07cf",
+        "action_type": "jira.issue.create",
+        "evidence_fact_ids": [
+          "incident-id",
+          "incident-severity",
+          "root-asset",
+          "primary-owner",
+          "affected-field",
+          "blast-radius",
+          "runbook"
+        ],
+        "idempotency_key": "idempotency-79218769-d90d-4e58-8802-70037277e843",
+        "parameters": {
+          "description": "Track recovery verification separately from root cause.",
+          "issue_type": "Task",
+          "labels": [
+            "incident",
+            "ledgerlens"
+          ],
+          "project_key": "DATAOPS",
+          "summary": "inc-analytics-downstream_availability-01: recover freshness"
+        },
+        "rationale": "Create a separate, auditable task for recovery verification without treating recovery as established or conflating it with root-cause analysis.",
+        "requires_human_approval": false,
+        "risk": "low",
+        "target": "DATAOPS"
+      }
+    ],
+    "canClaimAGI": false,
+    "candidateOnly": true,
+    "confidence": 1.0,
+    "created_at": "2026-08-09T01:56:53.549006Z",
+    "incident_id": "inc-analytics-downstream_availability-01",
+    "plan_id": "plan-db069c06-0c11-4490-8e07-1d2e98ca2fe8",
+    "planner_family": "gpt-5.6-sol",
+    "planner_id": "planner:gpt-5.6-sol",
+    "summary": "Propose the four policy-required, reversible collaboration actions to record, communicate, escalate, and track recovery for the SEV-1 incident. Root cause, causality, user impact, and recovery remain unverified."
+  },
+  "authorization": {
+    "authorized": true,
+    "authorized_action_ids": [
+      "action-db19f547-b1bf-43ff-925e-8a191caaae9c",
+      "action-78964ee1-fb66-4ce9-a0d6-96fa0d567377",
+      "action-74832f2f-e291-4985-a9d4-ed82c09e10bf",
+      "action-af0b763f-4578-4a20-a806-1155991b07cf"
+    ],
+    "canClaimAGI": false,
+    "candidateOnly": true,
+    "evaluated_at": "2026-08-09T01:57:11.283435Z",
+    "incident_id": "inc-analytics-downstream_availability-01",
+    "plan_id": "plan-db069c06-0c11-4490-8e07-1d2e98ca2fe8",
+    "policy_version": "incident-commander/v2",
+    "reason_codes": [
+      "authorized"
+    ]
+  },
+  "canClaimAGI": false,
+  "candidateOnly": true,
+  "error": null,
+  "externalMutations": false,
+  "flow": [
+    {
+      "actor": "tools",
+      "detail": "Catalog/DataHub context (facts, owners, blast radius)",
+      "id": "sense",
+      "label": "Sense"
+    },
+    {
+      "actor": "llm",
+      "detail": "LLM planner (gpt-5.6-sol) proposes allowlisted tool calls",
+      "id": "plan",
+      "label": "Plan tools",
+      "model": "gpt-5.6-sol"
+    },
+    {
+      "actor": "llm",
+      "detail": "Verifier models (gpt-5.6-terra, gpt-5.5) review the plan",
+      "id": "critique",
+      "label": "Critique",
+      "models": [
+        "gpt-5.6-terra",
+        "gpt-5.5"
+      ]
+    },
+    {
+      "actor": "policy",
+      "detail": "Deterministic policy: allowlist + quorum + confidence (not the model)",
+      "id": "gate",
+      "label": "Gate"
+    },
+    {
+      "actor": "safety",
+      "detail": "This trace does not execute GitHub/Slack/PD/Jira or DataHub mutations",
+      "id": "hold",
+      "label": "Hold tools"
+    }
+  ],
+  "generatedAt": "2026-08-09T01:57:11Z",
+  "howToRead": [
+    "llmCalls[].input.system — agent instructions",
+    "llmCalls[].input.userPrompt — task instructions",
+    "llmCalls[].input.context — tool catalog + incident facts (or plan under review)",
+    "llmCalls[].output.json — structured model response (plan or verdict)",
+    "authorization — deterministic gate result after models finish"
+  ],
+  "incidentId": "inc-analytics-downstream_availability-01",
+  "kind": "agent-io-trace",
+  "limitations": [
+    "No provider or DataHub mutation was executed in this trace.",
+    "Distinct model IDs do not establish provider-family independence.",
+    "Published context may be truncated for demo readability.",
+    "API keys are never stored in this file."
+  ],
+  "llmCalls": [
+    {
+      "error": null,
+      "input": {
+        "context": {
+          "agentToolCatalog": {
+            "note": "Select only from these tools and targets. Do not invent action types. Authorization is enforced later by deterministic policy; this catalog is the agent-visible tool belt, not a grant of authority.",
+            "tools": [
+              {
+                "action_type": "github.issue.create",
+                "allowed_parameter_keys": [
+                  "assignees",
+                  "body",
+                  "labels",
+                  "owner",
+                  "repository",
+                  "title"
+                ],
+                "allowed_targets": [
+                  "tomyimkc/ledgerlens"
+                ],
+                "category": "collaboration",
+                "description": "Open an auditable work item in an allowlisted repository. Reversible collaboration record only.",
+                "required_parameter_keys": [
+                  "owner",
+                  "repository",
+                  "title"
+                ],
+                "reversible": true,
+                "title": "Create a GitHub issue"
+              },
+              {
+                "action_type": "jira.issue.create",
+                "allowed_parameter_keys": [
+                  "description",
+                  "issue_type",
+                  "labels",
+                  "project_key",
+                  "summary"
+                ],
+                "allowed_targets": [
+                  "DATAOPS"
+                ],
+                "category": "collaboration",
+                "description": "Create a recovery/follow-up task in an allowlisted project.",
+                "required_parameter_keys": [
+                  "project_key",
+                  "summary"
+                ],
+                "reversible": true,
+                "title": "Create a Jira issue"
+              },
+              {
+                "action_type": "pagerduty.event.trigger",
+                "allowed_parameter_keys": [
+                  "component",
+                  "custom_details",
+                  "dedup_key",
+                  "event_class",
+                  "group",
+                  "severity",
+                  "source",
+                  "summary"
+                ],
+                "allowed_targets": [
+                  "pagerduty:events-v2"
+                ],
+                "category": "collaboration",
+                "description": "Send an Events API v2 payload for an allowlisted routing key / incident path.",
+                "required_parameter_keys": [
+                  "severity",
+                  "source",
+                  "summary"
+                ],
+                "reversible": true,
+                "title": "Trigger or annotate a PagerDuty event"
+              },
+              {
+                "action_type": "slack.message.post",
+                "allowed_parameter_keys": [
+                  "blocks",
+                  "channel",
+                  "text",
+                  "thread_ts"
+                ],
+                "allowed_targets": [
+                  "#inc-data-platform"
+                ],
+                "category": "collaboration",
+                "description": "Post a bounded status update to an allowlisted channel. Does not grant the model free broadcast rights.",
+                "required_parameter_keys": [
+                  "text"
+                ],
+                "reversible": true,
+                "title": "Post a Slack message"
+              }
+            ],
+            "version": "agent-tool-catalog/v1"
+          },
+          "candidatePlanSummary": null,
+          "hasAgentToolCatalog": true,
+          "incidentContextSummary": {
+            "factCount": 7,
+            "factIds": [
+              "incident-id",
+              "incident-severity",
+              "root-asset",
+              "primary-owner",
+              "affected-field",
+              "blast-radius",
+              "runbook"
+            ],
+            "incidentId": "inc-analytics-downstream_availability-01",
+            "severity": "critical",
+            "title": "Product Analytics: Critical data product unavailable"
+          }
+        },
+        "system": "You are the planning agent of a data-incident commander. Return JSON only. Use only supplied fact IDs. Never execute tools, invent owners, infer unsupported blast radius, or raise claim ceilings. Prefer reversible, idempotent operational tool calls. You are a tool-using agent: select only action_type and target values from agentToolCatalog.tools. Do not invent tools or targets outside that catalog. Prefer the smallest useful set of reversible tools. When incidentContext.metadata.automationPolicy is supplied, treat its requiredActions as an exact action-type, target, and parameter contract: include every required action exactly once and do not invent additional actions or targets.",
+        "userPrompt": "Create an action plan with exactly these top-level keys: confidence, summary, and actions. confidence MUST be a JSON number from 0.0 to 1.0 (never a word such as high). summary MUST be a string. actions MUST be an array. Each action requires action_type (string), target (string), parameters (object), rationale (string), evidence_fact_ids (array of supplied fact-ID strings), risk (one of low, medium, high, critical), and requires_human_approval (JSON boolean). Choose tools only from agentToolCatalog; targets must be in allowed_targets for that tool. You do not authorize execution — you only propose a tool plan."
+      },
+      "model": "gpt-5.6-sol",
+      "output": {
+        "json": {
+          "actions": [
+            {
+              "action_type": "github.issue.create",
+              "evidence_fact_ids": [
+                "incident-id",
+                "incident-severity",
+                "root-asset",
+                "primary-owner",
+                "affected-field",
+                "blast-radius",
+                "runbook"
+              ],
+              "parameters": {
+                "body": "LedgerLens evidence-bounded incident record. Root cause, user impact, and recovery remain unverified.",
+                "labels": [
+                  "incident",
+                  "ledgerlens"
+                ],
+                "owner": "tomyimkc",
+                "repository": "ledgerlens",
+                "title": "inc-analytics-downstream_availability-01: Product Analytics: Critical data product unavailable"
+              },
+              "rationale": "Create an auditable, evidence-bounded incident record without asserting an unverified cause, impact, or recovery.",
+              "requires_human_approval": false,
+              "risk": "low",
+              "target": "tomyimkc/ledgerlens"
+            },
+            {
+              "action_type": "slack.message.post",
+              "evidence_fact_ids": [
+                "incident-id",
+                "incident-severity",
+                "root-asset",
+                "primary-owner",
+                "affected-field",
+                "blast-radius",
+                "runbook"
+              ],
+              "parameters": {
+                "channel": "#inc-data-platform",
+                "text": "inc-analytics-downstream_availability-01: recorded DataHub incident context is available. Root cause and recovery remain unverified."
+              },
+              "rationale": "Provide a bounded incident status update in the allowlisted data-platform incident channel.",
+              "requires_human_approval": false,
+              "risk": "low",
+              "target": "#inc-data-platform"
+            },
+            {
+              "action_type": "pagerduty.event.trigger",
+              "evidence_fact_ids": [
+                "incident-id",
+                "incident-severity",
+                "root-asset",
+                "primary-owner",
+                "affected-field",
+                "blast-radius",
+                "runbook"
+              ],
+              "parameters": {
+                "custom_details": {
+                  "claimBoundary": "Metadata-derived context; causality and recovery unverified."
+                },
+                "dedup_key": "inc-analytics-downstream_availability-01",
+                "severity": "critical",
+                "source": "ledgerlens",
+                "summary": "inc-analytics-downstream_availability-01: Product Analytics: Critical data product unavailable"
+              },
+              "rationale": "Trigger or deduplicate the critical incident event while explicitly preserving the metadata-derived claim boundary.",
+              "requires_human_approval": false,
+              "risk": "low",
+              "target": "pagerduty:events-v2"
+            },
+            {
+              "action_type": "jira.issue.create",
+              "evidence_fact_ids": [
+                "incident-id",
+                "incident-severity",
+                "root-asset",
+                "primary-owner",
+                "affected-field",
+                "blast-radius",
+                "runbook"
+              ],
+              "parameters": {
+                "description": "Track recovery verification separately from root cause.",
+                "issue_type": "Task",
+                "labels": [
+                  "incident",
+                  "ledgerlens"
+                ],
+                "project_key": "DATAOPS",
+                "summary": "inc-analytics-downstream_availability-01: recover freshness"
+              },
+              "rationale": "Create a separate, auditable task for recovery verification without treating recovery as established or conflating it with root-cause analysis.",
+              "requires_human_approval": false,
+              "risk": "low",
+              "target": "DATAOPS"
+            }
+          ],
+          "confidence": 1.0,
+          "summary": "Propose the four policy-required, reversible collaboration actions to record, communicate, escalate, and track recovery for the SEV-1 incident. Root cause, causality, user impact, and recovery remain unverified."
+        },
+        "kind": "json_object"
+      },
+      "provider": "https://api.openai.com/v1",
+      "role": "planner",
+      "step": 1,
+      "temperature": 0.0
+    },
+    {
+      "error": null,
+      "input": {
+        "context": {
+          "agentToolCatalog": null,
+          "candidatePlanSummary": {
+            "actions": [
+              {
+                "actionType": "github.issue.create",
+                "target": "tomyimkc/ledgerlens"
+              },
+              {
+                "actionType": "slack.message.post",
+                "target": "#inc-data-platform"
+              },
+              {
+                "actionType": "pagerduty.event.trigger",
+                "target": "pagerduty:events-v2"
+              },
+              {
+                "actionType": "jira.issue.create",
+                "target": "DATAOPS"
+              }
+            ],
+            "confidence": 1.0,
+            "planId": "plan-db069c06-0c11-4490-8e07-1d2e98ca2fe8",
+            "summary": "Propose the four policy-required, reversible collaboration actions to record, communicate, escalate, and track recovery for the SEV-1 incident. Root cause, causality, user impact, and recovery remain unverified."
+          },
+          "hasAgentToolCatalog": false,
+          "incidentContextSummary": {
+            "factCount": 7,
+            "factIds": [
+              "incident-id",
+              "incident-severity",
+              "root-asset",
+              "primary-owner",
+              "affected-field",
+              "blast-radius",
+              "runbook"
+            ],
+            "incidentId": "inc-analytics-downstream_availability-01",
+            "severity": "critical",
+            "title": "Product Analytics: Critical data product unavailable"
+          }
+        },
+        "system": "You are an independent incident-action verifier. Return JSON only. Reject any action that lacks cited fact IDs, exceeds the evidence, contains an unsafe or irreversible target, or invents metadata. You cannot execute tools or change the plan. When automationPolicy is present, verify exact action-type, target, required-action completeness, parameter allowlists, and forbidden-action exclusions.",
+        "userPrompt": "Return exactly approved (JSON boolean), confidence (JSON number from 0.0 to 1.0, never a word), reasons (non-empty array of strings), unverifiable_fact_ids (array of strings), unverifiable_action_ids (array of strings), and metadata (object). Approval requires every action and factual rationale to be independently supported by the supplied context."
+      },
+      "model": "gpt-5.6-terra",
+      "output": {
+        "json": {
+          "approved": true,
+          "confidence": 1.0,
+          "metadata": {},
+          "reasons": [
+            "All four candidate actions exactly match the automationPolicy requiredActions in action type, target, parameters, cited evidence_fact_ids, risk, and approval requirement.",
+            "Each cited fact ID exists in incidentContext.facts and supports the incident identity, severity, asset context, ownership, affected field, lineage scope, and runbook context used by the required actions.",
+            "No action uses a forbidden action type, performs an unsafe or irreversible operational change, or asserts verified root cause, causality, user impact, or recovery.",
+            "The policy-required action set is complete: GitHub record creation, Slack communication, PagerDuty trigger/deduplication, and Jira recovery-verification tracking are all present."
+          ],
+          "unverifiable_action_ids": [],
+          "unverifiable_fact_ids": []
+        },
+        "kind": "json_object"
+      },
+      "provider": "https://api.openai.com/v1",
+      "role": "verifier:gpt-5.6-terra",
+      "step": 2,
+      "temperature": 0.0
+    },
+    {
+      "error": null,
+      "input": {
+        "context": {
+          "agentToolCatalog": null,
+          "candidatePlanSummary": {
+            "actions": [
+              {
+                "actionType": "github.issue.create",
+                "target": "tomyimkc/ledgerlens"
+              },
+              {
+                "actionType": "slack.message.post",
+                "target": "#inc-data-platform"
+              },
+              {
+                "actionType": "pagerduty.event.trigger",
+                "target": "pagerduty:events-v2"
+              },
+              {
+                "actionType": "jira.issue.create",
+                "target": "DATAOPS"
+              }
+            ],
+            "confidence": 1.0,
+            "planId": "plan-db069c06-0c11-4490-8e07-1d2e98ca2fe8",
+            "summary": "Propose the four policy-required, reversible collaboration actions to record, communicate, escalate, and track recovery for the SEV-1 incident. Root cause, causality, user impact, and recovery remain unverified."
+          },
+          "hasAgentToolCatalog": false,
+          "incidentContextSummary": {
+            "factCount": 7,
+            "factIds": [
+              "incident-id",
+              "incident-severity",
+              "root-asset",
+              "primary-owner",
+              "affected-field",
+              "blast-radius",
+              "runbook"
+            ],
+            "incidentId": "inc-analytics-downstream_availability-01",
+            "severity": "critical",
+            "title": "Product Analytics: Critical data product unavailable"
+          }
+        },
+        "system": "You are an independent incident-action verifier. Return JSON only. Reject any action that lacks cited fact IDs, exceeds the evidence, contains an unsafe or irreversible target, or invents metadata. You cannot execute tools or change the plan. When automationPolicy is present, verify exact action-type, target, required-action completeness, parameter allowlists, and forbidden-action exclusions.",
+        "userPrompt": "Return exactly approved (JSON boolean), confidence (JSON number from 0.0 to 1.0, never a word), reasons (non-empty array of strings), unverifiable_fact_ids (array of strings), unverifiable_action_ids (array of strings), and metadata (object). Approval requires every action and factual rationale to be independently supported by the supplied context."
+      },
+      "model": "gpt-5.5",
+      "output": {
+        "json": {
+          "approved": true,
+          "confidence": 1.0,
+          "metadata": {
+            "all_required_actions_matched": true,
+            "automation_policy_present": true,
+            "candidate_action_count": 4,
+            "forbidden_action_types_checked": true,
+            "required_action_count": 4
+          },
+          "reasons": [
+            "All four candidate actions exactly match automationPolicy.requiredActions for action_type, target, parameters, risk, requires_human_approval, and evidence_fact_ids.",
+            "Each action cites evidence_fact_ids that exist in incidentContext.facts: incident-id, incident-severity, root-asset, primary-owner, affected-field, blast-radius, and runbook.",
+            "No candidate action uses a forbidden action type: delete_lineage, disable_auditing, drop_asset, or publish_unverified_fix.",
+            "Targets are collaboration/escalation/tracking endpoints specified by the automation policy and do not constitute unsafe or irreversible data-plane operations.",
+            "Action text preserves the stated claim boundary by avoiding assertions of root cause, causality, user impact, or recovery beyond the supplied context."
+          ],
+          "unverifiable_action_ids": [],
+          "unverifiable_fact_ids": []
+        },
+        "kind": "json_object"
+      },
+      "provider": "https://api.openai.com/v1",
+      "role": "verifier:gpt-5.5",
+      "step": 3,
+      "temperature": 0.0
+    }
+  ],
+  "models": {
+    "note": "Recorded over an OpenAI-compatible Chat Completions API; regenerate with OPENAI_API_KEY or ANTHROPIC_API_KEY.",
+    "planner": "gpt-5.6-sol",
+    "provider": "https://api.openai.com/v1",
+    "verifiers": [
+      "gpt-5.6-terra",
+      "gpt-5.5"
+    ]
+  },
+  "networkUsed": true,
+  "schemaVersion": "1.0",
+  "status": "authorized",
+  "verification": {
+    "aggregate_confidence": 1.0,
+    "approvals": 2,
+    "approved": true,
+    "canClaimAGI": false,
+    "candidateOnly": true,
+    "confidence_threshold": 0.85,
+    "incident_id": "inc-analytics-downstream_availability-01",
+    "minimum_families": 2,
+    "participating_families": [
+      "gpt-5.6-terra",
+      "gpt-5.5"
+    ],
+    "plan_id": "plan-db069c06-0c11-4490-8e07-1d2e98ca2fe8",
+    "quorum": 2,
+    "reason_codes": [
+      "quorum_approved"
+    ],
+    "verdicts": [
+      {
+        "approved": true,
+        "canClaimAGI": false,
+        "candidateOnly": true,
+        "confidence": 1.0,
+        "error": null,
+        "incident_id": "inc-analytics-downstream_availability-01",
+        "metadata": {},
+        "plan_id": "plan-db069c06-0c11-4490-8e07-1d2e98ca2fe8",
+        "reasons": [
+          "All four candidate actions exactly match the automationPolicy requiredActions in action type, target, parameters, cited evidence_fact_ids, risk, and approval requirement.",
+          "Each cited fact ID exists in incidentContext.facts and supports the incident identity, severity, asset context, ownership, affected field, lineage scope, and runbook context used by the required actions.",
+          "No action uses a forbidden action type, performs an unsafe or irreversible operational change, or asserts verified root cause, causality, user impact, or recovery.",
+          "The policy-required action set is complete: GitHub record creation, Slack communication, PagerDuty trigger/deduplication, and Jira recovery-verification tracking are all present."
+        ],
+        "unverifiable_action_ids": [],
+        "unverifiable_fact_ids": [],
+        "verifier_family": "gpt-5.6-terra",
+        "verifier_id": "verifier:gpt-5.6-terra"
+      },
+      {
+        "approved": true,
+        "canClaimAGI": false,
+        "candidateOnly": true,
+        "confidence": 1.0,
+        "error": null,
+        "incident_id": "inc-analytics-downstream_availability-01",
+        "metadata": {
+          "all_required_actions_matched": true,
+          "automation_policy_present": true,
+          "candidate_action_count": 4,
+          "forbidden_action_types_checked": true,
+          "required_action_count": 4
+        },
+        "plan_id": "plan-db069c06-0c11-4490-8e07-1d2e98ca2fe8",
+        "reasons": [
+          "All four candidate actions exactly match automationPolicy.requiredActions for action_type, target, parameters, risk, requires_human_approval, and evidence_fact_ids.",
+          "Each action cites evidence_fact_ids that exist in incidentContext.facts: incident-id, incident-severity, root-asset, primary-owner, affected-field, blast-radius, and runbook.",
+          "No candidate action uses a forbidden action type: delete_lineage, disable_auditing, drop_asset, or publish_unverified_fix.",
+          "Targets are collaboration/escalation/tracking endpoints specified by the automation policy and do not constitute unsafe or irreversible data-plane operations.",
+          "Action text preserves the stated claim boundary by avoiding assertions of root cause, causality, user impact, or recovery beyond the supplied context."
+        ],
+        "unverifiable_action_ids": [],
+        "unverifiable_fact_ids": [],
+        "verifier_family": "gpt-5.5",
+        "verifier_id": "verifier:gpt-5.5"
+      }
+    ]
+  }
+}

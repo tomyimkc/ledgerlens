@@ -21,10 +21,10 @@ uv run python benchmarks/live_mcp_benchmark.py \
 ```
 
 Run the optional bounded model transport check only when a key is explicitly
-available. (`020s` / `SOPHIA_020S_KEY` is the internal codename for the
+available. (`LLM` / `OPENAI_API_KEY` is the internal codename for the
 OpenAI GPT-5.6-compatible transport; the model-attribution docs name it OpenAI GPT-5.6.)
 
 ```bash
-SOPHIA_020S_KEY=... uv run python benchmarks/020s_smoke.py \
-  --output benchmarks/results/020s-smoke.json
+OPENAI_API_KEY=... uv run python benchmarks/llm_smoke.py \
+  --output benchmarks/results/llm-smoke.json
 ```

@@ -102,6 +102,54 @@ def test_planner_builds_identity_and_ids_outside_model_output() -> None:
     assert model.calls[0]["temperature"] == 0.0
 
 
+def test_planner_receives_agent_tool_catalog_for_flexible_tool_choice() -> None:
+    """Hard-coded adapters stay; the agent chooses among catalogued tools."""
+    from ledgerlens.tool_catalog import build_agent_tool_catalog
+
+    model = FakeModel(
+        {
+            "confidence": 0.9,
+            "summary": "Ticket only.",
+            "actions": [
+                {
+                    "action_type": "github.issue.create",
+                    "target": "tomyimkc/ledgerlens",
+                    "parameters": {"title": "Investigate"},
+                    "rationale": "Owner must investigate.",
+                    "evidence_fact_ids": ["fact-owner"],
+                    "risk": "low",
+                    "requires_human_approval": False,
+                }
+            ],
+        }
+    )
+    catalog = build_agent_tool_catalog(
+        {
+            "github.issue.create": ["tomyimkc/ledgerlens"],
+            "slack.message.post": ["#inc-data-platform"],
+        }
+    )
+    ids = iter(("action-1", "idempotency-1", "plan-1"))
+    planner = JsonIncidentPlanner(
+        model,
+        planner_id="planner-sol",
+        family="gpt-5.6-sol",
+        clock=lambda: NOW,
+        id_factory=lambda prefix: next(ids),
+        tool_catalog=catalog,
+    )
+
+    plan = planner.plan(_context())
+
+    assert plan.actions[0].action_type == "github.issue.create"
+    ctx = model.calls[0]["context"]
+    assert "agentToolCatalog" in ctx
+    assert "incidentContext" in ctx
+    types = {t["action_type"] for t in ctx["agentToolCatalog"]["tools"]}
+    assert types == {"github.issue.create", "slack.message.post"}
+    assert "tool-using agent" in model.calls[0]["system"]
+
+
 def test_verifier_returns_only_typed_assessment() -> None:
     model = FakeModel(
         {

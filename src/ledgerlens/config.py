@@ -3,20 +3,27 @@
 from __future__ import annotations
 
 import shlex
+from enum import StrEnum
 from functools import lru_cache
 
 from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class LlmProvider(StrEnum):
+    """Native LLM providers for planner/verifier roles."""
+
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+    OPENAI_COMPATIBLE = "openai_compatible"
+
+
 class Settings(BaseSettings):
     """Runtime settings.
 
-    Bring your own LLM: the planner/verifier key is ``LEDGERLENS_LLM_API_KEY`` (the legacy
-    ``SOPHIA_020S_KEY`` name is still accepted), and the endpoint is any OpenAI-compatible
-    ``LEDGERLENS_LLM_BASE_URL`` + ``LEDGERLENS_LLM_MODEL``. ``SecretStr`` prevents accidental
-    disclosure through repr/serialization; callers must explicitly request the secret value,
-    and the key is only ever sent to the configured (https) base URL.
+    Planner/verifier models use native OpenAI or Anthropic APIs (or any
+    OpenAI-compatible base URL). Prefer ``OPENAI_API_KEY`` / ``ANTHROPIC_API_KEY``;
+    ``LEDGERLENS_LLM_API_KEY`` is a generic fallback for either provider.
     """
 
     model_config = SettingsConfigDict(
@@ -56,12 +63,16 @@ class Settings(BaseSettings):
     )
 
     llm_enabled: bool = Field(default=False, validation_alias="LEDGERLENS_LLM_ENABLED")
+    llm_provider: LlmProvider = Field(
+        default=LlmProvider.OPENAI,
+        validation_alias="LEDGERLENS_LLM_PROVIDER",
+    )
     llm_base_url: str = Field(
-        default="https://api.020s.com/v1",
+        default="https://api.openai.com/v1",
         validation_alias="LEDGERLENS_LLM_BASE_URL",
     )
     llm_model: str = Field(
-        default="gpt-5.6-sol",
+        default="gpt-4o",
         min_length=1,
         validation_alias="LEDGERLENS_LLM_MODEL",
     )
@@ -71,9 +82,20 @@ class Settings(BaseSettings):
         le=120,
         validation_alias="LEDGERLENS_LLM_TIMEOUT_SECONDS",
     )
+    # Generic fallback key (either provider). Prefer OPENAI_API_KEY / ANTHROPIC_API_KEY.
     llm_api_key: SecretStr | None = Field(
         default=None,
-        validation_alias=AliasChoices("LEDGERLENS_LLM_API_KEY", "SOPHIA_020S_KEY"),
+        validation_alias="LEDGERLENS_LLM_API_KEY",
+        repr=False,
+    )
+    openai_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices("OPENAI_API_KEY", "LEDGERLENS_OPENAI_API_KEY"),
+        repr=False,
+    )
+    anthropic_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices("ANTHROPIC_API_KEY", "LEDGERLENS_ANTHROPIC_API_KEY"),
         repr=False,
     )
 
@@ -94,14 +116,23 @@ class Settings(BaseSettings):
         validation_alias="LEDGERLENS_AI_VERIFICATION_ENABLED",
     )
     planner_model: str = Field(
-        default="gpt-5.6-sol",
+        default="gpt-4o",
         min_length=1,
         validation_alias="LEDGERLENS_PLANNER_MODEL",
     )
+    planner_provider: LlmProvider | None = Field(
+        default=None,
+        validation_alias="LEDGERLENS_PLANNER_PROVIDER",
+    )
     verifier_models: str = Field(
-        default="gpt-5.6-terra,gpt-5.5",
+        # Must not include planner_model (independence rule).
+        default="gpt-4o-mini,gpt-4-turbo",
         min_length=1,
         validation_alias="LEDGERLENS_VERIFIER_MODELS",
+    )
+    verifier_provider: LlmProvider | None = Field(
+        default=None,
+        validation_alias="LEDGERLENS_VERIFIER_PROVIDER",
     )
     verifier_quorum: int = Field(
         default=2,
@@ -146,6 +177,15 @@ class Settings(BaseSettings):
             return None
         return value.strip()
 
+    @field_validator("llm_provider", "planner_provider", "verifier_provider", mode="before")
+    @classmethod
+    def normalize_provider(cls, value: object) -> object:
+        if value is None or value == "":
+            return value
+        if isinstance(value, str):
+            return value.strip().lower().replace("-", "_")
+        return value
+
     @model_validator(mode="after")
     def enforce_safe_defaults(self) -> Settings:
         if self.mutations_enabled and not self.incident_commander_enabled:
@@ -158,17 +198,27 @@ class Settings(BaseSettings):
             raise ValueError("autonomous execution requires an action authorization secret")
         if self.ai_verification_enabled and self.verifier_quorum > len(self.verifier_model_ids):
             raise ValueError("verifier quorum exceeds configured verifier models")
-        if self.llm_enabled and self.llm_api_key is None:
-            raise ValueError("LEDGERLENS_LLM_ENABLED requires LEDGERLENS_LLM_API_KEY")
-        if self.llm_api_key is not None and not (
-            self.llm_base_url.startswith("https://")
-            or self.llm_base_url.startswith("http://localhost")
-            or self.llm_base_url.startswith("http://127.0.0.1")
-        ):
+        if self.llm_enabled and not self._has_any_llm_key():
             raise ValueError(
-                "the LLM API key may only be sent over https:// (or a localhost endpoint)"
+                "LEDGERLENS_LLM_ENABLED requires OPENAI_API_KEY, ANTHROPIC_API_KEY, "
+                "or LEDGERLENS_LLM_API_KEY"
             )
+        for url in (self.llm_base_url,):
+            if self._has_any_llm_key() and not (
+                url.startswith("https://")
+                or url.startswith("http://localhost")
+                or url.startswith("http://127.0.0.1")
+            ):
+                raise ValueError(
+                    "LLM API keys may only be sent over https:// (or a localhost endpoint)"
+                )
         return self
+
+    def _has_any_llm_key(self) -> bool:
+        return any(
+            key is not None
+            for key in (self.llm_api_key, self.openai_api_key, self.anthropic_api_key)
+        )
 
     @property
     def mcp_command_argv(self) -> tuple[str, ...] | None:
@@ -184,10 +234,47 @@ class Settings(BaseSettings):
     def datahub_token_value(self) -> str | None:
         return self.datahub_token.get_secret_value() if self.datahub_token else None
 
+    def resolved_planner_provider(self) -> LlmProvider:
+        return self.planner_provider or self.llm_provider
+
+    def resolved_verifier_provider(self) -> LlmProvider:
+        return self.verifier_provider or self.llm_provider
+
+    def base_url_for_provider(self, provider: LlmProvider) -> str:
+        """Default native base URL unless a custom openai_compatible URL is set."""
+
+        if provider is LlmProvider.ANTHROPIC:
+            if "anthropic" in self.llm_base_url:
+                return self.llm_base_url
+            return "https://api.anthropic.com"
+        if provider is LlmProvider.OPENAI:
+            if "openai.com" in self.llm_base_url or self.llm_provider is LlmProvider.OPENAI:
+                return self.llm_base_url if self.llm_base_url else "https://api.openai.com/v1"
+            if self.llm_provider is LlmProvider.OPENAI_COMPATIBLE:
+                return self.llm_base_url
+            return "https://api.openai.com/v1"
+        return self.llm_base_url
+
+    def api_key_for_provider(self, provider: LlmProvider) -> str:
+        """Resolve the secret for a provider without logging it."""
+
+        if provider is LlmProvider.ANTHROPIC:
+            if self.anthropic_api_key is not None:
+                return self.anthropic_api_key.get_secret_value()
+            if self.llm_api_key is not None:
+                return self.llm_api_key.get_secret_value()
+            raise ValueError("ANTHROPIC_API_KEY or LEDGERLENS_LLM_API_KEY is required")
+        # OpenAI + OpenAI-compatible share the OpenAI-style Bearer key.
+        if self.openai_api_key is not None:
+            return self.openai_api_key.get_secret_value()
+        if self.llm_api_key is not None:
+            return self.llm_api_key.get_secret_value()
+        raise ValueError("OPENAI_API_KEY or LEDGERLENS_LLM_API_KEY is required")
+
     def require_llm_api_key(self) -> str:
-        if self.llm_api_key is None:
-            raise ValueError("LEDGERLENS_LLM_API_KEY is required to enable the LLM")
-        return self.llm_api_key.get_secret_value()
+        """Return the key for the default ``llm_provider``."""
+
+        return self.api_key_for_provider(self.llm_provider)
 
     @property
     def verifier_model_ids(self) -> tuple[str, ...]:
