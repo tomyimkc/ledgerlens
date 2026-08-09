@@ -233,6 +233,37 @@ def test_policy_authorizes_only_grounded_exact_allowlist_matches() -> None:
     assert decision.can_claim_agi is False
 
 
+def test_policy_enforces_tool_specific_datahub_fact_contract() -> None:
+    context = _context()
+    plan = _plan()
+    verification = _panel(
+        FakeVerifier("v1", "family-a"),
+        FakeVerifier("v2", "family-b"),
+    ).verify(context, plan)
+    gate = PolicyGate(
+        _gate().config.model_copy(
+            update={
+                "allowances": (
+                    _gate()
+                    .config.allowances[0]
+                    .model_copy(
+                        update={
+                            "required_evidence_fact_ids": frozenset({"fact-1", "primary-owner"})
+                        }
+                    ),
+                )
+            }
+        ),
+        clock=lambda: NOW,
+    )
+
+    decision = gate.authorize(context, plan, verification)
+
+    assert decision.authorized is False
+    assert "required_context_fact_missing:action-1:primary-owner" in decision.reason_codes
+    assert "required_evidence_not_cited:action-1:fact-1" not in decision.reason_codes
+
+
 @pytest.mark.parametrize(
     ("plan", "expected_reason"),
     [

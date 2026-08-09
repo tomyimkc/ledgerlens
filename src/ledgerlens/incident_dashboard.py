@@ -18,6 +18,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol, cast
 
+from ledgerlens.context_cut import ContextCutTraceError, evaluate_context_cut_trace
+
 JsonObject = dict[str, Any]
 
 _PACKAGE_ROOT = Path(__file__).resolve().parent
@@ -1954,6 +1956,58 @@ def create_incident_router(
             {
                 "ok": True,
                 "trace": payload if isinstance(payload, Mapping) else {},
+                "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
+            },
+            headers=_content_security_headers(),
+        )
+
+    @router.get("/api/context-cut/{scenario_id}", name="incident_context_cut")
+    async def api_context_cut(scenario_id: str) -> Any:
+        """Replay a recorded model plan through the current deterministic gate."""
+
+        path = _STATIC_ROOT / "context-cut-trace.json"
+        if not path.exists():
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "detail": (
+                        "No context-cut trace yet. Generate with: "
+                        "uv run python scripts/build_context_cut_trace.py --force"
+                    ),
+                    "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
+                },
+                status_code=404,
+                headers=_content_security_headers(),
+            )
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(raw, Mapping):
+                raise ContextCutTraceError("context-cut trace must be an object")
+            result = evaluate_context_cut_trace(raw, scenario_id)
+        except ContextCutTraceError as exc:
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "detail": str(exc),
+                    "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
+                },
+                status_code=400,
+                headers=_content_security_headers(),
+            )
+        except (json.JSONDecodeError, OSError) as exc:
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "detail": f"Context-cut trace unreadable: {exc}",
+                    "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
+                },
+                status_code=500,
+                headers=_content_security_headers(),
+            )
+        return JSONResponse(
+            {
+                "ok": True,
+                "lab": result,
                 "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
             },
             headers=_content_security_headers(),

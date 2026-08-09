@@ -96,6 +96,34 @@ TOOL_SPECS: dict[str, dict[str, Any]] = {
     },
 }
 
+# A conservative, contest-visible DataHub evidence contract. These are not universal
+# production defaults: operators may supply a different mapping to the catalog and
+# policy factories. The important invariant is that the planner sees the same contract
+# the deterministic gate enforces.
+DATAHUB_INCIDENT_EVIDENCE_CONTRACTS: dict[str, tuple[str, ...]] = {
+    "github.issue.create": ("incident-id", "root-asset", "primary-owner", "runbook"),
+    "slack.message.post": (
+        "incident-id",
+        "incident-severity",
+        "primary-owner",
+        "blast-radius",
+    ),
+    "pagerduty.event.trigger": (
+        "incident-id",
+        "incident-severity",
+        "root-asset",
+        "blast-radius",
+    ),
+    "pagerduty.incident.note": (
+        "incident-id",
+        "incident-severity",
+        "root-asset",
+        "blast-radius",
+    ),
+    "jira.issue.create": ("incident-id", "primary-owner", "runbook"),
+    "datahub.incident.writeback": ("incident-id", "root-asset"),
+}
+
 
 class AgentToolSpec(BaseModel):
     """One tool the agent may select when drafting a plan."""
@@ -108,6 +136,7 @@ class AgentToolSpec(BaseModel):
     targets: tuple[str, ...] = Field(default_factory=tuple)
     allowed_parameter_keys: tuple[str, ...] = Field(default_factory=tuple)
     required_parameter_keys: tuple[str, ...] = Field(default_factory=tuple)
+    required_evidence_fact_ids: tuple[str, ...] = Field(default_factory=tuple)
     reversible: bool = True
     category: str = "collaboration"
 
@@ -121,6 +150,7 @@ class AgentToolSpec(BaseModel):
             "allowed_targets": list(self.targets),
             "allowed_parameter_keys": list(self.allowed_parameter_keys),
             "required_parameter_keys": list(self.required_parameter_keys),
+            "required_evidence_fact_ids": list(self.required_evidence_fact_ids),
             "reversible": self.reversible,
             "category": self.category,
         }
@@ -162,6 +192,7 @@ def build_agent_tool_catalog(
     targets: Mapping[str, Sequence[str]],
     *,
     include_unknown_types: bool = False,
+    required_evidence_fact_ids: Mapping[str, Sequence[str]] | None = None,
 ) -> AgentToolCatalog:
     """Build an agent-visible catalog from the same target map used for policy.
 
@@ -170,6 +201,7 @@ def build_agent_tool_catalog(
     """
 
     tools: list[AgentToolSpec] = []
+    evidence_contracts = required_evidence_fact_ids or {}
     for action_type, action_targets in sorted(targets.items()):
         base = TOOL_SPECS.get(action_type)
         if base is None:
@@ -192,6 +224,9 @@ def build_agent_tool_catalog(
                 targets=target_tuple,
                 allowed_parameter_keys=tuple(sorted(base["allowed_parameter_keys"])),
                 required_parameter_keys=tuple(sorted(base["required_parameter_keys"])),
+                required_evidence_fact_ids=tuple(
+                    sorted(str(item) for item in evidence_contracts.get(action_type, ()))
+                ),
                 reversible=bool(base.get("reversible", True)),
                 category=str(base.get("category", "collaboration")),
             )
@@ -228,6 +263,7 @@ def register_tool_spec(
 
 
 __all__ = [
+    "DATAHUB_INCIDENT_EVIDENCE_CONTRACTS",
     "TOOL_SPECS",
     "AgentToolCatalog",
     "AgentToolSpec",

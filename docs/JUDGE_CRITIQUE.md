@@ -1,82 +1,91 @@
 # LedgerLens hostile-judge critique
 
 **Assessment date:** August 9, 2026  
-**Scope:** Current feature branch, public Hugging Face Space, recorded evidence, Devpost copy,
-and open PR #65. This is an internal contest-readiness assessment, not a judging result.
+**Scope:** Contest hardening branch after Seal Lab and DataHub Context Cut implementation.
+This is an internal readiness assessment, not a judging result.
 
 ## Thirty-second verdict
 
-LedgerLens has a defensible idea: **the model may propose and critique work, but a non-model gate
-authorizes only the exact reviewed plan and records receipts**. DataHub supplies the ownership,
-lineage, runbook, and write-back spine.
+LedgerLens now has two judge-testable ideas rather than one long explanation:
 
-The problem is presentation and proof density. A tired judge currently meets a long walkthrough,
-several comparison tables, and a recorded trace before they get a tactile demonstration of the
-one idea that is actually distinctive. The public demo is honest about being a fixture, but labels
-such as **LIVE PROOF** and **LIVE MODEL TRACE** make that honesty easier to doubt than it should be.
+1. **Seal Lab:** mutate the reviewed plan and the current server gate refuses drift, a verifier
+   objection, or an off-allowlist target before any tool runs.
+2. **DataHub Context Cut:** hold one recorded model plan fixed, remove ownership or lineage, and
+   the current server policy withdraws authority because the tool's required catalog facts are
+   absent.
+
+That combination is distinctive: **the model proposes work, DataHub supplies the facts that make
+specific tools eligible, and deterministic policy binds authority to the exact plan.** It is more
+defensible than generic human approval and more DataHub-native than a tool-calling demo with a
+catalog logo.
 
 ## Three strengths
 
-1. **Authority is structurally outside the model.** The plan fingerprint, allowlists, exact
-   confirmation, and fail-closed checks are implemented in ordinary code rather than described
-   only in copy.
-2. **DataHub is more than a logo.** Asset identity, ownership, schema/runbook evidence, bounded
-   lineage scope, receipt write-back, and next-agent handoff form a coherent incident context
-   contract.
-3. **The evidence ledger is unusually candid.** Fixture replay, deterministic tests, local-live
-   DataHub evidence, and the one supervised four-provider rehearsal are separated instead of
-   being blended into a claim of ongoing operation.
+1. **Authority is structurally outside the model.** Plan fingerprints, target/parameter
+   allowlists, verifier quorum, per-tool evidence contracts, and fail-closed reason codes are
+   ordinary typed Python.
+2. **DataHub is now visibly load-bearing.** Owner, lineage, asset, severity, and runbook fact IDs
+   are not just shown in a panel; E-20 lets a judge remove them and watch authority disappear.
+3. **Evidence classes are unusually explicit.** Fixture replay, recorded-model output, live
+   deterministic replay, local-live DataHub work, and one supervised provider rehearsal remain
+   separate. The public page never needs a secret.
 
-## Five kill risks
+## Five residual kill risks
 
-1. **The unique idea is buried.** The current proof is a static side-by-side card below a large
-   amount of explanatory UI. A judge can leave before discovering why a plan fingerprint is
-   different from generic human approval.
-2. **It can still read as “workflow, not agent.”** The public path follows a fixed A–F skeleton,
-   the fixture planner is deterministic, and the Agent I/O page is a recorded trace with tools
-   held. The tool catalog and model planning are real, but the most accessible artifact does not
-   make adaptive plan choice feel central.
-3. **Fixture theater is one label away.** The fixture banner and `fixture://` receipts are good;
-   “LIVE PROOF” for a deterministic fixture endpoint and “LIVE MODEL TRACE” for committed JSON
-   are not. A skeptical judge may interpret this as scope inflation.
-4. **Submission state is internally inconsistent.** Devpost currently has a public video, while
-   repository submission docs still say the video and final submission are missing. The public
-   title/tagline also lean on “Autonomous,” which weakens the safer bounded-collaboration story.
-5. **The open contest PR is red.** The current failure is Ruff formatting/lint, not a product
-   defect, but a judge or reviewer opening the repository sees an avoidable technical-execution
-   penalty.
+1. **The clickable context is still synthetic.** Context Cut proves the implemented evidence
+   contract, not a live DataHub request or production metadata quality.
+2. **Adaptive re-planning is not demonstrated publicly.** E-20 deliberately fixes the recorded
+   plan; the planner and verifiers are not re-run per cut. The code now supports an empty
+   abstention and exposes evidence requirements to the tool-using planner, but no fresh adaptive
+   model trace was produced in this hardening pass, so none is claimed.
+3. **Live work remains narrow.** E-16 is one supervised action per provider on August 3, 2026,
+   not sustained reliability, scale, adoption, or incident recovery.
+4. **External judgment is absent.** The consent-safe reviewer protocol exists, but no completed
+   review can be reported until real people participate and consent.
+5. **Submission edges remain time-sensitive.** The public YouTube title still uses “Autonomous,”
+   final incognito playback is owner-visible, the upstream DataHub MCP PR is open/unmerged, and
+   the final release/deployment SHA must match the submitted artifact.
 
 ## Scorecard guess
 
 | Criterion | Current guess | Skeptical reason |
 |---|---:|---|
-| Meaningful use of DataHub | 7.0 / 10 | DataHub is load-bearing in code and evidence, but the public interaction is fixture-only. |
-| Technical execution | 7.0 / 10 | Strong typed/gated implementation and receipts; current PR CI is red and live evidence is one supervised rehearsal. |
-| Originality | 7.5 / 10 | Plan-exact authority is distinctive, but its proof is currently static and easy to mistake for generic HITL. |
-| Real-world usefulness | 6.5 / 10 | The operational shape is credible; no production outcome, recovery, or sustained-reliability claim is supported. |
-| Submission quality | 6.0 / 10 | Public app and video exist, but the page is dense, labels drift, and submission docs are stale. |
-| Open-source bonus | 4.5 / 10 | The upstream proposal is relevant but remains open and unmerged. |
+| Meaningful use of DataHub | 7.5 / 10 | Context Cut makes facts load-bearing, but the public DataHub context remains synthetic. |
+| Technical execution | 7.8 / 10 | Strong typed/gated implementation and one live fanout; no sustained operation. |
+| Originality | 8.0 / 10 | Exact-plan authority plus per-tool DataHub fact contracts is memorable and falsifiable. |
+| Real-world usefulness | 6.2 / 10 | Credible on-call shape; no user study or production outcome. |
+| Submission quality | 7.8 / 10 | Two interactive proofs, evidence map, video source, and one-command gates; final public checks remain. |
+| Open-source bonus | 4.5 / 10 | Relevant upstream proposal, still review-required and unmerged. |
 
-**Five-core estimate:** **6.8 / 10.** Finalist-capable, not yet winner-clear.
+**Five-core estimate:** **7.5 / 10.** Winner-contending concept, not winner-safe evidence.
 
-## One big bet: the Seal Lab
+## Big bet shipped: DataHub Context Cut
 
-Ship one interaction at the top of the judge path:
+The Context Cut is intentionally a controlled authorization ablation, not model theater:
 
-1. Start with the reviewed plan and its fingerprint.
-2. Let the judge choose a controlled mutation: append one tool call, introduce a verifier
-   objection, or point a Slack action outside the allowlist.
-3. Run the repository's real deterministic gate code.
-4. Flip visibly between **AUTHORIZED** and **DENIED**, show the exact failed condition/reason code,
-   and offer a redacted JSON evidence download.
+1. source one already-published recorded model plan and verifier panel;
+2. keep the exact typed plan and seal fixed;
+3. remove one synthetic DataHub fact class at a time;
+4. run the current `ledgerlens.verification.PolicyGate` server-side;
+5. show which tool evidence contracts become ineligible and why;
+6. execute no model or provider tool on the Space.
 
-This is higher value than another dashboard because it makes the contest thesis falsifiable in
-under a minute. It also answers the generic-HITL objection: approval is not a loose “yes”; it is a
-capability bound to a specific plan, scope, and claim boundary.
+The full map authorizes. Removing ownership, lineage, or most catalog facts denies. Because the
+planner is not re-run, the proof supports only the narrow claim that DataHub facts are required
+for authorization of that plan.
+
+## Next highest-value bet
+
+Do not add another dashboard. The remaining winner delta is external packaging:
+
+1. get two role-appropriate formative reviewers using the consent-safe 7–10 minute protocol;
+2. update or replace the public video so its title and first minute show **Policy-Sealed**,
+   Seal Lab, then Context Cut;
+3. if an owner-controlled DataHub instance is available, record one combined
+   read → plan → authorize → bounded action → write-back receipt;
+4. otherwise keep the public Space synthetic rather than weakening its safety boundary.
 
 ## Claim boundary
-
-The improved demo must continue to state:
 
 ```yaml
 candidateOnly: true
@@ -84,6 +93,7 @@ canClaimAGI: false
 externalMutations: false
 ```
 
-It may demonstrate deterministic authorization behavior. It must not claim AGI, validated uplift,
-production reliability, incident recovery, or that the fixture itself contacted DataHub or a
-provider.
+The submission may claim implemented deterministic authorization behavior, one bounded supervised
+provider rehearsal, and a local DataHub write/read-back receipt. It must not claim AGI, validated
+uplift, production reliability, incident recovery, provider-family independence, adaptive
+re-planning in E-20, or upstream acceptance.

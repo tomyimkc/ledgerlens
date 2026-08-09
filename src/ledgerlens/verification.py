@@ -250,6 +250,7 @@ class ActionAllowance(BaseModel):
     targets: frozenset[str] = Field(min_length=1)
     allowed_parameter_keys: frozenset[str] = Field(default_factory=frozenset)
     required_parameter_keys: frozenset[str] = Field(default_factory=frozenset)
+    required_evidence_fact_ids: frozenset[str] = Field(default_factory=frozenset)
     maximum_risk: ActionRisk = ActionRisk.LOW
     automatable: bool = True
 
@@ -383,6 +384,16 @@ class PolicyGate:
                 reasons.append(f"action_has_no_grounding:{action.action_id}")
             elif not frozenset(action.evidence_fact_ids) <= fact_ids:
                 reasons.append(f"action_references_unknown_fact:{action.action_id}")
+            cited_facts = frozenset(action.evidence_fact_ids)
+            for required_fact_id in sorted(allowance.required_evidence_fact_ids):
+                if required_fact_id not in fact_ids:
+                    reasons.append(
+                        f"required_context_fact_missing:{action.action_id}:{required_fact_id}"
+                    )
+                elif required_fact_id not in cited_facts:
+                    reasons.append(
+                        f"required_evidence_not_cited:{action.action_id}:{required_fact_id}"
+                    )
 
         reason_codes = tuple(dict.fromkeys(reasons))
         authorized = not reason_codes

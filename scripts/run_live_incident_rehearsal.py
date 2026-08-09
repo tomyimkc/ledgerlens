@@ -70,6 +70,7 @@ from ledgerlens.incident_integration import (  # noqa: E402
 )
 from ledgerlens.incident_models import Incident, IncidentContext  # noqa: E402
 from ledgerlens.runtime_factory import build_ai_roles, build_policy_gate  # noqa: E402
+from ledgerlens.tool_catalog import DATAHUB_INCIDENT_EVIDENCE_CONTRACTS  # noqa: E402
 
 DEFAULT_INCIDENT = "inc-analytics-downstream_availability-01"
 DEFAULT_OUTPUT = Path("benchmarks/incident_commander/live-incident-rehearsal-receipt.json")
@@ -438,8 +439,15 @@ def main() -> int:
         issuer="ledgerlens-live-rehearsal",
     )
     executor = build_action_executor(credentials, authorizer)
+    evidence_contracts = {
+        action_type: DATAHUB_INCIDENT_EVIDENCE_CONTRACTS[action_type] for action_type in targets
+    }
     # Agent-visible tool catalog matches policy targets (flexible selection, sealed authority).
-    roles = build_ai_roles(settings, action_targets=targets)
+    roles = build_ai_roles(
+        settings,
+        action_targets=targets,
+        required_evidence_fact_ids=evidence_contracts,
+    )
     executed = False
     result = None
     try:
@@ -452,6 +460,7 @@ def main() -> int:
             verifier_panel=roles.verifier_panel,
             policy_gate=build_policy_gate(
                 targets,
+                required_evidence_fact_ids=evidence_contracts,
                 minimum_plan_confidence=0.8,
                 minimum_verifier_confidence=0.85,
                 quorum=2,

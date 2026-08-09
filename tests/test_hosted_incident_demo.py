@@ -14,6 +14,7 @@ MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
 build_receipt = MODULE.build_receipt
 validate_health = MODULE.validate_health
+validate_context_cut = MODULE.validate_context_cut
 validate_seal_lab = MODULE.validate_seal_lab
 validate_trigger = MODULE.validate_trigger
 
@@ -87,10 +88,56 @@ def _seal_lab() -> dict[str, Any]:
     }
 
 
+def _context_cut(*, scenario: str, authorized: bool) -> dict[str, Any]:
+    return {
+        "ok": True,
+        "lab": {
+            "scenario": {"id": scenario},
+            "evidenceClass": ("recorded-model-plan-plus-live-deterministic-policy-replay"),
+            "recordedModel": {
+                "plannerReRunForScenario": False,
+                "verifiersReRunForScenario": False,
+            },
+            "livePolicyReplay": {
+                "engine": "ledgerlens.verification.PolicyGate",
+                "toolsExecuted": False,
+                "matchesRecordedDecision": True,
+                "authorization": {
+                    "authorized": authorized,
+                    "reason_codes": (
+                        ["authorized"]
+                        if authorized
+                        else ["required_context_fact_missing:action-1:primary-owner"]
+                    ),
+                },
+            },
+            "externalMutations": False,
+            "candidateOnly": True,
+            "canClaimAGI": False,
+        },
+    }
+
+
 def test_hosted_contract_accepts_bounded_fixture_replay() -> None:
     assert validate_health(_health()) == []
     assert validate_trigger(_trigger()) == []
     assert validate_seal_lab(_seal_lab()) == []
+    assert (
+        validate_context_cut(
+            _context_cut(scenario="full-map", authorized=True),
+            expected_scenario="full-map",
+            expected_authorized=True,
+        )
+        == []
+    )
+    assert (
+        validate_context_cut(
+            _context_cut(scenario="owner-cut", authorized=False),
+            expected_scenario="owner-cut",
+            expected_authorized=False,
+        )
+        == []
+    )
 
 
 def test_hosted_contract_rejects_claim_and_mutation_drift() -> None:
@@ -128,6 +175,23 @@ def test_hosted_contract_rejects_browser_only_or_authorized_plan_drift() -> None
     errors = validate_seal_lab(seal_lab)
     assert "seal-lab must be evaluated by the server" in errors
     assert "seal-lab plan drift must be denied" in errors
+
+
+def test_hosted_contract_rejects_context_cut_that_executes_tools_or_hides_missing_fact() -> None:
+    context_cut = _context_cut(scenario="owner-cut", authorized=False)
+    context_cut["lab"]["livePolicyReplay"]["toolsExecuted"] = True
+    context_cut["lab"]["livePolicyReplay"]["authorization"]["reason_codes"] = [
+        "verification_not_approved"
+    ]
+
+    errors = validate_context_cut(
+        context_cut,
+        expected_scenario="owner-cut",
+        expected_authorized=False,
+    )
+
+    assert "context-cut toolsExecuted must be false" in errors
+    assert "context-cut denial must report a missing required DataHub fact" in errors
 
 
 def test_failed_receipt_does_not_assert_observed_safe_values() -> None:

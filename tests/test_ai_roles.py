@@ -150,6 +150,28 @@ def test_planner_receives_agent_tool_catalog_for_flexible_tool_choice() -> None:
     assert "tool-using agent" in model.calls[0]["system"]
 
 
+def test_planner_can_abstain_when_no_grounded_tool_is_justified() -> None:
+    model = FakeModel(
+        {
+            "confidence": 0.88,
+            "summary": "No catalogued action is justified by the available facts.",
+            "actions": [],
+        }
+    )
+    planner = JsonIncidentPlanner(
+        model,
+        planner_id="planner-sol",
+        family="gpt-5.6-sol",
+        clock=lambda: NOW,
+        tool_catalog=None,
+    )
+
+    plan = planner.plan(_context())
+
+    assert plan.actions == ()
+    assert "MAY be empty" in model.calls[0]["prompt"]
+
+
 def test_verifier_returns_only_typed_assessment() -> None:
     model = FakeModel(
         {

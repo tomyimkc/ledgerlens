@@ -74,6 +74,32 @@ def test_fixture_state_is_deterministic_and_distinguishes_evidence_classes() -> 
     assert state["authorization"]["decision"] == "pending"
 
 
+def test_context_cut_replays_recorded_plan_through_live_policy_without_tools() -> None:
+    client = _fixture_client()
+
+    response = client.get("/incident/api/context-cut/full-map")
+
+    assert response.status_code == 200
+    lab = response.json()["lab"]
+    assert lab["evidenceClass"] == ("recorded-model-plan-plus-live-deterministic-policy-replay")
+    assert lab["livePolicyReplay"]["engine"] == "ledgerlens.verification.PolicyGate"
+    assert lab["livePolicyReplay"]["matchesRecordedDecision"] is True
+    assert lab["livePolicyReplay"]["toolsExecuted"] is False
+    assert lab["externalMutations"] is False
+    assert lab["candidateOnly"] is True
+    assert lab["canClaimAGI"] is False
+
+
+def test_context_cut_rejects_unknown_scenario_without_falling_back() -> None:
+    client = _fixture_client()
+
+    response = client.get("/incident/api/context-cut/not-a-scenario")
+
+    assert response.status_code == 400
+    assert response.json()["ok"] is False
+    assert "unknown context-cut scenario" in response.json()["detail"]
+
+
 def test_live_mode_never_substitutes_fixture_or_provider_success_state() -> None:
     client = TestClient(create_incident_app(fixture_mode=False))
 
@@ -306,6 +332,8 @@ def test_router_mounts_under_custom_prefix_with_its_own_assets() -> None:
     assert "/seal-lab" in script.text
     assert "INTERACTIVE FIXTURE" in script.text
     assert "Copy redacted proof JSON" in script.text
+    assert "/context-cut/" in script.text
+    assert "RECORDED MODEL PLAN · LIVE POLICY REPLAY" in script.text
     assert '.topbar .tnav-btn[href^="#"] { display: none; }' in css.text
     assert 'body.js .topbar .tnav-btn[href^="#"] { display: inline-flex; }' in css.text
     # Agentic / tool-use framing (not fixed 8-step BPMN product language).

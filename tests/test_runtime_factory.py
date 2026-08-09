@@ -76,3 +76,39 @@ def test_policy_gate_uses_exact_targets_and_parameter_contracts() -> None:
         "pagerduty.event.trigger",
         "jira.issue.create",
     }
+
+
+def test_fact_contract_is_shared_by_agent_catalog_and_policy_gate() -> None:
+    required = {
+        "github.issue.create": ["incident-id", "primary-owner"],
+    }
+    settings = Settings(
+        _env_file=None,
+        ai_verification_enabled=True,
+        openai_api_key="safe-test-key",
+        planner_model="gpt-4o",
+        verifier_models="gpt-4o-mini,gpt-4-turbo",
+        verifier_quorum=2,
+    )
+    targets = {"github.issue.create": ["tomyimkc/ledgerlens"]}
+    roles = build_ai_roles(
+        settings,
+        transports={
+            "gpt-4o": _transport({}),
+            "gpt-4o-mini": _transport({}),
+            "gpt-4-turbo": _transport({}),
+        },
+        action_targets=targets,
+        required_evidence_fact_ids=required,
+    )
+    gate = build_policy_gate(targets, required_evidence_fact_ids=required)
+
+    assert roles.planner.tool_catalog is not None
+    assert roles.planner.tool_catalog.tools[0].required_evidence_fact_ids == (
+        "incident-id",
+        "primary-owner",
+    )
+    assert gate.config.allowances[0].required_evidence_fact_ids == frozenset(
+        {"incident-id", "primary-owner"}
+    )
+    roles.close()

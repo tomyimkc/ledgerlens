@@ -29,7 +29,7 @@ The deployment uses:
 - Caddy basic authentication plus a native DataHub **Reader** account;
 - a separate DataHub Reader identity and short-lived PAT for LedgerLens/MCP;
 - deterministic catalog ingestion performed once by the private root operator;
-- autonomous Incident Commander **fixture replay** with visibly synthetic receipts;
+- policy-authorized Incident Commander **fixture replay** with visibly synthetic receipts;
 - baseline backup/restore for scenario resets;
 - a host-side TTL watchdog that stops services without deleting state.
 

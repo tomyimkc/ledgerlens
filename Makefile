@@ -16,7 +16,7 @@ DATAHUB_DEMO_PASSWORD ?= datahub
 	live-smoke docker-build docker-demo video-tools capture-demo grok-assets render-video \
 	montage-demo verify-video clean-generated incident-demo incident-demo-headless \
 	incident-demo-manual incident-benchmark incident-benchmark-real-pipeline \
-	incident-catalog-bundle ai-rehearsal judge-check submission-consistency \
+	incident-catalog-bundle ai-rehearsal context-cut-trace judge-check submission-consistency \
 	hosted-smoke non-video-readiness
 
 help: ## Show available targets.
@@ -62,10 +62,10 @@ demo: ## Generate deterministic validation, ingestion, triage, and supersession 
 demo-ui: ## Serve the visibly labeled deterministic demo UI at localhost:8000.
 	uv run ledgerlens demo --host 127.0.0.1 --port 8000
 
-incident-demo: ## Launch the autonomous, visibly labeled Incident Commander fixture replay.
+incident-demo: ## Launch the policy-sealed, visibly labeled Incident Commander fixture replay.
 	uv run bash scripts/demo_incident_commander.sh
 
-incident-demo-headless: ## Launch autonomous Incident Commander without opening a browser.
+incident-demo-headless: ## Launch the policy-sealed Incident Commander without opening a browser.
 	LEDGERLENS_OPEN_BROWSER=false uv run bash scripts/demo_incident_commander.sh
 
 incident-demo-manual: ## Launch Incident Commander with exact operator authorization.
@@ -83,8 +83,11 @@ incident-catalog-bundle: ## Build the 120-asset DataHub proposal bundle without 
 	uv run python scripts/ingest_incident_catalog.py \
 		--output artifacts/incident-commander/datahub-catalog-bundle.json
 
-ai-rehearsal: ## Run the live 020s planner + verifier panel without external mutations.
+ai-rehearsal: ## Run the native OpenAI/Anthropic planner + verifier panel without mutations.
 	uv run python scripts/run_incident_ai_rehearsal.py --force
+
+context-cut-trace: ## Rebuild the no-network DataHub Context Cut from recorded Agent I/O.
+	uv run python scripts/build_context_cut_trace.py --force
 
 hosted-smoke: ## Verify the public fixture replay and write a sanitized receipt.
 	uv run python scripts/check_hosted_incident_demo.py \
@@ -111,7 +114,7 @@ run-all-incidents-live: ## OWNER-ONLY: back every demo incident with a real run 
 build-live-receipts-index: ## Publish committed real-run receipts into the demo (src/ledgerlens/static/live-receipts.json).
 	uv run python scripts/build_live_receipts_index.py
 
-judge-check: lint format-check typecheck test secret-scan public-check incident-benchmark \
+judge-check: context-cut-trace lint format-check typecheck test secret-scan public-check incident-benchmark \
 	incident-benchmark-real-pipeline non-video-readiness submission-consistency ## Run judge-facing quality and evidence gates.
 
 benchmark: ## Record a deterministic fixture benchmark receipt.

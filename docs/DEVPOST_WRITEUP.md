@@ -97,8 +97,9 @@ risk, evidence fact IDs, quorum, confidence, and plan hash. Any mismatch closes 
 
 Each provider adapter separates preview from execute, requires a signed authorization bound to the
 action digest, supports idempotency, limits retries, treats ambiguous timeouts conservatively, and
-sanitizes receipts. A live GitHub rehearsal created and immediately closed issue `#3`. Slack,
-PagerDuty, and Jira are implemented and tested but have not been executed live.
+sanitizes receipts. An early live GitHub rehearsal created and immediately closed issue `#3`.
+The later E-16 supervised run executed one bounded action against GitHub, Slack, PagerDuty, and
+Jira. This does not establish sustained or production operation.
 
 ### DataHub write-back and retrieval
 

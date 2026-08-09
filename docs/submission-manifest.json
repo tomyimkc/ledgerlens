@@ -31,7 +31,7 @@
   },
   "readinessSnapshot": {
     "verdict": "finalist-capable",
-    "fiveCoreAverage": 6.8,
+    "fiveCoreAverage": 7.5,
     "bonus": 4.5,
     "note": "Internal readiness assessment, not an official judging score. See docs/WINNER_READINESS.md."
   },
@@ -46,7 +46,8 @@
     {"id": "E-15", "claim": "Real PolicyGate/VerifierPanel authorizes only fact-grounded actions", "artifact": "benchmarks/incident_commander/real-pipeline-ablation-receipt.json", "scope": "deterministic stub planner; proves fail-closed gate, not uplift"},
     {"id": "E-16", "claim": "One run executed a bounded action against all four providers", "artifact": "benchmarks/incident_commander/live-incident-rehearsal-receipt.json", "scope": "one bounded rehearsal action per provider; not sustained/production"},
     {"id": "E-17", "claim": "Published commands reproduce from a clean clone", "artifact": "benchmarks/results/clean-clone-2026-08-03.json", "scope": "offline gates only"},
-    {"id": "E-19", "claim": "Interactive Seal Lab refuses controlled plan and target drift", "artifact": "/incident/api/seal-lab", "scope": "public fixture context; tools held; no external mutations"}
+    {"id": "E-19", "claim": "Interactive Seal Lab refuses controlled plan and target drift", "artifact": "/incident/api/seal-lab", "scope": "public fixture context; tools held; no external mutations"},
+    {"id": "E-20", "claim": "Interactive DataHub Context Cut withdraws authority when required owner or lineage facts are removed", "artifact": "/incident/api/context-cut/full-map", "scope": "recorded model plan held fixed; synthetic context cuts; live deterministic policy replay; planner/verifiers not rerun; no tools"}
   ],
   "producedLiveArtifacts": {
     "date": "2026-08-03",
@@ -61,6 +62,7 @@
   },
   "reproduce": {
     "fullGate": "make judge-check",
+    "contextCut": "make context-cut-trace",
     "realPipelineBenchmark": "make incident-benchmark-real-pipeline",
     "localReplay": "make incident-demo",
     "liveRehearsal": "uv run python scripts/run_live_incident_rehearsal.py --confirm-live"

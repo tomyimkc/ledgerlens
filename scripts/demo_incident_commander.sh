@@ -27,7 +27,11 @@ esac
 echo "LedgerLens Incident Commander"
 echo "  URL: http://${host}:${port}/incident"
 echo "  mode: FIXTURE / REPLAY"
-echo "  authorization: ${authorization_flag#--}"
+if [[ "$authorization_flag" == "--autonomous" ]]; then
+  echo "  execution: automatic only after policy authorization"
+else
+  echo "  execution: held for manual authorization"
+fi
 echo "  external mutations: false"
 echo "  candidateOnly: true"
 echo "  canClaimAGI: false"

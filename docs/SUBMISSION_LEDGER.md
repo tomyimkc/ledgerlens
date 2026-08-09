@@ -92,7 +92,7 @@ uv run python scripts/run_live_incident_rehearsal.py --confirm-live
 
 ## 6. Internal readiness snapshot (not official scores)
 
-Five-core average **6.8 / 10**, bonus **4.5 / 10** (separate). Verdict: **finalist-capable**.
+Five-core average **7.5 / 10**, bonus **4.5 / 10** (separate). Verdict: **finalist-capable**.
 Full per-criterion breakdown in [`docs/WINNER_READINESS.md`](WINNER_READINESS.md).
 
 ## 7. Owner-only remaining checklist
