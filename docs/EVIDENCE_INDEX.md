@@ -6,6 +6,10 @@ Start with the [public fixture replay](https://tomyimkc-ledgerlens-incident-comm
 
 For candid rubric gaps and the non-video scorecard, see the [winner-readiness scorecard](WINNER_READINESS.md).
 
+The regenerated contest-video method and local QA contract are documented in
+[`docs/demo/NATIVE_GROK_VIDEO.md`](demo/NATIVE_GROK_VIDEO.md). The replacement file is not assigned
+an evidence ID until its public upload, title, and clean-browser playback are verified.
+
 ## Evidence map
 
 | ID | Claim that can be checked | How to check it | Artifact | Scope and limitation | Rubric connection |

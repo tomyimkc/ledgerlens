@@ -18,7 +18,8 @@ DATAHUB_DEMO_PASSWORD ?= datahub
 	incident-demo-manual incident-benchmark incident-benchmark-real-pipeline \
 	incident-catalog-bundle ai-rehearsal context-cut-trace public-evidence-receipts \
 	live-evidence-ladder judge-check submission-consistency hosted-smoke hosted-continuity \
-	non-video-readiness
+	non-video-readiness integrated-live-seed-context integrated-live-preflight \
+	integrated-live-rehearsal
 
 help: ## Show available targets.
 	@awk 'BEGIN {FS = ":.*## "; printf "LedgerLens targets:\\n\\n"} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-20s %s\\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -86,6 +87,28 @@ incident-catalog-bundle: ## Build the 120-asset DataHub proposal bundle without 
 
 ai-rehearsal: ## Run the native OpenAI/Anthropic planner + verifier panel without mutations.
 	uv run python scripts/run_incident_ai_rehearsal.py --force
+
+integrated-live-preflight: ## Read live DataHub context only; no model, provider, or mutation call.
+	uv run python scripts/run_integrated_live_incident_rehearsal.py --preflight
+
+integrated-live-seed-context: ## OWNER-ONLY: ingest visibly synthetic DataHub context for the supervised run.
+	@test "$$CONFIRM_DATAHUB_CONTEXT_SEED" = "INGEST_SYNTHETIC_CONTEXT" || { \
+		echo "Refusing DataHub mutation. Set CONFIRM_DATAHUB_CONTEXT_SEED=INGEST_SYNTHETIC_CONTEXT after reviewing docs/INTEGRATED_LIVE_REHEARSAL.md."; \
+		exit 2; \
+	}
+	uv run python scripts/ingest_incident_catalog.py \
+		--output artifacts/integrated-live-rehearsal/datahub-context-seed.json \
+		--execute \
+		--confirm-live-datahub-catalog-ingest
+
+integrated-live-rehearsal: ## OWNER-ONLY: DataHub read → sealed provider actions → write-back → read-back.
+	@test "$$CONFIRM_INTEGRATED_LIVE" = "READ_ACT_WRITE" || { \
+		echo "Refusing live actions. Set CONFIRM_INTEGRATED_LIVE=READ_ACT_WRITE after reviewing docs/INTEGRATED_LIVE_REHEARSAL.md."; \
+		exit 2; \
+	}
+	uv run python scripts/run_integrated_live_incident_rehearsal.py \
+		--confirm-live-provider-actions \
+		--confirm-live-datahub-writeback
 
 context-cut-trace: ## Rebuild the no-network DataHub Context Cut from recorded Agent I/O.
 	uv run python scripts/build_context_cut_trace.py --force

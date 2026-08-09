@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "ledgerlens.native-grok-scenes.v2",
+  "title": "LedgerLens — Policy-Sealed Incident Commander",
+  "profilePortrait": "presenter-reference.png",
+  "profileSource": "polygraph-video-assets/gen/presenter-reference.png",
+  "pipeline": "portrait base frame → data URI → grok-imagine-video-1.5 → native audio and lip sync",
+  "model": "grok-imagine-video-1.5",
+  "durationSecondsPerClip": 15,
+  "candidateOnly": true,
+  "canClaimAGI": false,
+  "scenes": [
+    {
+      "id": "01-intro",
+      "presenterSide": "LEFT",
+      "base": "left-a.png",
+      "expression": "warm, direct, and precise, introducing a safety-focused engineering project",
+      "speech": "Hi, I'm Tom, and I built LedgerLens, a policy-sealed incident commander on DataHub. The model may propose work, but deterministic policy alone authorizes the exact reviewed plan."
+    },
+    {
+      "id": "02-problem",
+      "presenterSide": "RIGHT",
+      "base": "right-a.png",
+      "expression": "serious and concise, explaining the operational trust problem without drama",
+      "speech": "Most agent demos stop at fluent suggestions. On-call teams need bounded work with receipts. A model that proposes and then authorizes itself is a liability. The problem is authority, not fluency."
+    },
+    {
+      "id": "03-live-host",
+      "presenterSide": "LEFT",
+      "base": "left-b.png",
+      "expression": "calm product walkthrough, directing attention to an honest public demo",
+      "speech": "This is the public LedgerLens host. You can open it without an account. The fixture label matters: external mutations are off, candidate only is true, and there is no A.G.I. claim."
+    },
+    {
+      "id": "04-seal-lab",
+      "presenterSide": "RIGHT",
+      "base": "right-b.png",
+      "expression": "practical and confident, demonstrating a falsifiable product behavior",
+      "speech": "Open the Seal Lab. Authorize the reviewed plan, then change one tool or target. The fingerprint changes and the current server gate refuses execution before any provider tool can run."
+    },
+    {
+      "id": "05-datahub-context",
+      "presenterSide": "LEFT",
+      "base": "left-a.png",
+      "expression": "focused teacher explaining why DataHub is technically load-bearing",
+      "speech": "DataHub supplies the operating facts: entity, owner, tier, runbook, and lineage. LedgerLens requires those fact identifiers before specific tools become eligible. Lineage remains metadata, not causal proof."
+    },
+    {
+      "id": "06-context-cut",
+      "presenterSide": "RIGHT",
+      "base": "right-a.png",
+      "expression": "precise and analytical, explaining a controlled ablation",
+      "speech": "The Context Cut keeps the recorded plan fixed, removes ownership or lineage, and runs the same production policy code. Authority disappears because required DataHub facts are missing. The system fails closed."
+    },
+    {
+      "id": "07-deny-hero",
+      "presenterSide": "LEFT",
+      "base": "left-b.png",
+      "expression": "firm and memorable, delivering the central differentiator",
+      "speech": "Here is the differentiator. Only the reviewed plan is authorized. Append one Slack action after review, and the new fingerprint is denied. Advisory model votes cannot expand what the seal permits."
+    },
+    {
+      "id": "08-evidence-ladder",
+      "presenterSide": "RIGHT",
+      "base": "right-b.png",
+      "expression": "evidence-first and candid, separating distinct proof classes",
+      "speech": "The Live Evidence Ladder keeps proof classes separate. E sixteen is one bounded provider rehearsal. E seven is a separate DataHub write and read-back. E twenty-one repeatedly samples the public contract."
+    },
+    {
+      "id": "09-open-gap",
+      "presenterSide": "LEFT",
+      "base": "left-a.png",
+      "expression": "careful and transparent, naming what remains unproven",
+      "speech": "The ladder also shows the open gap. Provider action and DataHub write-back were separate runs. The next safe test is one supervised read, sealed action, write-back, and read-back in a single receipt."
+    },
+    {
+      "id": "10-close",
+      "presenterSide": "RIGHT",
+      "base": "right-a.png",
+      "expression": "confident close with restrained claims",
+      "speech": "LedgerLens makes authority inspectable: DataHub grounds the plan, deterministic policy seals exact work, and receipts preserve what happened. Candidate only. No A.G.I. or production reliability claim."
+    }
+  ]
+}

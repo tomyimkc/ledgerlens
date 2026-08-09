@@ -15,6 +15,9 @@
 - **Required public video title:** `LedgerLens — Policy-Sealed Incident Commander (DataHub Agent Hackathon)`
 - **Video-title status:** account-authorized rename still required; do not use “Autonomous” in the
   final judge-facing title
+- **Replacement cut status:** a 150.059-second Policy-Sealed Grok/Remotion cut passed the local
+  technical verifier and representative-frame review; public upload and clean-browser playback
+  remain owner actions
 - **Current public baseline:** `v0.2.0` at merged commit
   `00063e40bfc785f13e6db938e0795928e4f843ba`
 - **Final release target:** `v0.2.1` — **pending the final merged submission revision; not yet published**
@@ -76,7 +79,10 @@ The public **Live Evidence Ladder** then separates three network-touching claims
 compressing them into “production”: E-16 is one four-provider rehearsal, E-07 is a separate
 DataHub write/read receipt, and E-21 is a short-window repeated sample of the deployed fixture and
 policy labs. The ladder exposes that E-16 and E-07 share an incident identity but were not one
-process, and names the still-missing combined read → act → write-back receipt.
+process, and names the still-missing combined read → act → write-back receipt. A separate
+owner-only harness now fails closed around that exact test, but the harness is not evidence until
+one authorized run completes every provider action, DataHub write-back, and exact-URN MCP
+read-back.
 
 Separate evidence receipts establish narrower live facts:
 
@@ -232,6 +238,8 @@ it was captured against. The hosted public smoke also passed against the live fi
 - [x] Publish the external evaluation kit without inventing results.
 - [x] Describe Slack, PagerDuty, and Jira as executed once as a bounded rehearsal (E-16), not as sustained or production operation.
 - [x] Open upstream issue #159 and PR #160; state that PR #160 remains open, not merged.
+- [x] Regenerate and locally verify the 150.059-second Policy-Sealed replacement video with an
+      always-visible generated-presenter disclosure and captured product-evidence panels.
 - [ ] Rename the public YouTube video to **LedgerLens — Policy-Sealed Incident Commander (DataHub
       Agent Hackathon)** and verify the Devpost embed reflects it.
 - [ ] Publish final `v0.2.1` from the final merged submission revision.

@@ -138,6 +138,7 @@ def build_action_executor(
     *,
     transports: dict[str, Any] | None = None,
     timeout: float = 15.0,
+    subject: str = "autonomous-data-incident-commander",
 ) -> ActionRegistryExecutor:
     """Assemble the real four-provider executor.
 
@@ -174,7 +175,11 @@ def build_action_executor(
             timeout=timeout,
         ),
     }
-    return ActionRegistryExecutor(adapters, authorizer=authorizer)
+    return ActionRegistryExecutor(
+        adapters,
+        authorizer=authorizer,
+        subject=subject,
+    )
 
 
 def _automation_policy(
