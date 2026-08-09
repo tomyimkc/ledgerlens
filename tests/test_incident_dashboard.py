@@ -281,7 +281,7 @@ def test_router_mounts_under_custom_prefix_with_its_own_assets() -> None:
     assert css.status_code == 200
     assert "--signal: #0f766e" in css.text
     assert script.status_code == 200
-    assert "HOW THIS REPO WORKS" in script.text or "how-repo-works" in script.text
+    assert "how-repo-works" in script.text or "agentic-flow" in script.text
     assert "get_entities" in script.text
     assert "save_document" in script.text
     # Demo UI must parse and wire interactive controls + link real source.
@@ -300,6 +300,11 @@ def test_router_mounts_under_custom_prefix_with_its_own_assets() -> None:
     assert "table-scope-limits" in script.text
     assert "planning is not authority" in script.text.lower() or "Planning is not authority" in script.text
     assert "AI plan mode" in script.text
+    # Agentic / tool-use framing (not fixed 8-step BPMN product language).
+    assert "AGENTIC FLOW" in script.text or "agentic-flow" in script.text
+    assert "tool-belt" in script.text
+    assert "LEDGERLENS_LLM_ENABLED" in script.text
+    assert "Eight steps from data looks wrong" not in script.text
     # Do not ship meta “how hard a judge can push” framing on the public demo.
     assert "How hard a judge can push" not in script.text
     assert "FOR SKEPTICAL JUDGES" not in script.text

@@ -60,11 +60,12 @@
     {% if state.fixture %}
       <div class="topbar" data-testid="fixture-label">
         <nav class="topnav" aria-label="Project links">
-          <a class="tnav-btn primary" href="#ai-or-not">Does it use AI?</a>
+          <a class="tnav-btn primary" href="#ai-or-not">AI-native?</a>
           <a class="tnav-btn" href="#unique">What is unique?</a>
           <a class="tnav-btn" href="#vs-plan-mode">vs AI plan mode</a>
-          <a class="tnav-btn" href="#alternate-plan">Disagree with AI?</a>
-          <a class="tnav-btn" href="#how-repo-works">Step by step</a>
+          <a class="tnav-btn" href="#how-repo-works">Agentic flow</a>
+          <a class="tnav-btn" href="#tool-belt">Your tools</a>
+          <a class="tnav-btn" href="#alternate-plan">Revise plan</a>
           <a class="tnav-btn" href="#real-code">Real code</a>
           <a class="tnav-btn" href="#gate-demo">Live proof</a>
           <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens" target="_blank" rel="noopener">GitHub</a>
@@ -88,7 +89,7 @@
           <div class="flow-hero">
             <div>
               <p class="eyebrow">PUBLIC DEMO · SAFE REPLAY · PLAIN ENGLISH</p>
-              <h1>When data looks wrong, help the right people act — without letting AI approve itself.</h1>
+              <h1>AI agent for data incidents — your tools, your model, policy-sealed tool use.</h1>
             </div>
             <button type="button" class="button button-signal" data-flow-replay data-trigger-incident>
               <span aria-hidden="true">↑</span> Restart
@@ -96,8 +97,8 @@
           </div>
           <div class="orient">
             <span class="orient-lead">
-              DataHub is the company's data map. LedgerLens reads that map, may use AI to draft steps,
-              then uses hard rules for the final yes/no — and leaves a receipt.
+              Agentic loop: sense with DataHub tools → LLM plans allowlisted tool calls → non-model gate
+              seals the exact plan → adapters run → receipt back to DataHub. AI proposes; AI does not authorize.
             </span>
           </div>
           <div class="timeline" data-timeline aria-label="Incident events"></div>

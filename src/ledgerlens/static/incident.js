@@ -61,44 +61,51 @@
         h("span", { class: "sysarrow-h", "aria-hidden": "true", text: "\u2192" }));
     return h("section", { class: "sec", id: "what" },
       h("p", { class: "sec-eyebrow", text: "IN ONE SENTENCE" }),
-      h("h2", { class: "sec-title", text: "When company data looks wrong, LedgerLens helps the right people act — safely" }),
+      h("h2", { class: "sec-title", text: "An AI agent for data incidents — with tools you own, and a lock the model cannot open" }),
       h("p", { class: "sec-note" },
         "Think of ", h("b", { text: "DataHub" }),
-        " as the company map of its data: who owns a table, what depends on it, and when quality checks fail. ",
-        "LedgerLens is a helper that ", h("b", { text: "reads that map" }),
-        ", may use AI to draft a short to-do list (ticket, Slack, page), ",
-        h("b", { text: "then uses hard rules — not the model — for the final yes/no" }),
-        " on the exact reviewed plan, runs only allowlisted tools, and writes a paper trail back into DataHub."),
+        " as the company map of its data. LedgerLens is an ",
+        h("b", { text: "AI-native incident agent" }),
+        ": it ", h("b", { text: "calls tools" }),
+        " (DataHub MCP, GitHub, Slack, PagerDuty, Jira — and more you allowlist), ",
+        "uses ", h("b", { text: "your LLM" }),
+        " to choose which tool calls to propose, then a ",
+        h("b", { text: "non-model policy gate" }),
+        " decides whether that exact tool plan may run. Receipts go back into DataHub."),
       h("p", { class: "sec-note pitch-line" },
-        h("b", { text: "Unlike AI plan mode: " }),
-        "planning is not authority. The model may propose; it may not authorize itself."),
+        h("b", { text: "Agentic, not a fixed BPMN workflow: " }),
+        "the model selects from a tool belt; the sequence is one agent turn with observe → plan tool calls → (optional) review → authorize → execute tools → write memory. ",
+        "Planning is not authority — tool use only after the seal matches."),
       h("p", { class: "sec-note" },
-        "It is ", h("b", { text: "not a chatbot you chat with" }),
-        ", and ", h("b", { text: "not a plug-in that replaces DataHub" }),
-        ". It is software you run next to DataHub, using DataHub official tools."),
+        "Not a free-chat bot that invents owners. Not a rigid eight-box flowchart product. ",
+        "It is an agent runtime you put next to DataHub, with ",
+        h("b", { text: "bring-your-own model" }),
+        " and ",
+        h("b", { text: "tools you integrate" }),
+        "."),
       h("div", { class: "sysmap", "data-testid": "system-map" },
-        box("Your DataHub", "who owns what · what depends on what"),
-        arrow("reads the map", "official DataHub tools"),
-        box("LedgerLens", "suggest \u2192 check \u2192 act", "us"),
-        arrow("only allowed tools", "ticket · chat · page"),
-        box("Your team tools", "GitHub · Slack · PagerDuty · Jira")),
+        box("Your DataHub", "MCP tools · owners · lineage"),
+        arrow("agent tools", "get_entities · get_lineage"),
+        box("LedgerLens agent", "LLM plan + policy gate", "us"),
+        arrow("allowlisted tools", "you register targets"),
+        box("Your tools", "GitHub · Slack · PD · Jira · …")),
       h("p", { class: "syswrite" },
-        "\u21a9 After acting, it files a short report back into DataHub so the next person (or helper) can pick up where it left off."));
+        "\u21a9 After tool runs, one allowlisted write-back tool files a receipt in DataHub for the next agent or human."));
   };
 
   const buildAiSplit = () => {
     const uses = h("article", { class: "ai-card uses" },
-      h("h3", { text: "Uses an LLM (the drafting brain)" }),
+      h("h3", { text: "AI-native (agent brain + tool choice)" }),
       h("ul", {},
-        h("li", { text: "Suggests a short list of safe, reversible steps (open an issue, notify Slack, page on-call)." }),
-        h("li", { text: "A second model pass can review that list — still only advice." }),
-        h("li", { text: "You bring your own model (any OpenAI-compatible endpoint). On this public demo page, the fixture shows the same structure with fixed example data." })));
+        h("li", { text: "Planner model proposes a structured tool plan (which allowlisted tools, which targets)." }),
+        h("li", { text: "Optional verifier models review that tool plan — still advice, not authority." }),
+        h("li", { text: "Bring your own LLM: any OpenAI-compatible endpoint (LEDGERLENS_LLM_*). Public demo uses fixed fixture structure without charging your key." })));
     const noAi = h("article", { class: "ai-card no-ai" },
-      h("h3", { text: "Does NOT use an LLM (the safety lock)" }),
+      h("h3", { text: "Not AI (tool facts + policy lock)" }),
       h("ul", {},
-        h("li", { text: "Reading who owns the data and what sits downstream comes from DataHub, not from the model inventing owners." }),
-        h("li", { text: "The final yes/no to run actions is ordinary Python policy: allowlists, reversible actions only, and a fingerprint of the exact reviewed plan." }),
-        h("li", { text: "If someone changes the plan after review (even by one Slack post), the lock refuses. The model cannot override that." })));
+        h("li", { text: "Catalog facts come from DataHub tool calls, not from the model inventing owners." }),
+        h("li", { text: "Tool execution is gated by ordinary Python policy: allowlists, reversible actions, exact plan fingerprint." }),
+        h("li", { text: "If the agent’s tool plan changes after review (even one extra Slack post), the lock refuses. The model cannot override that." })));
     return h("section", { class: "sec", id: "ai-or-not", "data-testid": "ai-or-not" },
       h("p", { class: "sec-eyebrow", text: "DOES IT USE AN LLM?" }),
       h("h2", { class: "sec-title", text: "Yes for drafting. No for the final go / no-go." }),
@@ -529,54 +536,64 @@
         h("a", { href: EVIDENCE, target: "_blank", rel: "noopener", text: "EVIDENCE_INDEX.md" }),
         "."));
 
-  const REPO_STEPS = [
-    { n: "1", title: "Something looks wrong in the data", file: "src/ledgerlens/orchestrator.py", fileLabel: "orchestrator.py",
-      why: "A quality check fails — for example a daily payments table is late.",
-      does: "LedgerLens opens an incident file: what broke, how bad, which dataset.",
-      ai: "No LLM here.", io: "Starts from an alert / trigger about one dataset." },
-    { n: "2", title: "Look up the map in DataHub", file: "src/ledgerlens/datahub_context.py", fileLabel: "datahub_context.py",
-      why: "You need the real owner and what might break next — not a guess.",
-      does: "Asks DataHub: who owns this? how important is it? what depends on it? Is there a runbook?",
-      ai: "No LLM. Catalog facts only.", io: "Reads DataHub (entities + lineage). Notes what is still unknown." },
-    { n: "3", title: "Draft a short to-do list", file: "src/ledgerlens/orchestrator.py", fileLabel: "planner (in orchestrator)",
-      why: "Humans need a concrete next step, not a novel.",
-      does: "An LLM may suggest only allowed, undo-friendly actions (ticket, chat, page). It fingerprints that exact list.",
-      ai: "Yes — LLM drafts the plan.", io: "Out: plan + fingerprint (the seal)." },
-    { n: "4", title: "Optional second opinion from AI", file: "src/ledgerlens/verification.py", fileLabel: "verification.py",
-      why: "A second look can catch a bad suggestion — still not a green light.",
-      does: "Verifier models vote approve/reject. Their vote is advice only.",
-      ai: "Yes — LLM advice only. Cannot unlock actions.", io: "Out: advisory votes + confidence." },
-    { n: "5", title: "Safety lock: may this exact plan run?", file: "src/ledgerlens/verification.py", fileLabel: "policy gate (Python)",
-      why: "This is where most chatbot agents stop being safe enough for production.",
-      does: "Ordinary Python checks: grounded in DataHub, only allowlisted tools, reversible, seal still matches. Fail closed.",
-      ai: "No LLM. Deterministic policy.", io: "Out: AUTHORIZED or DENIED + reasons." },
-    { n: "6", title: "Do the approved work only", file: "src/ledgerlens/actions/", fileLabel: "actions/*",
-      why: "Teams need a ticket or a page — with a receipt.",
-      does: "Runs only the approved tools (GitHub, Slack, PagerDuty, Jira). Nothing else.",
-      ai: "No LLM deciding new targets.", io: "Out: receipts (on this public page: safe fixture examples)." },
-    { n: "7", title: "File a report back in DataHub", file: "src/ledgerlens/datahub_writeback.py", fileLabel: "datahub_writeback.py",
-      why: "The next person should not start from zero.",
-      does: "Writes one allowlisted document into DataHub (the incident receipt) and can read it back.",
-      ai: "No LLM inventing the receipt.", io: "Out: document id in DataHub for the next agent." },
-    { n: "8", title: "Hand off cleanly", file: "src/ledgerlens/orchestrator.py", fileLabel: "memory / handoff",
-      why: "Honest systems admit what they do not know.",
-      does: "Packages known facts, unknowns (cause, impact, recovery unless proven), and what to check next.",
-      ai: "No LLM rewriting history.", io: "Out: handoff package for the next operator or agent." },
+  // Agentic turn phases (not a fixed BPMN workflow product).
+  const AGENT_PHASES = [
+    { n: "A", role: "sense", title: "Observe with tools", file: "src/ledgerlens/datahub_context.py", fileLabel: "datahub_context.py",
+      why: "The agent must ground on catalog truth, not chat memory.",
+      does: "Tool calls into DataHub (MCP): entity, owners, tier, lineage / blast radius. Unknowns stay unknown.",
+      ai: "No LLM inventing owners — tools return facts.",
+      io: "Tools: get_entities · get_lineage  →  IncidentContext" },
+    { n: "B", role: "plan", title: "Agent plans tool calls", file: "src/ledgerlens/orchestrator.py", fileLabel: "orchestrator + planner",
+      why: "An agent without tools is only prose. Here the model chooses from a tool schema.",
+      does: "Your LLM proposes a structured ActionPlan: which allowlisted tools, targets, and parameters. That plan is fingerprinted (the seal).",
+      ai: "Yes — LLM agent drafts the tool plan (BYO model).",
+      io: "In: context + tool schema  →  Out: plan + plan_fingerprint" },
+    { n: "C", role: "critique", title: "Optional AI critique", file: "src/ledgerlens/verification.py", fileLabel: "verification.py",
+      why: "A second model can catch a bad tool proposal — still not a green light.",
+      does: "Verifier models vote on the same plan. Votes are advisory; they cannot open the gate alone.",
+      ai: "Yes — LLM advice only.",
+      io: "Out: advisory quorum signals (not authorization)" },
+    { n: "D", role: "gate", title: "Policy authorizes the exact tool plan", file: "src/ledgerlens/verification.py", fileLabel: "PolicyGate",
+      why: "This is what free-form agents usually skip: non-model authority.",
+      does: "Python policy: grounded facts, allowlisted tools/targets, reversible, fingerprint match, claim boundary. Fail closed.",
+      ai: "No LLM. Deterministic policy.",
+      io: "Out: AUTHORIZED | DENIED + reason codes" },
+    { n: "E", role: "act", title: "Execute only sealed tool calls", file: "src/ledgerlens/actions/", fileLabel: "actions/* adapters",
+      why: "Real work happens in your systems — with receipts.",
+      does: "Tool adapters run the authorized invocations (GitHub issue, Slack post, PagerDuty note, Jira task, …). No extra tools mid-flight.",
+      ai: "No LLM inventing new targets after the seal.",
+      io: "Out: provider receipts (demo page: fixture:// examples)" },
+    { n: "F", role: "memory", title: "Write memory + hand off", file: "src/ledgerlens/datahub_writeback.py", fileLabel: "datahub_writeback.py",
+      why: "The next agent or human should not start from zero.",
+      does: "Allowlisted DataHub write-back tool stores the receipt; handoff keeps knowns and unknowns explicit.",
+      ai: "No LLM rewriting history.",
+      io: "Tools: save_document  →  next-agent package" },
+  ];
+
+  const TOOL_BELT = [
+    { kind: "read", name: "DataHub MCP read", tools: "get_entities · get_lineage", how: "Official DataHub tools — map + blast radius", file: "src/ledgerlens/datahub_context.py" },
+    { kind: "write", name: "DataHub MCP write", tools: "save_document (allowlisted)", how: "One receipt document, not free catalog edits", file: "src/ledgerlens/datahub_writeback.py" },
+    { kind: "act", name: "GitHub", tools: "github.issue.create", how: "Adapter + allowlisted repo targets", file: "src/ledgerlens/actions/github.py" },
+    { kind: "act", name: "Slack", tools: "slack.message.post", how: "Adapter + allowlisted channels", file: "src/ledgerlens/actions/slack.py" },
+    { kind: "act", name: "PagerDuty", tools: "pagerduty.incident.note", how: "Adapter + allowlisted incidents", file: "src/ledgerlens/actions/pagerduty.py" },
+    { kind: "act", name: "Jira", tools: "jira.issue.create", how: "Adapter + allowlisted projects", file: "src/ledgerlens/actions/jira.py" },
+    { kind: "brain", name: "Your LLM", tools: "OpenAI-compatible chat API", how: "Planner + optional verifiers via LEDGERLENS_LLM_*", file: "src/ledgerlens/config.py" },
+    { kind: "you", name: "Your tool next", tools: "new action type + adapter", how: "Implement adapter, register allowlist targets, expose in tool schema", file: "src/ledgerlens/actions/base.py" },
   ];
 
   const buildRepoHow = () => {
     const list = h("div", { class: "repo-steps", "data-testid": "repo-how-it-works" });
-    for (const s of REPO_STEPS) {
+    for (const s of AGENT_PHASES) {
       const bodyEl = h("div", { class: "repo-step-body" },
         h("p", { class: "repo-why" }, h("b", { text: "Why — " }), s.why),
-        h("p", { class: "repo-does" }, h("b", { text: "What happens — " }), s.does),
+        h("p", { class: "repo-does" }, h("b", { text: "Agent does — " }), s.does),
         h("p", { class: "repo-ai" },
-          h("b", { text: "LLM here? " }),
+          h("b", { text: "AI / tools — " }),
           h("span", { class: s.ai.startsWith("Yes") ? "ai-yes" : "ai-no", text: s.ai })),
         h("pre", { class: "code-block repo-io", text: s.io }),
         h("p", { class: "repo-file" }, "In the code: ", fileLink(s.file, s.fileLabel)));
       const head = h("button", { type: "button", class: "repo-step-hd", "aria-expanded": "true" },
-        h("span", { class: "repo-n", text: s.n }),
+        h("span", { class: "repo-n role-" + s.role, text: s.n }),
         h("span", { class: "repo-title", text: s.title }),
         h("span", { class: "repo-chev", "aria-hidden": "true", text: "\u25be" }));
       head.addEventListener("click", () => {
@@ -585,17 +602,75 @@
         bodyEl.hidden = open;
         head.querySelector(".repo-chev").textContent = open ? "\u25b8" : "\u25be";
       });
-      list.append(h("article", { class: "repo-step", "data-step": s.n }, head, bodyEl));
+      list.append(h("article", { class: "repo-step", "data-step": s.n, "data-role": s.role }, head, bodyEl));
     }
-    return h("section", { class: "sec", id: "how-repo-works" },
-      h("p", { class: "sec-eyebrow", text: "HOW IT WORKS — STEP BY STEP" }),
-      h("h2", { class: "sec-title", text: "Eight steps from data looks wrong to work is done and logged" }),
+    return h("section", { class: "sec", id: "how-repo-works", "data-testid": "agentic-flow" },
+      h("p", { class: "sec-eyebrow", text: "AGENTIC FLOW — ONE AGENT TURN" }),
+      h("h2", { class: "sec-title", text: "Not a fixed 8-step workflow — an AI agent that uses tools under a policy lock" }),
       h("p", { class: "sec-note" },
-        "Tap a step to expand. Each one says whether an LLM is involved, in plain words, and links to the real file for technical readers. ",
-        "If the draft in step 3 is wrong, jump to ",
-        h("a", { href: "#alternate-plan", text: "Disagree with AI?" }),
-        " — swap the plan and re-seal under the same lock."),
+        "What looked like “eight boxes” is really ",
+        h("b", { text: "one agentic turn" }),
+        ": observe with tools → plan tool calls with your LLM → optional critique → ",
+        h("b", { text: "non-model authorize" }),
+        " → execute sealed tools → write memory. ",
+        "The agent chooses among tools you enable; it does not invent authority. ",
+        "Wrong tool plan? ",
+        h("a", { href: "#alternate-plan", text: "Revise and re-seal" }),
+        " under the same lock."),
       list);
+  };
+
+  const buildToolBelt = () => {
+    const grid = h("div", { class: "tool-belt-grid", "data-testid": "tool-belt" });
+    for (const t of TOOL_BELT) {
+      grid.append(h("article", { class: "tool-card kind-" + t.kind },
+        h("span", { class: "tool-kind", text: t.kind }),
+        h("h3", { text: t.name }),
+        h("code", { class: "tool-names", text: t.tools }),
+        h("p", { text: t.how }),
+        h("p", { class: "repo-file" }, fileLink(t.file, t.file.split("/").pop()))));
+    }
+    return h("section", { class: "sec", id: "tool-belt", "data-testid": "integrate-tools" },
+      h("p", { class: "sec-eyebrow", text: "AI-NATIVE TOOL USE" }),
+      h("h2", { class: "sec-title", text: "Enable AI + integrate your tools" }),
+      h("p", { class: "sec-note" },
+        "This is the agentic product surface: a ",
+        h("b", { text: "tool belt" }),
+        " the planner can select from, plus a policy that only runs what you allowlisted. ",
+        "You bring the model. You register tools and targets. LedgerLens does not hard-code “only these four vendors forever” in the architecture — adapters are the extension point."),
+      h("div", { class: "tool-enable", "data-testid": "enable-ai" },
+        h("h3", { class: "table-title", text: "1. Enable the agent brain (your LLM)" }),
+        h("pre", { class: "code-block", text: [
+          "export LEDGERLENS_LLM_ENABLED=true",
+          "export LEDGERLENS_LLM_API_KEY=…          # your key",
+          "export LEDGERLENS_LLM_BASE_URL=…        # any OpenAI-compatible endpoint",
+          "export LEDGERLENS_LLM_MODEL=…           # planner / verifier model id",
+          "# → planner proposes tool plans; verifiers may critique (still advisory)",
+        ].join("\n") }),
+        h("p", { class: "sec-note" },
+          "Config: ", fileLink("src/ledgerlens/config.py", "config.py"),
+          ". Public Space stays fixture-only so judges need no key.")),
+      h("h3", { class: "table-title", text: "2. Tool belt the agent can propose" }),
+      grid,
+      h("h3", { class: "table-title", text: "3. Integrate your own tool (pattern)" }),
+      h("pre", { class: "code-block", text: [
+        "# Pattern (see actions/base.py + runtime_factory allowlists):",
+        "1. Implement an ActionAdapter for your system (preview + execute + receipt)",
+        "2. Register action_type in the policy allowlist with allowed targets",
+        "3. Expose that action in the planner tool schema so the LLM can select it",
+        "4. Gate still seals the exact plan — new tool cannot self-authorize",
+        "",
+        "# Built-ins today: github.issue.create · slack.message.post",
+        "#   pagerduty.incident.note · jira.issue.create · datahub.incident.writeback",
+      ].join("\n") }),
+      h("p", { class: "sec-foot" },
+        "Code: ",
+        fileLink("src/ledgerlens/actions/base.py", "actions/base.py"),
+        " · ",
+        fileLink("src/ledgerlens/runtime_factory.py", "runtime_factory.py"),
+        " · ",
+        fileLink("src/ledgerlens/orchestrator.py", "orchestrator.py"),
+        ". Live four-tool rehearsal: evidence E-16."));
   };
 
   const buildMcpIo = () => {
@@ -634,14 +709,12 @@
   };
 
   const NODES = [
-    ["1", "Alert", "data looks wrong"],
-    ["2", "DataHub", "read the map"],
-    ["3", "Draft", "AI suggests steps"],
-    ["4", "Review", "AI advice only"],
-    ["5", "Lock", "Python says go/no-go"],
-    ["6", "Act", "tickets · chat · page"],
-    ["7", "Receipt", "back into DataHub"],
-    ["8", "Handoff", "next person"],
+    ["A", "Sense", "tools → DataHub"],
+    ["B", "Plan", "LLM picks tools"],
+    ["C", "Critique", "LLM advice"],
+    ["D", "Gate", "policy yes/no"],
+    ["E", "Tools", "your adapters"],
+    ["F", "Memory", "receipt + handoff"],
   ];
   const buildPipe = () => {
     const pipe = h("div", { class: "pipe" });
@@ -656,26 +729,28 @@
       }
     });
     return h("section", { class: "sec", id: "pipeline" },
-      h("p", { class: "sec-eyebrow", text: "THE FULL PATH" }),
-      h("h2", { class: "sec-title", text: "Alert → map → draft → lock → act → receipt" }),
+      h("p", { class: "sec-eyebrow", text: "ONE AGENT TURN" }),
+      h("h2", { class: "sec-title", text: "Sense → plan tools → gate → run tools → memory" }),
       h("div", { class: "pipe-wrap" }, pipe),
       h("p", { class: "sec-foot" },
-        "Steps 3–4 can use an LLM. The ", h("b", { text: "Lock" }),
-        " step is plain Python and has the final say."));
+        "B–C are AI-native. ", h("b", { text: "D (Gate)" }),
+        " is plain Python and has the final say. E is ",
+        h("b", { text: "your tool integrations" }),
+        " — only what the sealed plan named."));
   };
 
   const TERMINAL = [
     { cmd: "make incident-demo", href: BLOB + "Makefile" },
     { cmd: "# → uv run bash scripts/demo_incident_commander.sh", href: BLOB + "scripts/demo_incident_commander.sh" },
     { cmd: "# → ledgerlens incident-commander --fixture", href: BLOB + "src/ledgerlens/cli.py#L406" },
-    { tag: "alert", msg: "payments table late (23 min > 15 min limit)" },
-    { tag: "DataHub", msg: "looked up owner + what depends on it", ok: "owner found · 3 downstream", href: BLOB + "src/ledgerlens/datahub_context.py" },
-    { tag: "LLM draft", msg: "suggested safe steps", ok: "sealed plan_fingerprint", href: BLOB + "src/ledgerlens/incident_dashboard.py#L339" },
-    { tag: "LLM review", msg: "second opinion: looks ok", ok: "advice only", href: BLOB + "src/ledgerlens/verification.py" },
-    { tag: "Python lock", msg: "evaluate_authorization · allowlist · seal", ok: "AUTHORIZED", href: BLOB + "src/ledgerlens/incident_dashboard.py#L1064" },
-    { tag: "tools", msg: "ticket · Slack · page · Jira", ok: "receipts recorded", href: BLOB + "src/ledgerlens/actions/" },
-    { tag: "DataHub", msg: "filed incident receipt", ok: "next person can continue", href: BLOB + "src/ledgerlens/datahub_writeback.py" },
-    { done: "finished · no root-cause or recovery claim · fixture data only" },
+    { tag: "trigger", msg: "payments table late (23 min > 15 min limit)" },
+    { tag: "tool", msg: "DataHub get_entities + get_lineage", ok: "owner · 3 downstream", href: BLOB + "src/ledgerlens/datahub_context.py" },
+    { tag: "agent", msg: "LLM planned tool calls (allowlisted only)", ok: "sealed plan_fingerprint", href: BLOB + "src/ledgerlens/orchestrator.py" },
+    { tag: "critique", msg: "verifier models reviewed tool plan", ok: "advice only", href: BLOB + "src/ledgerlens/verification.py" },
+    { tag: "gate", msg: "policy: allowlist · seal · grounded", ok: "AUTHORIZED", href: BLOB + "src/ledgerlens/verification.py" },
+    { tag: "tools", msg: "GitHub · Slack · PagerDuty · Jira adapters", ok: "receipts", href: BLOB + "src/ledgerlens/actions/" },
+    { tag: "tool", msg: "DataHub save_document write-back", ok: "next agent can continue", href: BLOB + "src/ledgerlens/datahub_writeback.py" },
+    { done: "agent turn complete · no root-cause claim · fixture data on this public page" },
   ];
   const termLine = (l) => {
     if (l.cmd) {
@@ -812,10 +887,11 @@
 
   const gateWhere = () => {
     const strip = h("div", { class: "gate-where-strip" });
-    NODES.forEach(([, label], i) => {
-      const cls = i === 4 ? " active" : (i < 4 ? " done" : "");
+    // Gate is phase D (index 3) in the agent turn.
+    NODES.forEach(([icon, label], i) => {
+      const cls = i === 3 ? " active" : (i < 3 ? " done" : "");
       strip.append(h("div", { class: "gw-node" + cls },
-        h("span", { class: "gw-n", text: String(i + 1) }),
+        h("span", { class: "gw-n", text: icon }),
         h("span", { class: "gw-label", text: label })));
       if (i < NODES.length - 1) {
         strip.append(h("span", { class: "gw-arrow", "aria-hidden": "true", text: "\u2192" }));
@@ -824,10 +900,10 @@
     return h("div", { class: "gate-where" },
       strip,
       h("p", { class: "gate-where-cap" },
-        h("b", { text: "When this runs — " }),
-        "after the draft and optional AI review, ",
+        h("b", { text: "When the gate runs — " }),
+        "after the agent planned tool calls and optional AI critique, ",
         h("b", { text: "before" }),
-        " any ticket or page goes out. Implemented as ordinary Python in ",
+        " any adapter fires. Ordinary Python in ",
         fileLink("src/ledgerlens/verification.py", "verification.py"), "."));
   };
 
@@ -895,23 +971,31 @@
 
   const buildSetup = () => {
     const cards = [
-      { n: "1", t: "Try the safe demo (this page)",
+      { n: "1", t: "Try the safe agent demo (this page)",
         code: [
           "git clone https://github.com/tomyimkc/ledgerlens.git",
           "cd ledgerlens && make setup && make incident-demo",
-          "# opens a local copy of this walkthrough",
+          "# fixture agent turn — no live tool side effects",
         ],
-        note: "No real tickets, no real pages, no paid model required for the fixture path." },
-      { n: "2", t: "Connect your own DataHub later",
+        note: "See the agent loop without charging an LLM or firing real tools." },
+      { n: "2", t: "Enable AI-native planning (your model)",
         code: [
-          "export DATAHUB_GMS_URL=…   # your catalog",
-          "export DATAHUB_TOKEN=…",
-          "# plus only the tools you allow (GitHub, Slack, …)",
-          "# plus your LLM key if you want live drafting",
+          "export LEDGERLENS_LLM_ENABLED=true",
+          "export LEDGERLENS_LLM_API_KEY=…",
+          "export LEDGERLENS_LLM_BASE_URL=…   # OpenAI-compatible",
+          "export LEDGERLENS_LLM_MODEL=…",
         ],
-        note: "You choose the allowlist. The safety lock still has the final yes/no." },
+        note: "Planner + optional verifiers become live. Gate stays non-model." },
+      { n: "3", t: "Connect DataHub + your tools",
+        code: [
+          "export DATAHUB_GMS_URL=…  DATAHUB_TOKEN=…",
+          "# allowlist only the tools/targets you trust",
+          "# GitHub / Slack / PagerDuty / Jira tokens as needed",
+          "# add your adapter under src/ledgerlens/actions/",
+        ],
+        note: "You integrate tools; the agent may only propose allowlisted ones." },
     ];
-    const grid = h("div", { class: "setup-grid" });
+    const grid = h("div", { class: "setup-grid setup-grid-3" });
     for (const s of cards) {
       grid.append(h("article", { class: "setup-card" },
         h("div", { class: "setup-hd" }, h("span", { class: "setup-n", text: s.n }), h("h3", { text: s.t })),
@@ -920,14 +1004,16 @@
     }
     return h("section", { class: "sec", id: "get-started" },
       h("p", { class: "sec-eyebrow", text: "TRY IT" }),
-      h("h2", { class: "sec-title", text: "Start safe, connect later" }),
+      h("h2", { class: "sec-title", text: "Fixture first — then AI + your tools" }),
       grid,
       h("p", { class: "sec-foot" },
         h("a", { href: REPO + "#readme", target: "_blank", rel: "noopener", text: "README" }),
         " · ",
+        h("a", { href: "#tool-belt", text: "Tool belt" }),
+        " · ",
         h("a", { href: EVIDENCE, target: "_blank", rel: "noopener", text: "Evidence" }),
         " · ",
-        h("a", { href: BLOB + "ARCHITECTURE.md", target: "_blank", rel: "noopener", text: "Architecture (technical)" })));
+        h("a", { href: BLOB + "ARCHITECTURE.md", target: "_blank", rel: "noopener", text: "Architecture" })));
   };
 
   const scrollToId = (id) => {
@@ -966,17 +1052,17 @@
     const heroCopy = root.querySelector(".flow-hero > div");
     if (heroCopy && !heroCopy.querySelector(".hero-sub")) {
       heroCopy.append(h("p", { class: "hero-sub", text:
-        "Plain English: DataHub is the company data map. LedgerLens reads that map, may use AI to draft a short to-do list, then uses hard rules (not the AI) to decide what may run — and leaves a receipt." }));
+        "AI-native agent for data incidents: your LLM plans tool calls against DataHub and team systems you allowlist; a non-model policy seals the exact plan before tools run — then receipts go back into DataHub." }));
     }
     const orient = root.querySelector(".orient");
     if (orient && !orient.querySelector(".toc-links")) {
       orient.append(h("nav", { class: "toc-links", "aria-label": "On this page" },
-        h("a", { href: "#ai-or-not", text: "Does it use AI?" }),
+        h("a", { href: "#ai-or-not", text: "AI-native?" }),
         h("a", { href: "#unique", text: "What is unique?" }),
         h("a", { href: "#vs-plan-mode", text: "vs AI plan mode" }),
-        h("a", { href: "#alternate-plan", text: "Disagree with AI?" }),
-        h("a", { href: "#how-repo-works", text: "Step by step" }),
-        h("a", { href: "#real-code", text: "Real code" }),
+        h("a", { href: "#how-repo-works", text: "Agentic flow" }),
+        h("a", { href: "#tool-belt", text: "Your tools" }),
+        h("a", { href: "#alternate-plan", text: "Revise plan" }),
         h("a", { href: "#gate-demo", text: "Live proof" }),
         h("a", { href: "#get-started", text: "Try it" })));
     }
@@ -1109,8 +1195,9 @@
       buildAiSplit(),
       buildUnique(),
       buildVsPlanMode(),
-      buildAlternatePlan(),
       buildRepoHow(),
+      buildToolBelt(),
+      buildAlternatePlan(),
       buildRealCode(),
       buildMcpIo(),
       buildPipe(),
