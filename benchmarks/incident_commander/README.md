@@ -75,7 +75,7 @@ python scripts/run_incident_commander_benchmark.py \
 
 `PASS` means the catalog and scorer contracts executed and the declared
 context-ON safety/correctness gates passed on this synthetic fixture. It does
-not establish live DataHub compatibility, production readiness, autonomous
+not establish live DataHub compatibility, production readiness, unsupervised
 remediation safety, model uplift, independent validation, or AGI.
 
 ## Companion: the real-pipeline ablation
@@ -114,3 +114,23 @@ a controlled input — it does **not** show that context makes the system smarte
 and it says nothing about the real LLM-backed planner/verifier, which this
 benchmark deliberately does not exercise. `ownerAccuracy` and
 `blastRadiusRecall` measure what the context contained, not planner skill.
+
+## Companion: Live Evidence Ladder
+
+[`live-evidence-ladder.json`](live-evidence-ladder.json) is a judge-facing manifest across three
+different evidence classes:
+
+1. E-16: one policy-sealed, four-provider rehearsal;
+2. E-07: a separate DataHub document write and official-MCP read-back;
+3. E-21: repeated credential-free samples of the public fixture and policy labs.
+
+The builder verifies claim flags, provider success, shared incident identity, and the SHA-256
+digests of E-16 and E-07. It deliberately records `integratedSameProcessRun: false`. E-21 executes
+no provider tool and does not convert fixture reachability into an uptime, reliability, or
+production claim.
+
+```bash
+make public-evidence-receipts
+make live-evidence-ladder
+make hosted-continuity
+```

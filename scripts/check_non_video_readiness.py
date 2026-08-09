@@ -13,7 +13,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 DEFERRED_BLOCKERS = (
     "Final v0.2.1 tag and commit from the final merged submission state.",
-    "Owner clean-browser review of Devpost team/eligibility, public video, and project URLs.",
+    "Rename the current public YouTube title from the stale 'Autonomous' wording, then complete "
+    "an owner clean-browser review of Devpost team/eligibility, public video, and project URLs.",
     "Two consented formative external reviews; no result is claimed before they exist.",
     "A live DataHub read/write-back inside the same rehearsal run; the four-provider "
     "fanout is produced (E-16), but the in-run DataHub segment needs the owner's instance.",
@@ -147,13 +148,53 @@ def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
                 ("externalMutation",): True,
             },
         ),
+        (
+            "benchmarks/incident_commander/public-ai-verification-receipt.json",
+            {
+                ("publicDerivative",): True,
+                ("authorization", "authorized"): True,
+                ("externalMutations",): False,
+            },
+        ),
+        (
+            "benchmarks/incident_commander/public-live-incident-rehearsal-receipt.json",
+            {
+                ("publicDerivative",): True,
+                ("status",): "executed",
+                ("authorization", "authorized"): True,
+                ("externalMutations",): True,
+            },
+        ),
+        (
+            "benchmarks/incident_commander/public-datahub-live-writeback-receipt.json",
+            {
+                ("publicDerivative",): True,
+                ("status",): "applied",
+                ("result", "success"): True,
+                ("nextAgentRetrieval", "retrieved"): True,
+                ("externalMutation",): True,
+            },
+        ),
+        (
+            "benchmarks/incident_commander/live-evidence-ladder.json",
+            {
+                ("crossReceiptChecks", "sameIncidentId"): True,
+                ("crossReceiptChecks", "claimBoundaryPreserved"): True,
+                ("crossReceiptChecks", "integratedSameProcessRun"): False,
+                ("openGap", "integratedLiveDataHubReadActWriteSameRun"): False,
+            },
+        ),
     )
     for relative, expectations in receipt_contracts:
         check_receipt(root, relative, expectations, errors)
 
     required_paths = (
         ".github/workflows/hosted-smoke.yml",
+        ".github/workflows/hosted-continuity.yml",
         "scripts/check_hosted_incident_demo.py",
+        "scripts/check_hosted_continuity.py",
+        "scripts/build_public_evidence_receipts.py",
+        "scripts/build_live_evidence_ladder.py",
         "docs/EVIDENCE_INDEX.md",
         "docs/WINNER_READINESS.md",
         "docs/evaluation/INCIDENT_COMMANDER_SCORECARD.md",
@@ -202,6 +243,29 @@ def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
     if "secrets." in hosted_workflow:
         errors.append(".github/workflows/hosted-smoke.yml: public smoke must not require secrets")
 
+    continuity_workflow = (root / ".github/workflows/hosted-continuity.yml").read_text(
+        encoding="utf-8"
+    )
+    _require_text(
+        continuity_workflow,
+        (
+            "schedule:",
+            "workflow_dispatch:",
+            "actions/setup-python@v6",
+            'python-version: "3.12"',
+            "python3 scripts/check_hosted_continuity.py",
+            "External mutations: **false**",
+            "Provider tools executed: **false**",
+            "not an uptime SLO",
+        ),
+        label=".github/workflows/hosted-continuity.yml",
+        errors=errors,
+    )
+    if "secrets." in continuity_workflow:
+        errors.append(
+            ".github/workflows/hosted-continuity.yml: continuity sampling must not require secrets"
+        )
+
     readme = _read_required_text(root, "README.md", errors)
     submission = _read_required_text(root, "docs/DEVPOST_SUBMISSION.md", errors)
     writeup = _read_required_text(root, "docs/DEVPOST_WRITEUP.md", errors)
@@ -217,6 +281,8 @@ def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
             "docs/LIVE_DATAHUB_PUBLIC.md",
             "docs/EXTERNAL_EVALUATION.md",
             "benchmarks/results/live-public-proof-2026-07-31.json",
+            "Live Evidence Ladder",
+            ".github/workflows/hosted-continuity.yml",
         ),
         label="README.md",
         errors=errors,
@@ -246,6 +312,8 @@ def evaluate_repository(root: Path = ROOT) -> tuple[list[str], tuple[str, ...]]:
             "live-public-proof-2026-07-31.json",
             "EXTERNAL_EVALUATION.md",
             "PR #160 remains open",
+            "Live Evidence Ladder",
+            "E-21",
         ),
         label="docs/DEVPOST_SUBMISSION.md",
         errors=errors,

@@ -2013,6 +2013,52 @@ def create_incident_router(
             headers=_content_security_headers(),
         )
 
+    @router.get("/api/live-evidence-ladder", name="incident_live_evidence_ladder")
+    async def api_live_evidence_ladder() -> Any:
+        """Serve the deterministic cross-receipt evidence index.
+
+        The artifact keeps E-16 provider execution, E-07 DataHub write/read, and the
+        repeated hosted contract workflow as separate evidence classes. It never presents
+        them as one integrated production run.
+        """
+
+        path = _STATIC_ROOT / "live-evidence-ladder.json"
+        if not path.exists():
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "detail": (
+                        "No live-evidence ladder yet. Generate with: "
+                        "uv run python scripts/build_live_evidence_ladder.py"
+                    ),
+                    "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
+                },
+                status_code=404,
+                headers=_content_security_headers(),
+            )
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(payload, Mapping):
+                raise ValueError("live-evidence ladder must be an object")
+        except (json.JSONDecodeError, OSError, ValueError) as exc:
+            return JSONResponse(
+                {
+                    "ok": False,
+                    "detail": f"Live-evidence ladder unreadable: {exc}",
+                    "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
+                },
+                status_code=500,
+                headers=_content_security_headers(),
+            )
+        return JSONResponse(
+            {
+                "ok": True,
+                "ladder": payload,
+                "claim_boundary": copy.deepcopy(CLAIM_BOUNDARY),
+            },
+            headers=_content_security_headers(),
+        )
+
     @router.get("/api/live-receipts", name="incident_live_receipts")
     async def api_live_receipts() -> Any:
         # Real per-incident run receipts, published by scripts/build_live_receipts_index.py.

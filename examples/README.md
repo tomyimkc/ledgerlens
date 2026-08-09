@@ -16,7 +16,7 @@ to DataHub for the next responder.
 
 ## 1. One incident, end to end (real OpenAI GPT-5.6 rehearsal)
 
-Source: [`benchmarks/incident_commander/ai-verification-receipt.json`](../benchmarks/incident_commander/ai-verification-receipt.json)
+Source: [`benchmarks/incident_commander/public-ai-verification-receipt.json`](../benchmarks/incident_commander/public-ai-verification-receipt.json)
 · evidence [E-08](../docs/EVIDENCE_INDEX.md)
 
 **Incident** `inc-analytics-downstream_availability-01` — *"Product Analytics: Critical data
@@ -112,7 +112,7 @@ context makes the system smarter.
 
 ## 4. One linked four-provider rehearsal
 
-Source: [`benchmarks/incident_commander/live-incident-rehearsal-receipt.json`](../benchmarks/incident_commander/live-incident-rehearsal-receipt.json)
+Source: [`benchmarks/incident_commander/public-live-incident-rehearsal-receipt.json`](../benchmarks/incident_commander/public-live-incident-rehearsal-receipt.json)
 · evidence [E-16](../docs/EVIDENCE_INDEX.md)
 
 On August 3, 2026, one supervised run executed one clearly labeled rehearsal action
@@ -130,12 +130,27 @@ and evidence E-06.
 
 ## 5. One real DataHub write-back
 
-Source: [`benchmarks/incident_commander/datahub-live-writeback-receipt.json`](../benchmarks/incident_commander/datahub-live-writeback-receipt.json)
+Source: [`benchmarks/incident_commander/public-datahub-live-writeback-receipt.json`](../benchmarks/incident_commander/public-datahub-live-writeback-receipt.json)
 · evidence [E-07](../docs/EVIDENCE_INDEX.md)
 
 An authorized `save_document` mutation persisted an incident snapshot to a local DataHub
 OSS v1.6.0 instance, followed by a fresh official-MCP read-back of the written document.
 Local OSS evidence — it does not prove recovery, causality, or a hosted public deployment.
+
+---
+
+## 6. Live evidence without pretending it was one production run
+
+Source: [`benchmarks/incident_commander/live-evidence-ladder.json`](../benchmarks/incident_commander/live-evidence-ladder.json)
+· evidence [E-21](../docs/EVIDENCE_INDEX.md)
+
+The ladder binds E-16 and E-07 to their archived source receipts with SHA-256, verifies the same
+incident identity, and says `integratedSameProcessRun: false`. Its third rung links the
+credential-free hosted continuity workflow. That workflow repeatedly checks the fixture, Seal Lab,
+and Context Cut; it executes no provider tool and is not an uptime or reliability study.
+
+The deliberately visible missing artifact is one supervised DataHub read → sealed provider
+action → DataHub write-back → MCP read-back sequence in a single receipt.
 
 ---
 
@@ -146,6 +161,8 @@ make setup
 make context-cut-trace                  # rebuilds §2 without network or credentials
 make incident-benchmark-real-pipeline   # regenerates the §3 receipt deterministically
 make ai-rehearsal                       # regenerates the §1 receipt (needs an OpenAI GPT-5.6 API key)
+make public-evidence-receipts           # rebuilds presentation-safe live-evidence views
+make live-evidence-ladder               # verifies and indexes E-16/E-07/E-21
 make judge-check                        # the full evidence gate
 ```
 

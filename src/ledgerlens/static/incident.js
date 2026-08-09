@@ -1266,6 +1266,89 @@
     return section;
   };
 
+  const buildLiveEvidenceLadder = async () => {
+    const response = await fetch(apiBase + "/live-evidence-ladder", {
+      credentials: "same-origin",
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.ladder) {
+      throw new Error(payload.detail || "Live-evidence ladder request failed.");
+    }
+    const ladder = payload.ladder;
+    const cards = h("div", { class: "evidence-ladder-grid" });
+    const artifacts = {
+      "E-16": BLOB + "benchmarks/incident_commander/public-live-incident-rehearsal-receipt.json",
+      "E-07": BLOB + "benchmarks/incident_commander/public-datahub-live-writeback-receipt.json",
+      "E-21": REPO + "/actions/workflows/hosted-continuity.yml",
+    };
+    list(ladder.layers).forEach((layer, index) => {
+      const mutations = layer.externalMutations === true;
+      const badge = mutations ? "BOUNDED LIVE MUTATION" : "NO EXTERNAL MUTATION";
+      const facts = [];
+      if (layer.providerActionCount) facts.push(layer.providerActionCount + " provider actions");
+      if (layer.retrieved) facts.push("MCP read-back observed");
+      if (layer.evidenceId === "E-21") facts.push("time-separated public samples");
+      cards.append(h("article", {
+        class: "evidence-rung " + (mutations ? "live" : "sample"),
+      },
+      h("div", { class: "evidence-rung-index", text: String(index + 1).padStart(2, "0") }),
+      h("div", { class: "evidence-rung-body" },
+        h("div", { class: "evidence-rung-head" },
+          h("span", { text: badge }),
+          h("a", {
+            href: artifacts[layer.evidenceId] || EVIDENCE,
+            target: "_blank",
+            rel: "noopener",
+            text: layer.evidenceId || "evidence",
+          })),
+        h("h3", { text: layer.label || "Evidence layer" }),
+        facts.length ? h("p", { class: "evidence-rung-facts", text: facts.join(" · ") }) : null,
+        h("p", {}, h("b", { text: "Proves: " }), layer.proves || ""),
+        h("p", { class: "evidence-rung-limit" },
+          h("b", { text: "Does not prove: " }), layer.doesNotProve || ""))));
+    });
+    const gap = ladder.openGap || {};
+    const checks = ladder.crossReceiptChecks || {};
+    return h("section", {
+      class: "sec live-evidence-ladder",
+      id: "live-evidence",
+      "data-testid": "live-evidence-ladder",
+    },
+    h("p", { class: "sec-eyebrow", text: "LIVE EVIDENCE · NO COLLAPSING THE LAYERS" }),
+    h("h2", { class: "sec-title", text: "A flight manifest for what actually touched a network" }),
+    h("p", { class: "sec-note" },
+      "Instead of calling one rehearsal “production,” this ladder binds each evidence class to ",
+      h("b", { text: "exactly what happened" }),
+      ": provider actions, DataHub write/read, or repeated public contract checks. The records share an incident identity, but the page refuses to pretend they were one process."),
+    h("div", { class: "evidence-chain-meta" },
+      h("div", {}, h("small", { text: "SHARED INCIDENT" }),
+        h("code", { text: ladder.incidentId || "unavailable" })),
+      h("div", {}, h("small", { text: "CHAIN DIGEST" }),
+        h("code", { text: checks.evidenceChainDigest || "unavailable" })),
+      h("div", {}, h("small", { text: "SAME PROCESS?" }),
+        h("strong", { text: checks.integratedSameProcessRun ? "YES" : "NO — DISCLOSED" }))),
+    cards,
+    h("article", { class: "evidence-open-gap" },
+      h("span", { text: gap.label || "Not yet proven" }),
+      h("h3", { text: "The missing receipt is visible, not hand-waved away" }),
+      h("p", { text: gap.nextSafeTest || "" }),
+      h("ul", {},
+        h("li", { text: "Integrated live DataHub read → provider act → write-back in one run: not proven" }),
+        h("li", { text: "Sustained provider operation or production reliability: not proven" }),
+        h("li", { text: "Incident recovery or independent validation: not proven" }))),
+    h("p", { class: "sec-foot" },
+      "E-21 samples the public fixture and policy labs repeatedly; it executes no provider tool. ",
+      h("a", {
+        href: REPO + "/actions/workflows/hosted-continuity.yml",
+        target: "_blank",
+        rel: "noopener",
+        text: "Open the latest hosted continuity workflow",
+      }),
+      " · ",
+      h("a", { href: EVIDENCE, target: "_blank", rel: "noopener", text: "Evidence index" }),
+      "."));
+  };
+
   const COMPARISON = [
     { s: "Late data table", d: "payments feed is behind schedule",
       af: "May send a fixed alert if someone wired a rule.",
@@ -1402,22 +1485,20 @@
     const heroCopy = root.querySelector(".flow-hero > div");
     if (heroCopy && !heroCopy.querySelector(".hero-sub")) {
       heroCopy.append(h("p", { class: "hero-sub", text:
-        "AI-native agent for data incidents: your LLM plans tool calls against DataHub and team systems you allowlist; a non-model policy seals the exact plan before tools run — then receipts go back into DataHub." }));
+        "An LLM proposes allowlisted tool calls. DataHub evidence determines which are eligible. A non-model gate seals the exact reviewed plan before any tool runs — then receipts return to DataHub." }));
     }
     const orient = root.querySelector(".orient");
     if (orient && !orient.querySelector(".toc-links")) {
       const home = (apiBase || "").replace(/\/api\/?$/, "") || "";
       orient.append(h("nav", { class: "toc-links", "aria-label": "On this page" },
-        h("a", { href: "#ai-or-not", text: "AI-native?" }),
         h("a", { href: "#unique", text: "What is unique?" }),
-        h("a", { href: "#vs-plan-mode", text: "vs AI plan mode" }),
-        h("a", { href: "#how-repo-works", text: "Agentic flow" }),
-        h("a", { href: "#tool-belt", text: "Your tools" }),
-        h("a", { href: "#alternate-plan", text: "Revise plan" }),
         h("a", { href: "#gate-demo", text: "Seal Lab" }),
         h("a", { href: "#context-cut", text: "Context Cut" }),
-        h("a", { href: "#get-started", text: "Try it" }),
-        h("a", { class: "toc-page", href: home + "/agent-io", text: "Agent I/O page →" })));
+        h("a", { href: "#live-evidence", text: "Live Evidence" }),
+        h("a", { class: "toc-page", href: home + "/agent-io", text: "Agent I/O →" }),
+        h("a", { href: "#how-repo-works", text: "Agentic flow" }),
+        h("a", { href: "#alternate-plan", text: "Revise plan" }),
+        h("a", { href: "#get-started", text: "Try it" })));
     }
   };
 
@@ -1539,6 +1620,7 @@
         h("span", { class: "sv-spinner", "aria-hidden": "true" }), GATE));
     let proof = null;
     let contextCut = null;
+    let liveEvidence = null;
     try {
       proof = await buildProofSection();
     } catch (_e) {
@@ -1549,12 +1631,18 @@
     } catch (_e) {
       contextCut = null;
     }
+    try {
+      liveEvidence = await buildLiveEvidenceLadder();
+    } catch (_e) {
+      liveEvidence = null;
+    }
     detailEl.replaceChildren(
       buildWhat(),
       buildAiSplit(),
       buildUnique(),
       ...(proof ? [proof] : []),
       ...(contextCut ? [contextCut] : []),
+      ...(liveEvidence ? [liveEvidence] : []),
       buildVsPlanMode(),
       buildRepoHow(),
       buildToolBelt(),

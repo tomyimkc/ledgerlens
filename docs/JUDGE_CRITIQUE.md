@@ -6,13 +6,16 @@ This is an internal readiness assessment, not a judging result.
 
 ## Thirty-second verdict
 
-LedgerLens now has two judge-testable ideas rather than one long explanation:
+LedgerLens now has three judge-testable ideas rather than one long explanation:
 
 1. **Seal Lab:** mutate the reviewed plan and the current server gate refuses drift, a verifier
    objection, or an off-allowlist target before any tool runs.
 2. **DataHub Context Cut:** hold one recorded model plan fixed, remove ownership or lineage, and
    the current server policy withdraws authority because the tool's required catalog facts are
    absent.
+3. **Live Evidence Ladder:** inspect exactly which layer touched providers, which layer wrote and
+   read DataHub, and which layer repeatedly sampled the hosted contract—plus the combined
+   read→act→write receipt that is still missing.
 
 That combination is distinctive: **the model proposes work, DataHub supplies the facts that make
 specific tools eligible, and deterministic policy binds authority to the exact plan.** It is more
@@ -39,7 +42,9 @@ catalog logo.
    abstention and exposes evidence requirements to the tool-using planner, but no fresh adaptive
    model trace was produced in this hardening pass, so none is claimed.
 3. **Live work remains narrow.** E-16 is one supervised action per provider on August 3, 2026,
-   not sustained reliability, scale, adoption, or incident recovery.
+   not sustained reliability, scale, adoption, or incident recovery. E-21 reduces dependence on
+   one hosted request, but deliberately does not convert fixture availability into provider
+   reliability.
 4. **External judgment is absent.** The consent-safe reviewer protocol exists, but no completed
    review can be reported until real people participate and consent.
 5. **Submission edges remain time-sensitive.** The public YouTube title still uses “Autonomous,”
@@ -59,7 +64,7 @@ catalog logo.
 
 **Five-core estimate:** **7.5 / 10.** Winner-contending concept, not winner-safe evidence.
 
-## Big bet shipped: DataHub Context Cut
+## Big bets shipped: DataHub Context Cut + Live Evidence Ladder
 
 The Context Cut is intentionally a controlled authorization ablation, not model theater:
 
@@ -74,12 +79,16 @@ The full map authorizes. Removing ownership, lineage, or most catalog facts deni
 planner is not re-run, the proof supports only the narrow claim that DataHub facts are required
 for authorization of that plan.
 
+The Live Evidence Ladder then cryptographically indexes E-16 and E-07, verifies their shared
+incident identity and claim flags, keeps their separate-process status visible, and links the E-21
+repeated hosted contract workflow. It is an evidence manifest, not a reliability score.
+
 ## Next highest-value bet
 
 Do not add another dashboard. The remaining winner delta is external packaging:
 
 1. get two role-appropriate formative reviewers using the consent-safe 7–10 minute protocol;
-2. update or replace the public video so its title and first minute show **Policy-Sealed**,
+2. rename or replace the public video so its title and first minute show **Policy-Sealed**,
    Seal Lab, then Context Cut;
 3. if an owner-controlled DataHub instance is available, record one combined
    read → plan → authorize → bounded action → write-back receipt;

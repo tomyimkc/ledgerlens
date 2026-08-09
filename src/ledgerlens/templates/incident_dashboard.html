@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta
       name="description"
-      content="LedgerLens in plain English: read DataHub, draft with AI, lock with hard rules, leave receipts."
+      content="LedgerLens: DataHub grounds the incident plan, deterministic policy seals the exact work, and every action leaves a receipt."
     >
-    <title>LedgerLens · plain-English demo</title>
+    <title>LedgerLens · Policy-Sealed Incident Commander</title>
     <link rel="stylesheet" href="{{ base_path }}/assets/incident.css">
     <script defer src="{{ base_path }}/assets/incident.js"></script>
   </head>
@@ -39,7 +39,7 @@
         </span>
         <div>
           <strong>LedgerLens</strong>
-          <span>Safe data-incident helper for DataHub teams</span>
+          <span>Policy-sealed incident commander for DataHub</span>
         </div>
       </a>
 
@@ -73,20 +73,16 @@
     {% if state.fixture %}
       <div class="topbar" data-testid="fixture-label">
         <nav class="topnav" aria-label="Project links">
-          <a class="tnav-btn primary" href="#ai-or-not">AI-native?</a>
-          <a class="tnav-btn" href="#unique">What is unique?</a>
-          <a class="tnav-btn" href="#vs-plan-mode">vs AI plan mode</a>
-          <a class="tnav-btn" href="#how-repo-works">Agentic flow</a>
-          <a class="tnav-btn" href="#tool-belt">Your tools</a>
-          <a class="tnav-btn" href="#alternate-plan">Revise plan</a>
-          <a class="tnav-btn" href="#real-code">Real code</a>
+          <a class="tnav-btn primary" href="#unique">What is unique?</a>
           <a class="tnav-btn" href="#gate-demo">Seal Lab</a>
           <a class="tnav-btn" href="#context-cut">DataHub Context Cut</a>
+          <a class="tnav-btn" href="#live-evidence">Live Evidence</a>
           <a class="tnav-btn tnav-page" href="{{ base_path }}/agent-io">Agent I/O →</a>
+          <a class="tnav-btn" href="#how-repo-works">Agentic flow</a>
+          <a class="tnav-btn" href="#alternate-plan">Revise plan</a>
           <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens" target="_blank" rel="noopener">GitHub</a>
-          <a class="tnav-btn" href="https://github.com/tomyimkc/ledgerlens#readme" target="_blank" rel="noopener">README</a>
         </nav>
-        <span class="topbar-note">Safe public demo · no real tickets or pages · <a href="{{ base_path }}/agent-io">Agent I/O page</a></span>
+        <span class="topbar-note">Fixture replay · tools held · live receipts separately labeled</span>
       </div>
     {% elif state.availability != "ready" %}
       <aside class="live-warning" role="alert" data-testid="live-unconfigured">
@@ -104,7 +100,7 @@
           <div class="flow-hero">
             <div>
               <p class="eyebrow">PUBLIC DEMO · SAFE REPLAY · PLAIN ENGLISH</p>
-              <h1>AI agent for data incidents — your tools, your model, policy-sealed tool use.</h1>
+              <h1>DataHub grounds the plan. Deterministic policy seals exactly what may run.</h1>
             </div>
             <button type="button" class="button button-signal" data-flow-replay data-trigger-incident>
               <span aria-hidden="true">↑</span> Restart
