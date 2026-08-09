@@ -355,15 +355,21 @@ def test_agent_io_page_and_trace_endpoint() -> None:
     assert page.status_code == 200
     assert "Agent I/O" in page.text or "agent I/O" in page.text.lower()
     assert "agent-io.js" in page.text
-    # Bidirectional demo navigation
+    # Bidirectional demo navigation — several paths back to overview
     assert "page-switcher" in page.text
-    assert 'href="/incident"' in page.text or 'href="/incident/"' in page.text
+    assert 'href="/incident"' in page.text
     assert "Overview" in page.text
+    assert "Back to overview" in page.text or "← Overview" in page.text
+    # Trailing-slash variant must not 307 to a broken Location
+    page_slash = client.get("/incident/agent-io/", follow_redirects=False)
+    assert page_slash.status_code == 200
 
     main = client.get("/incident")
     assert main.status_code == 200
     assert "page-switcher" in main.text
     assert "/incident/agent-io" in main.text
+    main_slash = client.get("/incident/", follow_redirects=False)
+    assert main_slash.status_code == 200
 
     css = client.get("/incident/assets/agent-io.css")
     js = client.get("/incident/assets/agent-io.js")

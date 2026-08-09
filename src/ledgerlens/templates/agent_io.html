@@ -20,20 +20,28 @@
   >
     <a class="skip-link" href="#agent-io-main">Skip to content</a>
 
+    {# Absolute paths under the mount prefix — never rely on slash redirects. #}
     <nav class="page-switcher" aria-label="Demo pages">
-      <a class="page-switcher-item" href="{{ base_path }}">
+      <a class="page-switcher-item" href="{{ base_path }}" data-nav="overview">
         <span class="page-switcher-k">Demo</span>
         Overview
       </a>
-      <a class="page-switcher-item is-current" href="{{ base_path }}/agent-io" aria-current="page">
+      <a
+        class="page-switcher-item is-current"
+        href="{{ base_path }}/agent-io"
+        aria-current="page"
+        data-nav="agent-io"
+      >
         <span class="page-switcher-k">Demo</span>
         Agent I/O
       </a>
-      <span class="page-switcher-hint">Switch pages anytime</span>
+      <a class="page-switcher-back" href="{{ base_path }}" data-nav="overview-back">
+        ← Back to overview
+      </a>
     </nav>
 
     <header class="command-header">
-      <a class="brand-lockup brand-link" href="{{ base_path }}">
+      <a class="brand-lockup brand-link" href="{{ base_path }}" data-nav="brand">
         <span class="brand-sigil" aria-hidden="true"><i></i><i></i><i></i></span>
         <div>
           <strong>LedgerLens</strong>
@@ -41,7 +49,9 @@
         </div>
       </a>
       <nav class="header-context agent-io-nav" aria-label="On this page">
-        <a class="tnav-btn tnav-page" href="{{ base_path }}">← Overview</a>
+        <a class="tnav-btn tnav-page" href="{{ base_path }}" data-nav="overview-header">
+          ← Overview
+        </a>
         <a class="tnav-btn" href="#flow">Flow</a>
         <a class="tnav-btn primary" href="#llm-calls">LLM I/O</a>
         <a class="tnav-btn" href="#plan-gate">Plan + gate</a>
@@ -59,7 +69,7 @@
       <section class="sec agent-io-hero">
         <p class="sec-eyebrow">LIVE MODEL TRACE · OPENAI / ANTHROPIC</p>
         <p class="crumb">
-          <a href="{{ base_path }}">Overview</a>
+          <a href="{{ base_path }}" data-nav="overview-crumb">Overview</a>
           <span aria-hidden="true">/</span>
           <span>Agent I/O</span>
         </p>
@@ -74,6 +84,11 @@
         <p class="sec-note pitch-line">
           No GitHub / Slack / PagerDuty / Jira / DataHub mutations in this trace.
           API keys never appear here.
+        </p>
+        <p class="hero-nav-cta">
+          <a class="button button-signal" href="{{ base_path }}" data-nav="overview-cta">
+            ← Back to overview demo
+          </a>
         </p>
         <div class="agent-io-meta" data-trace-meta aria-live="polite">Loading trace…</div>
       </section>
@@ -149,11 +164,15 @@ uv run python scripts/run_agent_io_trace.py --force
         <p class="sec-eyebrow">MORE</p>
         <h2 class="sec-title">Continue exploring</h2>
         <div class="cross-nav-cards">
-          <a class="cross-nav-card" href="{{ base_path }}">
+          <a class="cross-nav-card" href="{{ base_path }}" data-nav="overview-card">
             <strong>← Overview demo</strong>
             <span>Agentic flow, tool belt, plan-exact proof, setup</span>
           </a>
-          <a class="cross-nav-card is-here" href="{{ base_path }}/agent-io" aria-current="page">
+          <a
+            class="cross-nav-card is-here"
+            href="{{ base_path }}/agent-io"
+            aria-current="page"
+          >
             <strong>Agent I/O (this page)</strong>
             <span>Prompts, model JSON, policy decision</span>
           </a>
@@ -163,7 +182,7 @@ uv run python scripts/run_agent_io_trace.py --force
 
     <footer class="site-footer-nav">
       <div class="footer-links">
-        <a href="{{ base_path }}">← Overview</a>
+        <a href="{{ base_path }}" data-nav="overview-footer">← Overview</a>
         <a href="{{ base_path }}/agent-io" aria-current="page">Agent I/O</a>
         <a href="https://github.com/tomyimkc/ledgerlens" target="_blank" rel="noopener">GitHub</a>
       </div>

@@ -1693,8 +1693,7 @@ def create_incident_router(
             payload["authorization"] = _redact(exc.authorization)
         return JSONResponse(payload, status_code=status_code, headers=_content_security_headers())
 
-    @router.get("", name="incident_dashboard")
-    async def dashboard(request: Request) -> Any:
+    async def _render_dashboard(request: Request) -> Any:
         try:
             state = await commander.snapshot()
             status_code = 200
@@ -1705,6 +1704,11 @@ def create_incident_router(
             )
             state["authorization"] = evaluate_authorization(state)
             status_code = 503
+        # no-store so reverse proxies (e.g. HF Spaces) do not keep a stale shell
+        headers = {
+            **_content_security_headers(),
+            "Cache-Control": "no-store",
+        }
         return templates.TemplateResponse(
             request=request,
             name="incident_dashboard.html",
@@ -1714,8 +1718,18 @@ def create_incident_router(
                 "state": state,
                 "base_path": clean_prefix,
             },
-            headers=_content_security_headers(),
+            headers=headers,
         )
+
+    # Register both "" and "/" so /incident and /incident/ work without a
+    # slash-redirect (HF proxies often rewrite Location to http:// and break HTTPS).
+    @router.get("", name="incident_dashboard")
+    async def dashboard(request: Request) -> Any:
+        return await _render_dashboard(request)
+
+    @router.get("/", name="incident_dashboard_slash", include_in_schema=False)
+    async def dashboard_slash(request: Request) -> Any:
+        return await _render_dashboard(request)
 
     @router.get("/assets/incident.css", name="incident_styles")
     async def incident_styles() -> Any:
@@ -1762,8 +1776,7 @@ def create_incident_router(
             },
         )
 
-    @router.get("/agent-io", name="agent_io_page")
-    async def agent_io_page(request: Request) -> Any:
+    async def _render_agent_io(request: Request) -> Any:
         """Demo page: planner/verifier prompts, JSON outputs, and policy gate."""
 
         return templates.TemplateResponse(
@@ -1774,8 +1787,19 @@ def create_incident_router(
                 "request": request,
                 "base_path": clean_prefix,
             },
-            headers=_content_security_headers(),
+            headers={
+                **_content_security_headers(),
+                "Cache-Control": "no-store",
+            },
         )
+
+    @router.get("/agent-io", name="agent_io_page")
+    async def agent_io_page(request: Request) -> Any:
+        return await _render_agent_io(request)
+
+    @router.get("/agent-io/", name="agent_io_page_slash", include_in_schema=False)
+    async def agent_io_page_slash(request: Request) -> Any:
+        return await _render_agent_io(request)
 
     @router.get("/api/agent-io-trace", name="agent_io_trace")
     async def agent_io_trace() -> Any:
@@ -1996,6 +2020,9 @@ def create_incident_app(
         title="LedgerLens Incident Commander",
         description="Evidence-bounded incident coordination and action receipts.",
         version="0.2.0",
+        # Behind HTTPS reverse proxies (HF Spaces), slash redirects can emit
+        # http:// Location headers that browsers refuse — serve both paths instead.
+        redirect_slashes=False,
     )
     application.include_router(
         create_incident_router(
