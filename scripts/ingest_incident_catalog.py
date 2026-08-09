@@ -17,6 +17,14 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path)
     parser.add_argument("--execute", action="store_true")
+    parser.add_argument(
+        "--confirm-live-datahub-catalog-ingest",
+        action="store_true",
+        help=(
+            "Required acknowledgment before emitting the visibly synthetic incident catalog "
+            "to a live DataHub instance."
+        ),
+    )
     args = parser.parse_args()
     bundle = build_incident_catalog_bundle(load_incident_catalog())
     if args.output:
@@ -24,6 +32,13 @@ def main() -> int:
         args.output.write_text(json.dumps(bundle, indent=2, sort_keys=True) + "\n")
     emitted = 0
     if args.execute:
+        if not args.confirm_live_datahub_catalog_ingest:
+            print(
+                "Refusing live DataHub catalog ingestion without "
+                "--confirm-live-datahub-catalog-ingest.",
+                file=sys.stderr,
+            )
+            return 2
         try:
             from datahub.emitter.rest_emitter import DatahubRestEmitter
             from datahub.metadata.schema_classes import (
@@ -69,6 +84,7 @@ def main() -> int:
                 "proposalCount": len(bundle["mcps"]),
                 "proposalsEmitted": emitted,
                 "mutated": args.execute,
+                "syntheticContextSeed": args.execute,
                 "candidateOnly": True,
                 "canClaimAGI": False,
             },

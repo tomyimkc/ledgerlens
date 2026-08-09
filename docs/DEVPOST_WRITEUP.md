@@ -212,11 +212,11 @@ change.
 ## What's next
 
 - Complete two consented formative reviews and publish only allowed aggregate information.
-- Record a single integrated DataHub read → sealed provider action → write-back → MCP read-back
-  receipt only on an owner-controlled instance; otherwise preserve the existing separate-run
-  disclosure.
-- Rename the public video from the stale “Autonomous” title to the Policy-Sealed title and verify
-  the watch page and Devpost embed in a clean browser.
+- Use the fail-closed supervised harness to record a single integrated DataHub read → sealed
+  provider action → write-back → MCP exact-URN read-back receipt only after explicit owner
+  authorization; otherwise preserve the existing separate-run disclosure.
+- Upload the verified 150.059-second Policy-Sealed replacement cut, remove the stale “Autonomous”
+  title, and verify the watch page and Devpost embed in a clean browser.
 - Respond to upstream review on DataHub MCP PR #160 without bypassing maintainers.
 - Add the public under-three-minute video URL, then cut the final `v0.2.1` release from the actual
   merged commit.

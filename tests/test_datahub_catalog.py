@@ -1,3 +1,6 @@
+import subprocess
+import sys
+
 from ledgerlens.catalog_runtime import load_incident_catalog
 from ledgerlens.datahub_catalog import build_incident_catalog_bundle
 
@@ -30,3 +33,19 @@ def test_catalog_assets_preserve_operational_context_in_datahub_properties() -> 
     assert properties["ledgerlens.qualityChecks"].startswith("[")
     assert properties["ledgerlens.candidateOnly"] == "true"
     assert properties["ledgerlens.canClaimAGI"] == "false"
+
+
+def test_live_catalog_ingest_requires_explicit_confirmation() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/ingest_incident_catalog.py",
+            "--execute",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "Refusing live DataHub catalog ingestion" in result.stderr

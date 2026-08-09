@@ -146,14 +146,15 @@ verification actions.
 
 ## Public video verification
 
-- [ ] Final public runtime is below three minutes.
-- [ ] Narration and captions are in English.
-- [ ] Product functionality is shown through real UI/terminal capture.
-- [ ] Any generated footage is clearly labeled and does not imitate product functionality.
-- [ ] No private path, credential, account detail, notification, or extension is visible.
+- [x] Replacement-cut runtime is 150.059 seconds, below three minutes.
+- [x] Replacement-cut narration and burned/selectable captions are in English.
+- [x] Product functionality is shown through captured LedgerLens UI and receipt-derived panels.
+- [x] The generated presenter is labeled throughout and is not treated as product evidence.
+- [x] Representative-frame review found no private path, credential, account detail,
+      notification, or extension.
 - [x] A YouTube URL is attached to the published Devpost project.
 - [ ] Video link works in a clean/incognito browser.
-- [ ] Captions are legible at 1080p.
+- [x] Replacement-cut captions are legible at 1080p in representative-frame review.
 - [ ] YouTube watch page and Devpost embed both show the Policy-Sealed title.
 
 ## Final release and submission — owner boundary

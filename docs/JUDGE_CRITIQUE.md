@@ -42,9 +42,9 @@ catalog logo.
    abstention and exposes evidence requirements to the tool-using planner, but no fresh adaptive
    model trace was produced in this hardening pass, so none is claimed.
 3. **Live work remains narrow.** E-16 is one supervised action per provider on August 3, 2026,
-   not sustained reliability, scale, adoption, or incident recovery. E-21 reduces dependence on
-   one hosted request, but deliberately does not convert fixture availability into provider
-   reliability.
+   not sustained reliability, scale, adoption, or incident recovery. A fail-closed integrated-run
+   harness now exists, but it does not become evidence until an owner-authorized run completes
+   every provider action, DataHub write-back, and exact-URN MCP read-back in one receipt.
 4. **External judgment is absent.** The consent-safe reviewer protocol exists, but no completed
    review can be reported until real people participate and consent.
 5. **Submission edges remain time-sensitive.** The public YouTube title still uses “Autonomous,”
@@ -88,10 +88,9 @@ repeated hosted contract workflow. It is an evidence manifest, not a reliability
 Do not add another dashboard. The remaining winner delta is external packaging:
 
 1. get two role-appropriate formative reviewers using the consent-safe 7–10 minute protocol;
-2. rename or replace the public video so its title and first minute show **Policy-Sealed**,
-   Seal Lab, then Context Cut;
-3. if an owner-controlled DataHub instance is available, record one combined
-   read → plan → authorize → bounded action → write-back receipt;
+2. publish the regenerated **Policy-Sealed** video and rename or replace the stale public title;
+3. use the supervised harness in `docs/INTEGRATED_LIVE_REHEARSAL.md` for one owner-controlled
+   read → plan → authorize → bounded action → write-back → read-back receipt;
 4. otherwise keep the public Space synthetic rather than weakening its safety boundary.
 
 ## Claim boundary
